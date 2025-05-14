@@ -60,8 +60,20 @@ const Login = () => {
         description: "Você será redirecionado para o dashboard",
       });
       
-      // Redirect to dashboard
-      setLocation("/");
+      console.log("Login successful - redirecting to dashboard");
+      
+      // Delay the redirect slightly to allow time for the session to be established
+      setTimeout(() => {
+        // First try with the router's setLocation
+        setLocation("/");
+        
+        // As a fallback, if that doesn't work in 300ms, use window.location
+        setTimeout(() => {
+          console.log("Forcing hard navigation to dashboard");
+          window.location.href = "/";
+        }, 300);
+      }, 200);
+      
     } catch (error) {
       console.error("Login error:", error);
       
@@ -71,7 +83,6 @@ const Login = () => {
         description: "Verifique seu nome de usuário e senha",
         variant: "destructive",
       });
-    } finally {
       setIsLoading(false);
     }
   };

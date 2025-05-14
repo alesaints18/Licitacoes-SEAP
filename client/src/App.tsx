@@ -31,8 +31,14 @@ function Router() {
         
         if (res.ok) {
           setIsAuthenticated(true);
+          console.log("User is authenticated");
+          // If the user is on the login page and is already authenticated, redirect to dashboard
+          if (location === "/login") {
+            setLocation("/");
+          }
         } else {
           setIsAuthenticated(false);
+          console.log("User is not authenticated");
           if (location !== "/login") {
             setLocation("/login");
           }
@@ -58,7 +64,11 @@ function Router() {
 
   // If not authenticated, only allow access to login page
   if (!isAuthenticated && location !== "/login") {
-    setLocation("/login");
+    console.log("Not authenticated and not on login page, redirecting to login");
+    // Use setTimeout to break the synchronous flow and avoid potential infinite loops
+    setTimeout(() => {
+      setLocation("/login");
+    }, 0);
     return null;
   }
 
