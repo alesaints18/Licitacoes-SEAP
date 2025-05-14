@@ -228,7 +228,7 @@ const Reports = () => {
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="1">Janeiro</SelectItem>
                   <SelectItem value="2">Fevereiro</SelectItem>
                   <SelectItem value="3">Março</SelectItem>

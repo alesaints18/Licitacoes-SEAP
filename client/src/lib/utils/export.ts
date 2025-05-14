@@ -26,7 +26,7 @@ function filterReportData(data: ReportData): Process[] {
   let filteredProcesses = [...data.processes];
   
   // Filter by month if specified
-  if (data.filters.month) {
+  if (data.filters.month && data.filters.month !== "all") {
     const monthIndex = parseInt(data.filters.month) - 1;
     filteredProcesses = filteredProcesses.filter(process => {
       const processMonth = new Date(process.createdAt).getMonth();
@@ -44,7 +44,7 @@ function filterReportData(data: ReportData): Process[] {
   }
   
   // Filter by department if specified
-  if (data.filters.department && data.departments) {
+  if (data.filters.department && data.filters.department !== "all" && data.departments) {
     const departmentId = parseInt(data.filters.department);
     const department = data.departments.find(d => d.id === departmentId);
     
