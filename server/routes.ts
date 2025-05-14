@@ -185,6 +185,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar fontes de recurso", error });
     }
   });
+  
+  // Rota alternativa para manter consistência com o nome do modelo
+  app.get('/api/resource-sources', isAuthenticated, async (req, res) => {
+    try {
+      const sources = await storage.getResourceSources();
+      res.json(sources);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao buscar fontes de recurso", error });
+    }
+  });
 
   app.post('/api/sources', isAdmin, async (req, res) => {
     try {
