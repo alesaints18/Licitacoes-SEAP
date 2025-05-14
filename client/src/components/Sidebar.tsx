@@ -55,19 +55,19 @@ const Sidebar = () => {
   }, [user?.fullName]);
   
   return (
-    <aside className="hidden md:flex md:flex-shrink-0">
-      <div className="flex flex-col w-64 bg-secondary-500">
+    <aside className="flex flex-shrink-0">
+      <div className="flex flex-col w-64 bg-[#4682B4] shadow-lg">
         {/* Logo */}
-        <div className="flex items-center h-16 px-4 bg-secondary-700">
+        <div className="flex items-center h-16 px-4 bg-[#396a9c]">
           <div className="flex items-center">
             <span className="text-white font-medium text-lg">SEAP-PB</span>
           </div>
         </div>
         
         {/* User Info */}
-        <div className="flex flex-col items-center py-4 border-b border-secondary-400">
-          <div className="w-12 h-12 rounded-full bg-gray-300 flex items-center justify-center mb-2">
-            <span className="text-secondary-700 font-bold text-lg">{userInitials}</span>
+        <div className="flex flex-col items-center py-4 border-b border-[#5892c2]">
+          <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-2">
+            <span className="text-[#4682B4] font-bold text-lg">{userInitials}</span>
           </div>
           <div className="text-white text-sm font-medium">{user?.fullName}</div>
           <div className="text-blue-100 text-xs capitalize">{user?.role}</div>
@@ -81,8 +81,8 @@ const Sidebar = () => {
                 <Link href={item.path} 
                   className={`flex items-center px-4 py-3 rounded-md group transition-colors ${
                     location === item.path
-                      ? "text-white bg-primary-600"
-                      : "text-white hover:bg-secondary-600"
+                      ? "text-white bg-[#396a9c] font-medium"
+                      : "text-white hover:bg-[#5892c2]"
                   }`}
                 >
                   {item.icon}
@@ -94,10 +94,10 @@ const Sidebar = () => {
         </nav>
         
         {/* Logout Link */}
-        <div className="p-4 border-t border-secondary-400">
+        <div className="p-4 border-t border-[#5892c2]">
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-white hover:bg-secondary-600 rounded-md group transition-colors"
+            className="flex items-center w-full px-4 py-2 text-white hover:bg-[#396a9c] rounded-md group transition-colors"
           >
             <LogOut className="h-5 w-5 mr-3" />
             <span>Sair</span>

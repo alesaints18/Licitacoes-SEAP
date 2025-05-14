@@ -37,14 +37,14 @@
   --status-completed: 120 100% 40%;
   --status-canceled: 0 84.2% 60.2%;
   
-  /* Sidebar specific colors */
-  --sidebar-background: 222 47% 20%;
-  --sidebar-foreground: 0 0% 98%;
+  /* Sidebar specific colors - SteelBlue (#4682B4) */
+  --sidebar-background: 207 44% 49%;
+  --sidebar-foreground: 0 0% 100%;
   --sidebar-primary: 207 90% 54%;
   --sidebar-primary-foreground: 211 100% 99%;
-  --sidebar-accent: 224 47% 30%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-border: 224 47% 30%;
+  --sidebar-accent: 207 44% 40%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 207 44% 40%;
   --sidebar-ring: 0 0% 83.9%;
 }
 
