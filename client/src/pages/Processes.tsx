@@ -53,19 +53,19 @@ const Processes = () => {
       match = false;
     }
     
-    if (modalityFilter && process.modalityId !== parseInt(modalityFilter)) {
+    if (modalityFilter && modalityFilter !== "all" && process.modalityId !== parseInt(modalityFilter)) {
       match = false;
     }
     
-    if (statusFilter && process.status !== statusFilter) {
+    if (statusFilter && statusFilter !== "all" && process.status !== statusFilter) {
       match = false;
     }
     
-    if (sourceFilter && process.sourceId !== parseInt(sourceFilter)) {
+    if (sourceFilter && sourceFilter !== "all" && process.sourceId !== parseInt(sourceFilter)) {
       match = false;
     }
     
-    if (responsibleFilter && process.responsibleId !== parseInt(responsibleFilter)) {
+    if (responsibleFilter && responsibleFilter !== "all" && process.responsibleId !== parseInt(responsibleFilter)) {
       match = false;
     }
     
@@ -205,7 +205,7 @@ const Processes = () => {
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   {modalities?.map((modality) => (
                     <SelectItem key={modality.id} value={modality.id.toString()}>
                       {modality.name}
@@ -224,7 +224,7 @@ const Processes = () => {
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="draft">Rascunho</SelectItem>
                   <SelectItem value="in_progress">Em Andamento</SelectItem>
                   <SelectItem value="completed">Concluído</SelectItem>
@@ -242,7 +242,7 @@ const Processes = () => {
                   <SelectValue placeholder="Todas" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas</SelectItem>
+                  <SelectItem value="all">Todas</SelectItem>
                   {sources?.map((source) => (
                     <SelectItem key={source.id} value={source.id.toString()}>
                       Fonte {source.code}
@@ -261,7 +261,7 @@ const Processes = () => {
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {users?.map((user) => (
                     <SelectItem key={user.id} value={user.id.toString()}>
                       {user.fullName}

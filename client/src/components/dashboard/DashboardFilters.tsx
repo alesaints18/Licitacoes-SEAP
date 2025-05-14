@@ -70,7 +70,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 {modalities?.map((modalityItem) => (
                   <SelectItem key={modalityItem.id} value={modalityItem.id.toString()}>
                     {modalityItem.name}
@@ -89,7 +89,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 {users?.map((user) => (
                   <SelectItem key={user.id} value={user.id.toString()}>
                     {user.fullName}
