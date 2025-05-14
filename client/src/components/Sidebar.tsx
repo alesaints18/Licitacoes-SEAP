@@ -78,17 +78,15 @@ const Sidebar = () => {
           <ul className="space-y-1">
             {filteredNavItems.map((item) => (
               <li key={item.path} className="px-2">
-                <Link href={item.path}>
-                  <a
-                    className={`flex items-center px-4 py-3 rounded-md group transition-colors ${
-                      location === item.path
-                        ? "text-white bg-primary-600"
-                        : "text-white hover:bg-secondary-600"
-                    }`}
-                  >
-                    {item.icon}
-                    <span>{item.label}</span>
-                  </a>
+                <Link href={item.path} 
+                  className={`flex items-center px-4 py-3 rounded-md group transition-colors ${
+                    location === item.path
+                      ? "text-white bg-primary-600"
+                      : "text-white hover:bg-secondary-600"
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
                 </Link>
               </li>
             ))}
