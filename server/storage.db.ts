@@ -157,7 +157,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProcess(id: number): Promise<boolean> {
     const result = await db.delete(processes).where(eq(processes.id, id));
-    return result.rowCount > 0;
+    return result.rowCount !== null && result.rowCount > 0;
   }
 
   // Process step operations
@@ -228,7 +228,11 @@ export class DatabaseStorage implements IStorage {
 
     // Fill in missing months
     const resultMap = new Map<number, number>();
-    result.forEach(r => resultMap.set(r.month, r.count));
+    result.forEach(r => {
+      // Ensure month is treated as a number
+      const month = typeof r.month === 'number' ? r.month : parseInt(String(r.month), 10);
+      resultMap.set(month, r.count);
+    });
     
     const filledResults: {month: number; count: number}[] = [];
     for (let i = 1; i <= 12; i++) {
