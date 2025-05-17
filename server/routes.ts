@@ -2,6 +2,7 @@ import express, { type Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import path from "path";
+import { WebSocketServer, WebSocket } from "ws";
 import { insertUserSchema, insertDepartmentSchema, insertBiddingModalitySchema, 
          insertResourceSourceSchema, insertProcessSchema, insertProcessStepSchema } from "@shared/schema";
 import session from "express-session";
@@ -11,6 +12,18 @@ import MemoryStore from "memorystore";
 
 // Configuração para meta mensal
 let monthlyGoal = 200; // Valor padrão
+
+// Clientes WebSocket conectados
+const clients = new Set<WebSocket>();
+
+// Função para enviar mensagem para todos os clientes conectados
+function broadcast(data: any) {
+  clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(JSON.stringify(data));
+    }
+  });
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configuração para servir arquivos estáticos da pasta de downloads
@@ -370,6 +383,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertProcessSchema.parse(req.body);
       const process = await storage.createProcess(validatedData);
+      
+      // Notificar todos os clientes sobre o novo processo criado
+      broadcast({
+        type: 'new_process',
+        process,
+        message: `Novo processo criado: ${process.description}`,
+        timestamp: new Date().toISOString()
+      });
+      
       res.status(201).json(process);
     } catch (error) {
       res.status(400).json({ message: "Dados de processo inválidos", error });
@@ -586,5 +608,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   const httpServer = createServer(app);
+  // Configurar WebSocket Server para atualizações em tempo real
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', (ws) => {
+    console.log('Nova conexão WebSocket estabelecida');
+    
+    // Adicionar cliente à lista
+    clients.add(ws);
+    
+    // Enviar mensagem de boas-vindas
+    ws.send(JSON.stringify({ type: 'connection', message: 'Conectado com sucesso!' }));
+    
+    ws.on('message', (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        console.log('Mensagem recebida:', data);
+      } catch (error) {
+        console.error('Erro ao processar mensagem:', error);
+      }
+    });
+    
+    ws.on('close', () => {
+      console.log('Conexão WebSocket fechada');
+      clients.delete(ws);
+    });
+  });
+  
   return httpServer;
 }
