@@ -29,9 +29,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect('/downloads/SEAP-PB-win-x64.rar');
   });
   
-  // Rota para a página de download
-  app.get('/download-page', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'public', 'download-page.html'));
+  // Rota para a página de download - sem restrição de autenticação
+  app.get('/download', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'public', 'download.html'));
   });
   // Configurar trust proxy para que as sessões funcionem corretamente em produção
   app.set('trust proxy', 1);
