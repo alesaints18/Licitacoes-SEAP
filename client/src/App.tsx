@@ -27,6 +27,10 @@ function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
   
+  // Verificar se é uma rota pública
+  const isDownloadPage = location.startsWith("/download/");
+  const isTermsPage = location === "/termos";
+  
   // Lista de rotas públicas que não precisam de autenticação
   const publicRoutes = [
     "/login",
@@ -154,15 +158,29 @@ function Router() {
     return null;
   }
 
-  // Verificar se a rota atual é pública ou requer autenticação
-  const isPublicRoute = publicRoutes.some(route => 
-    location === route || location.startsWith(route)
-  );
+  // Construir o componente de roteamento direto para rotas públicas
+  if (isDownloadPage || isTermsPage) {
+    return (
+      <Switch>
+        <Route path="/download/:token">
+          {(params) => {
+            const validToken = "seappb2025";
+            if (params.token === validToken) {
+              return <Download />;
+            } else {
+              return <NotFound />;
+            }
+          }}
+        </Route>
+        <Route path="/termos" component={TermsOfUse} />
+        <Route component={NotFound} />
+      </Switch>
+    );
+  }
   
-  // Se não estiver autenticado e tentar acessar uma rota protegida
-  if (!isAuthenticated && !isPublicRoute) {
-    console.log("Not authenticated and attempting to access protected route, redirecting to login");
-    // Use setTimeout to break the synchronous flow and avoid potential infinite loops
+  // Para outras rotas, verificar autenticação
+  if (!isAuthenticated && location !== "/login") {
+    console.log("Not authenticated and not on login page, redirecting to login");
     setTimeout(() => {
       setLocation("/login");
     }, 0);
