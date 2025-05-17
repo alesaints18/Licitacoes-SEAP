@@ -3,6 +3,7 @@ import { useLocation, Link } from "wouter";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
+import { ThemeToggle } from "./theme-toggle";
 
 interface HeaderProps {
   title: string;
@@ -60,9 +61,11 @@ const Header = ({ title }: HeaderProps) => {
         </div>
         
         <div className="flex items-center">
+          <ThemeToggle />
+          
           <button 
             type="button" 
-            className="p-2 rounded-full text-gray-500 hover:text-secondary-500 hover:bg-gray-100 focus:outline-none"
+            className="ml-2 p-2 rounded-full text-gray-500 hover:text-secondary-500 hover:bg-gray-100 focus:outline-none"
           >
             <BellIcon className="h-6 w-6" />
           </button>
