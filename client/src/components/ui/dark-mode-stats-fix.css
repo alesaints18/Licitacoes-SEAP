@@ -10,7 +10,9 @@
 .dark .card.p-6 h3,
 .dark .card.p-6 p,
 .dark .card.p-6 span,
-.dark .card.p-6 div {
+.dark .card.p-6 div,
+.dark .text-gray-500,
+.dark .dark-header {
   color: black !important;
 }
 
@@ -30,7 +32,15 @@
 }
 
 /* Texto em headers de tabelas */
-.dark thead tr th {
+.dark thead tr th,
+.dark thead th,
+.dark th .text-gray-500,
+.dark th .text-left,
+.dark th .text-xs,
+.dark th .uppercase,
+.dark th .tracking-wider,
+.dark th .font-medium,
+.dark th * {
   color: black !important;
   background-color: #f0f0f0 !important;
 }
