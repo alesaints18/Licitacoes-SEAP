@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { FileText, File, FileSpreadsheet } from "lucide-react";
 import { Process, User, BiddingModality, ResourceSource, Department } from "@shared/schema";
-import { generateExcelReport, generatePdfReport } from "@/lib/utils/pdfExport";
+import { generateExcelReport, generatePdfReport } from "@/lib/utils/exactReportExport";
 import {
   BarChart,
   Bar,
