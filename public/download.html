@@ -1,108 +1,146 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Download do Aplicativo - SEAP-PB</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f5f5f5;
-      color: #333;
-      display: flex;
-      flex-direction: column;
-      min-height: 100vh;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .container {
-      max-width: 600px;
-      margin: 2rem auto;
-      padding: 2rem;
-      background-color: white;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-    
-    h1 {
-      color: #1a365d;
-      margin-bottom: 0.5rem;
-    }
-    
-    .subtitle {
-      color: #666;
-      margin-bottom: 2rem;
-    }
-    
-    .download-button {
-      background-color: #3182ce;
-      color: white;
-      padding: 12px 24px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: bold;
-      text-decoration: none;
-      display: inline-block;
-      transition: background-color 0.3s;
-    }
-    
-    .download-button:hover {
-      background-color: #2c5282;
-    }
-    
-    .info {
-      margin-top: 2rem;
-      padding: 1rem;
-      background-color: #f8f9fa;
-      border-radius: 4px;
-      border-left: 4px solid #3182ce;
-      text-align: left;
-    }
-    
-    .info h3 {
-      margin-top: 0;
-      color: #2d3748;
-    }
-    
-    ul {
-      padding-left: 20px;
-    }
-    
-    .footer {
-      margin-top: 2rem;
-      font-size: 0.8rem;
-      color: #666;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Download - Sistema de Licitações SEAP-PB</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header {
+            background-color: #1e40af;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            color: #1e40af;
+            margin-top: 0;
+        }
+        .download-button {
+            display: inline-block;
+            background-color: #2563eb;
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 1rem 2rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+            transition: background-color 0.3s;
+        }
+        .download-button:hover {
+            background-color: #1d4ed8;
+        }
+        .requirements {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 1rem;
+            margin: 1.5rem 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        .back-button {
+            display: inline-block;
+            margin-top: 1rem;
+            color: #2563eb;
+            text-decoration: none;
+        }
+        .back-button:hover {
+            text-decoration: underline;
+        }
+        .icon {
+            width: 64px;
+            height: 64px;
+            background-color: #e0f2fe;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Sistema de Controle de Licitações</h1>
-    <p class="subtitle">Secretaria de Estado da Administração Penitenciária</p>
-    
-    <a href="SEAP-PB-win-x64.rar" class="download-button">
-      Baixar Aplicativo (64MB)
-    </a>
-    
-    <div class="info">
-      <h3>Requisitos do Sistema</h3>
-      <ul>
-        <li>Windows 10 ou posterior (64 bits)</li>
-        <li>4GB de RAM mínimo</li>
-        <li>500MB de espaço em disco</li>
-        <li>Conexão com internet</li>
-      </ul>
+    <div class="header">
+        <div class="container">
+            <h1>Sistema de Controle de Processos de Licitação</h1>
+            <p>Secretaria de Estado da Administração Penitenciária da Paraíba</p>
+        </div>
     </div>
     
-    <p class="footer">
-      Ao baixar, você concorda com os termos de uso do software.
-    </p>
-  </div>
+    <div class="container">
+        <div class="card">
+            <div class="icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="#0ea5e9" viewBox="0 0 16 16">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                </svg>
+            </div>
+            
+            <h1>Download do Aplicativo</h1>
+            <p>Bem-vindo à página de download do Sistema de Controle de Processos de Licitação da SEAP-PB. Clique no botão abaixo para baixar a versão mais recente do aplicativo para Windows.</p>
+            
+            <div style="text-align: center;">
+                <a href="/downloads/aplicativo.rar" class="download-button">
+                    Baixar Aplicativo (64 MB)
+                </a>
+            </div>
+            
+            <div class="requirements">
+                <h3>Requisitos do Sistema</h3>
+                <ul>
+                    <li><strong>Sistema Operacional:</strong> Windows 10 ou superior (64 bits)</li>
+                    <li><strong>Memória RAM:</strong> Mínimo de 4GB</li>
+                    <li><strong>Espaço em Disco:</strong> 500MB disponíveis</li>
+                    <li><strong>Conexão com Internet:</strong> Necessária para sincronização de dados</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <a href="/" class="back-button">Voltar para a página inicial</a>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Instruções de Instalação</h2>
+            <ol>
+                <li>Baixe o arquivo compactado (.rar)</li>
+                <li>Extraia o conteúdo para uma pasta de sua preferência</li>
+                <li>Execute o arquivo <strong>SEAP-PB.exe</strong> para iniciar o aplicativo</li>
+                <li>Siga as instruções na tela para configurar o sistema</li>
+            </ol>
+            
+            <p><strong>Nota:</strong> Para extrair o arquivo .rar, você pode precisar de um programa como WinRAR ou 7-Zip.</p>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <div class="container">
+            <p>&copy; 2025 Secretaria de Estado da Administração Penitenciária da Paraíba. Todos os direitos reservados.</p>
+        </div>
+    </div>
 </body>
 </html>

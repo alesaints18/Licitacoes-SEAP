@@ -317,11 +317,18 @@ const Login = () => {
                   </form>
                 </Form>
               </CardContent>
-              <CardFooter className="flex flex-col space-y-2">
-                {/* <div className="text-sm text-center text-muted-foreground">
-                  <p>Usuário comum: user / user123</p>
-                  <p>Administrador: admin / admin123</p>
-                </div> */}
+              <CardFooter className="flex flex-col space-y-4">
+                <div className="w-full text-center mt-2">
+                  <a 
+                    href="/download.html" 
+                    className="inline-flex items-center justify-center text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <ArrowRight className="mr-2 h-4 w-4" />
+                    Baixar Aplicativo Desktop
+                  </a>
+                </div>
               </CardFooter>
             </Card>
           </TabsContent>
