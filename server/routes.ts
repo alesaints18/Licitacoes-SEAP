@@ -15,13 +15,25 @@ let monthlyGoal = 200; // Valor padrão
 export async function registerRoutes(app: Express): Promise<Server> {
   // Rota direta para download do arquivo
   app.get('/download-app', (req, res) => {
-    const filePath = path.join(process.cwd(), 'public', 'downloads', 'SEAP-PB-win-x64.rar');
-    res.download(filePath, 'SEAP-PB.rar', (err) => {
-      if (err) {
-        console.error('Erro ao fazer download do arquivo:', err);
-        res.status(500).send('Erro ao baixar o arquivo');
-      }
-    });
+    try {
+      const filePath = path.join(process.cwd(), 'public', 'downloads', 'SEAP-PB-win-x64.rar');
+      console.log('Tentando servir arquivo:', filePath);
+      
+      // Configurar headers para download
+      res.setHeader('Content-Disposition', 'attachment; filename=SEAP-PB.rar');
+      res.setHeader('Content-Type', 'application/octet-stream');
+      
+      // Enviar o arquivo
+      res.sendFile(filePath, (err) => {
+        if (err) {
+          console.error('Erro ao enviar arquivo:', err);
+          res.status(500).send('Erro ao baixar o arquivo');
+        }
+      });
+    } catch (error) {
+      console.error('Erro ao processar download:', error);
+      res.status(500).send('Erro interno ao processar o download');
+    }
   });
   
   // Rota para a página de download
