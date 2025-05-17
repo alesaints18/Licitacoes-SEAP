@@ -41,17 +41,21 @@ const loginSchema = z.object({
 });
 
 // Register form schema
-const registerSchema = z.object({
-  username: z.string().min(3, "O nome de usuário deve ter pelo menos 3 caracteres"),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
-  confirmPassword: z.string().min(1, "Confirme sua senha"),
-  fullName: z.string().min(3, "O nome completo é obrigatório"),
-  email: z.string().email("Digite um email válido"),
-  department: z.string().min(1, "O setor é obrigatório"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "As senhas não coincidem",
-  path: ["confirmPassword"],
-});
+const registerSchema = z
+  .object({
+    username: z
+      .string()
+      .min(3, "O nome de usuário deve ter pelo menos 3 caracteres"),
+    password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+    confirmPassword: z.string().min(1, "Confirme sua senha"),
+    fullName: z.string().min(3, "O nome completo é obrigatório"),
+    email: z.string().email("Digite um email válido"),
+    department: z.string().min(1, "O setor é obrigatório"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "As senhas não coincidem",
+    path: ["confirmPassword"],
+  });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 type RegisterFormValues = z.infer<typeof registerSchema>;
@@ -61,7 +65,7 @@ const Login = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  
+
   // Create login form with default values
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -70,7 +74,7 @@ const Login = () => {
       password: "",
     },
   });
-  
+
   // Create register form with default values
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -90,13 +94,13 @@ const Login = () => {
     try {
       // Adiciona um timestamp para evitar caching
       console.log("Iniciando login para:", data.username);
-      
+
       // Call login API
       const response = await apiRequest("POST", "/api/auth/login", data);
-      
+
       // Verificar resposta explicitamente
       console.log("Resposta do login:", response.status);
-      
+
       // Validar resposta e obter dados do usuário
       const user = await response.json();
       console.log("Login bem-sucedido:", user);
@@ -106,12 +110,18 @@ const Login = () => {
         title: "Login realizado com sucesso",
         description: "Você será redirecionado para o dashboard",
       });
-      
+
       // Verificar o status da autenticação após o login
       const checkAuth = async () => {
         try {
-          const statusResponse = await fetch('/api/auth/status?_t=' + Date.now(), { credentials: 'include' });
-          console.log("Status da autenticação após login:", statusResponse.status);
+          const statusResponse = await fetch(
+            "/api/auth/status?_t=" + Date.now(),
+            { credentials: "include" },
+          );
+          console.log(
+            "Status da autenticação após login:",
+            statusResponse.status,
+          );
           if (statusResponse.ok) {
             return true;
           }
@@ -121,26 +131,35 @@ const Login = () => {
           return false;
         }
       };
-      
+
       // Verificar se estamos autenticados
       const isAuthenticated = await checkAuth();
-      console.log("Estado de autenticação:", isAuthenticated ? "Autenticado" : "Não autenticado");
+      console.log(
+        "Estado de autenticação:",
+        isAuthenticated ? "Autenticado" : "Não autenticado",
+      );
 
       // Redirecionamento aprimorado
       try {
         // Tentativa 1: Usar a API de navegação do wouter
         console.log("Tentando redirecionamento via wouter");
         setLocation("/");
-        
+
         // Tentativa 2: Verifica se ainda estamos na página de login após um curto delay
         setTimeout(() => {
-          if (window.location.pathname.includes("/auth") || window.location.pathname === "/login") {
+          if (
+            window.location.pathname.includes("/auth") ||
+            window.location.pathname === "/login"
+          ) {
             console.log("Tentando redirecionamento via location.href");
             window.location.href = "/";
-            
+
             // Tentativa 3: Se ainda não redirecionou, tenta recarregar a página
             setTimeout(() => {
-              if (window.location.pathname.includes("/auth") || window.location.pathname === "/login") {
+              if (
+                window.location.pathname.includes("/auth") ||
+                window.location.pathname === "/login"
+              ) {
                 console.log("Tentando redirecionamento com reload");
                 window.location.reload();
               }
@@ -159,44 +178,47 @@ const Login = () => {
       // Show error toast
       toast({
         title: "Erro ao fazer login",
-        description: "Verifique seu nome de usuário e senha ou se sua conta foi ativada pelo administrador",
+        description:
+          "Verifique seu nome de usuário e senha ou se sua conta foi ativada pelo administrador",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
-  
+
   const onRegisterSubmit = async (data: RegisterFormValues) => {
     setIsRegistering(true);
-    
+
     try {
       // Remove confirmPassword field as it's not needed for the API
       const { confirmPassword, ...userData } = data;
-      
+
       // Call register API
       const response = await apiRequest("POST", "/api/auth/register", userData);
       const result = await response.json();
-      
+
       // Show success toast
       toast({
         title: "Cadastro realizado com sucesso",
-        description: result.message || "Seu cadastro foi enviado para aprovação do administrador.",
+        description:
+          result.message ||
+          "Seu cadastro foi enviado para aprovação do administrador.",
       });
-      
+
       // Reset form
       registerForm.reset();
-      
+
       // Switch to login tab
-      document.getElementById('login-tab')?.click();
-      
+      document.getElementById("login-tab")?.click();
     } catch (error: any) {
       console.error("Registration error:", error);
-      
+
       // Show error toast
       toast({
         title: "Erro ao realizar cadastro",
-        description: error.message || "Verifique os dados informados e tente novamente",
+        description:
+          error.message || "Verifique os dados informados e tente novamente",
         variant: "destructive",
       });
     } finally {
@@ -215,20 +237,20 @@ const Login = () => {
         />
 
         <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-primary mb-2">
-            SEAP-PB
-          </h1>
+          <h1 className="text-2xl font-bold text-primary mb-2">SEAP-PB</h1>
           <h2 className="text-xl text-foreground/80">
             Sistema de Controle de Processos de Licitação
           </h2>
         </div>
-        
+
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
-            <TabsTrigger value="login" id="login-tab">Login</TabsTrigger>
+            <TabsTrigger value="login" id="login-tab">
+              Login
+            </TabsTrigger>
             <TabsTrigger value="register">Cadastro</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="login">
             <Card>
               <CardHeader className="relative">
@@ -236,7 +258,7 @@ const Login = () => {
                 <CardDescription>
                   Acesse o sistema com suas credenciais
                 </CardDescription>
-                <LoginThemeToggle />
+                {/* <LoginThemeToggle /> */}
               </CardHeader>
               <CardContent>
                 <Form {...loginForm}>
@@ -285,33 +307,37 @@ const Login = () => {
                         </FormItem>
                       )}
                     />
-                    <Button type="submit" className="w-full" disabled={isLoading}>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      disabled={isLoading}
+                    >
                       {isLoading ? "Entrando..." : "Entrar"}
                     </Button>
                   </form>
                 </Form>
               </CardContent>
               <CardFooter className="flex flex-col space-y-2">
-                <div className="text-sm text-center text-muted-foreground">
+                {/* <div className="text-sm text-center text-muted-foreground">
                   <p>Usuário comum: user / user123</p>
                   <p>Administrador: admin / admin123</p>
-                </div>
+                </div> */}
               </CardFooter>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="register">
             <Card>
               <CardHeader className="relative">
                 <CardTitle>Cadastre-se</CardTitle>
                 <CardDescription>
                   Crie uma nova conta para acessar o sistema.
-                  <br/>
+                  <br />
                   <span className="text-amber-500 font-medium">
                     Seu cadastro será analisado por um administrador.
                   </span>
                 </CardDescription>
-                <LoginThemeToggle />
+                {/* <LoginThemeToggle /> */}
               </CardHeader>
               <CardContent>
                 <Form {...registerForm}>
@@ -339,7 +365,7 @@ const Login = () => {
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={registerForm.control}
@@ -361,7 +387,7 @@ const Login = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={registerForm.control}
                         name="email"
@@ -384,15 +410,15 @@ const Login = () => {
                         )}
                       />
                     </div>
-                    
+
                     <FormField
                       control={registerForm.control}
                       name="department"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Setor</FormLabel>
-                          <Select 
-                            onValueChange={field.onChange} 
+                          <Select
+                            onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
@@ -402,17 +428,23 @@ const Login = () => {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="TI">TI</SelectItem>
-                              <SelectItem value="Licitações">Licitações</SelectItem>
+                              <SelectItem value="Licitações">
+                                Licitações
+                              </SelectItem>
                               <SelectItem value="Jurídico">Jurídico</SelectItem>
-                              <SelectItem value="Financeiro">Financeiro</SelectItem>
-                              <SelectItem value="Administrativo">Administrativo</SelectItem>
+                              <SelectItem value="Financeiro">
+                                Financeiro
+                              </SelectItem>
+                              <SelectItem value="Administrativo">
+                                Administrativo
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={registerForm.control}
@@ -435,7 +467,7 @@ const Login = () => {
                           </FormItem>
                         )}
                       />
-                      
+
                       <FormField
                         control={registerForm.control}
                         name="confirmPassword"
@@ -458,10 +490,10 @@ const Login = () => {
                         )}
                       />
                     </div>
-                    
-                    <Button 
-                      type="submit" 
-                      className="w-full" 
+
+                    <Button
+                      type="submit"
+                      className="w-full"
                       disabled={isRegistering}
                     >
                       {isRegistering ? (

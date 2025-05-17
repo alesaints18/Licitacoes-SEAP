@@ -26,20 +26,20 @@
   --destructive-foreground: 60 9.1% 97.8%;
   --ring: 20 14.3% 4.1%;
   --radius: 0.5rem;
-  
+
   /* Chart colors */
   --chart-1: 207 90% 54%;
   --chart-2: 120 100% 40%;
   --chart-3: 45 100% 50%;
   --chart-4: 330 100% 50%;
   --chart-5: 270 100% 50%;
-  
+
   /* Status colors */
   --status-pending: 45 100% 50%;
   --status-progress: 207 90% 54%;
   --status-completed: 120 100% 40%;
   --status-canceled: 0 84.2% 60.2%;
-  
+
   /* Sidebar specific colors - SteelBlue (#4682B4) */
   --sidebar-background: 207 44% 49%;
   --sidebar-foreground: 0 0% 100%;
@@ -71,7 +71,7 @@
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 210 40% 98%;
   --ring: 240 4.9% 83.9%;
-  
+
   /* Sidebar colors in dark mode - #010021 */
   --sidebar-background: 256 100% 6.5%;
   --sidebar-foreground: 0 0% 100%;
@@ -92,22 +92,22 @@
     font-family: 'Roboto', sans-serif;
     @apply antialiased bg-background text-foreground;
   }
-  
+
   /* Custom scrollbar */
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
-  
+
   ::-webkit-scrollbar-track {
     @apply bg-muted;
   }
-  
+
   ::-webkit-scrollbar-thumb {
     @apply bg-muted-foreground/50;
     border-radius: 4px;
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/70;
   }

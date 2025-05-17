@@ -94,7 +94,7 @@ const Sidebar = () => {
 
   return (
     <aside className="flex flex-shrink-0">
-      <div className="flex flex-col w-64 dark:bg-[#010021] bg-[#4682B4] shadow-lg">
+      <div className="flex flex-col w-64 dark:bg-[#010021] bg-[#105e8f] shadow-lg">
         {/* Logo */}
         <div className="flex flex-col items-center justify-center h-auto px-30 dark:bg-[#01001A] bg-[#396a9c]">
           <img
@@ -116,7 +116,9 @@ const Sidebar = () => {
             </span>
           </div>
           <div className="text-white text-sm font-medium">{user?.fullName}</div>
-          <div className="dark:text-blue-200 text-blue-100 text-xs capitalize">{user?.role}</div>
+          <div className="dark:text-blue-200 text-blue-100 text-xs capitalize">
+            {user?.role}
+          </div>
         </div>
 
         {/* Navigation Links */}
@@ -144,12 +146,13 @@ const Sidebar = () => {
         <div className="p-2 border-t dark:border-[#090935] border-[#5892c2]">
           <div className="flex items-center justify-between px-4 py-2 text-white text-xs">
             <span>v1.0.0</span>
-            <div className="hidden md:block">
+            {/* <div className="hidden md:block">
               <ThemeToggle />
             </div>
+            */}
           </div>
         </div>
-        
+
         {/* Logout Link */}
         <div className="p-2 border-t dark:border-[#090935] border-[#5892c2]">
           <button
