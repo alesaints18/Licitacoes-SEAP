@@ -23,8 +23,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Lock, Mail, User, Users } from "lucide-react";
+import { ArrowRight, Building, Lock, Mail, User, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Login form schema
 const loginSchema = z.object({
@@ -334,12 +341,23 @@ const Login = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Setor</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Seu setor ou departamento"
-                              {...field}
-                            />
-                          </FormControl>
+                          <Select 
+                            onValueChange={field.onChange} 
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Selecione seu setor" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="TI">TI</SelectItem>
+                              <SelectItem value="Licitações">Licitações</SelectItem>
+                              <SelectItem value="Jurídico">Jurídico</SelectItem>
+                              <SelectItem value="Financeiro">Financeiro</SelectItem>
+                              <SelectItem value="Administrativo">Administrativo</SelectItem>
+                            </SelectContent>
+                          </Select>
                           <FormMessage />
                         </FormItem>
                       )}

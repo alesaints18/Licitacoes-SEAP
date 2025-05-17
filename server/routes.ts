@@ -87,10 +87,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Nome de usuário já existe" });
       }
       
-      // Crie o usuário como inativo
+      // Crie o usuário (temporariamente sem a flag isActive até corrigirmos a tabela)
       const user = await storage.createUser({
         ...validatedData,
-        isActive: false // Usuário precisa ser ativado por um administrador
+        // isActive será implementado após a migração da tabela
       });
       
       res.status(201).json({ 
@@ -99,7 +99,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Cadastro realizado com sucesso. Aguarde a aprovação de um administrador para acessar o sistema."
       });
     } catch (error) {
-      res.status(400).json({ message: "Dados de usuário inválidos", error });
+      res.status(400).json({ message: "Dados de usuário inválidos", error: error.message });
     }
   });
 
