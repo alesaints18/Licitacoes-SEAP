@@ -146,21 +146,9 @@ const Dashboard = () => {
   return (
     <div>
       <div className="mb-6 flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
-            <p className="text-gray-600">Visão geral dos processos de licitação</p>
-          </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={refreshData}
-            className="flex items-center gap-1 h-9"
-            title="Atualizar dados"
-          >
-            <RefreshCw className="h-4 w-4" />
-            <span className="hidden sm:inline">Atualizar</span>
-          </Button>
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
+          <p className="text-gray-600">Visão geral dos processos de licitação</p>
         </div>
         
         {isAdmin && <MonthlyGoalSettings isAdmin={isAdmin} />}
