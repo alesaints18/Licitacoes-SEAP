@@ -147,9 +147,12 @@ function Router() {
     return null;
   }
 
-  // If not authenticated, only allow access to login page
-  if (!isAuthenticated && location !== "/login") {
-    console.log("Not authenticated and not on login page, redirecting to login");
+  // Se não estiver autenticado, permitir apenas acesso à página de login e à página de download
+  if (!isAuthenticated && 
+      location !== "/login" && 
+      !location.startsWith("/download/") && 
+      !location.startsWith("/termos")) {
+    console.log("Not authenticated and not on allowed pages, redirecting to login");
     // Use setTimeout to break the synchronous flow and avoid potential infinite loops
     setTimeout(() => {
       setLocation("/login");
