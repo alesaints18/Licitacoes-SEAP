@@ -386,7 +386,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Dashboard analytics routes
   app.get('/api/analytics/process-statistics', isAuthenticated, async (req, res) => {
     try {
-      const stats = await storage.getProcessesStatistics();
+      // Extrair filtros da query string
+      const { pbdocNumber, modalityId, sourceId, responsibleId, status } = req.query;
+      
+      const filters = {
+        pbdocNumber: pbdocNumber as string | undefined,
+        modalityId: modalityId ? parseInt(modalityId as string) : undefined,
+        sourceId: sourceId ? parseInt(sourceId as string) : undefined,
+        responsibleId: responsibleId ? parseInt(responsibleId as string) : undefined,
+        status: status as string | undefined
+      };
+      
+      const stats = await storage.getProcessesStatistics(filters);
       res.json(stats);
     } catch (error) {
       res.status(500).json({ message: "Erro ao buscar estatísticas", error });
@@ -395,7 +406,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/analytics/processes-by-month', isAuthenticated, async (req, res) => {
     try {
-      const data = await storage.getProcessesByMonth();
+      // Extrair filtros da query string
+      const { pbdocNumber, modalityId, sourceId, responsibleId, status } = req.query;
+      
+      const filters = {
+        pbdocNumber: pbdocNumber as string | undefined,
+        modalityId: modalityId ? parseInt(modalityId as string) : undefined,
+        sourceId: sourceId ? parseInt(sourceId as string) : undefined,
+        responsibleId: responsibleId ? parseInt(responsibleId as string) : undefined,
+        status: status as string | undefined
+      };
+      
+      const data = await storage.getProcessesByMonth(filters);
       res.json(data);
     } catch (error) {
       res.status(500).json({ message: "Erro ao buscar processos por mês", error });
@@ -404,7 +426,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/analytics/processes-by-source', isAuthenticated, async (req, res) => {
     try {
-      const data = await storage.getProcessesBySource();
+      // Extrair filtros da query string
+      const { pbdocNumber, modalityId, sourceId, responsibleId, status } = req.query;
+      
+      const filters = {
+        pbdocNumber: pbdocNumber as string | undefined,
+        modalityId: modalityId ? parseInt(modalityId as string) : undefined,
+        sourceId: sourceId ? parseInt(sourceId as string) : undefined,
+        responsibleId: responsibleId ? parseInt(responsibleId as string) : undefined,
+        status: status as string | undefined
+      };
+      
+      const data = await storage.getProcessesBySource(filters);
       res.json(data);
     } catch (error) {
       res.status(500).json({ message: "Erro ao buscar processos por fonte", error });
@@ -413,7 +446,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/analytics/processes-by-responsible', isAuthenticated, async (req, res) => {
     try {
-      const data = await storage.getProcessesByResponsible();
+      // Extrair filtros da query string
+      const { pbdocNumber, modalityId, sourceId, responsibleId, status } = req.query;
+      
+      const filters = {
+        pbdocNumber: pbdocNumber as string | undefined,
+        modalityId: modalityId ? parseInt(modalityId as string) : undefined,
+        sourceId: sourceId ? parseInt(sourceId as string) : undefined,
+        responsibleId: responsibleId ? parseInt(responsibleId as string) : undefined,
+        status: status as string | undefined
+      };
+      
+      const data = await storage.getProcessesByResponsible(filters);
       res.json(data);
     } catch (error) {
       res.status(500).json({ message: "Erro ao buscar processos por responsável", error });

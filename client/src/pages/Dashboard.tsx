@@ -18,14 +18,31 @@ interface FilterState {
 const Dashboard = () => {
   const [filters, setFilters] = useState<FilterState>({});
   
+  // Criar chaves de consulta que incluem os filtros
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['/api/analytics/process-statistics'],
+    queryKey: ['/api/analytics/process-statistics', filters],
+    queryFn: async ({ queryKey }) => {
+      const [endpoint, queryFilters] = queryKey as [string, FilterState];
+      
+      // Construir string de parâmetros de consulta
+      const params = new URLSearchParams();
+      if (queryFilters.pbdoc) params.append('pbdocNumber', queryFilters.pbdoc);
+      if (queryFilters.modality) params.append('modalityId', queryFilters.modality);
+      if (queryFilters.responsible) params.append('responsibleId', queryFilters.responsible);
+      
+      const queryString = params.toString();
+      const url = queryString ? `${endpoint}?${queryString}` : endpoint;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Falha ao buscar estatísticas');
+      }
+      return response.json();
+    },
   });
   
   const handleApplyFilters = (newFilters: FilterState) => {
     setFilters(newFilters);
-    // In a real implementation, this would trigger filtered queries
-    // Since we're using mock data, we're just updating the state
   };
   
   return (
@@ -75,18 +92,18 @@ const Dashboard = () => {
       
       {/* Charts - First Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <ProcessStatusChart />
-        <MonthlyProcessesChart />
+        <ProcessStatusChart filters={filters} />
+        <MonthlyProcessesChart filters={filters} />
       </div>
       
       {/* Charts - Second Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <ResourceDistributionChart />
-        <ResponsibleTable />
+        <ResourceDistributionChart filters={filters} />
+        <ResponsibleTable filters={filters} />
       </div>
       
       {/* Recent Processes Table */}
-      <ProcessTable />
+      <ProcessTable filters={filters} />
     </div>
   );
 };
