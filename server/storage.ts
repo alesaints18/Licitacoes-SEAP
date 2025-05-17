@@ -291,6 +291,11 @@ export class MemStorage implements IStorage {
   }): Promise<Process[]> {
     let processes = Array.from(this.processes.values());
     console.log("getProcesses - Processos iniciais:", processes.length, "Filtros:", filters);
+    console.log("Processos disponíveis:", processes.map(p => ({
+      id: p.id,
+      pbdoc: p.pbdocNumber,
+      responsible: p.responsibleId
+    })));
     
     if (filters) {
       if (filters.pbdocNumber) {
@@ -312,8 +317,15 @@ export class MemStorage implements IStorage {
         console.log(`Aplicando filtro responsibleId (${filters.responsibleId}). Processos antes:`, processes.length);
         console.log(`Valores de responsibleId nos processos:`, processes.map(p => p.responsibleId));
         
-        processes = processes.filter(p => p.responsibleId === filters.responsibleId);
-        console.log(`Após filtro responsibleId (${filters.responsibleId}):`, processes.length);
+        // Vamos garantir que a comparação seja entre números
+        const responsibleIdNum = Number(filters.responsibleId);
+        processes = processes.filter(p => p.responsibleId === responsibleIdNum);
+        console.log(`Após filtro responsibleId (${responsibleIdNum}):`, processes.length);
+        console.log("Processos filtrados:", processes.map(p => ({
+          id: p.id,
+          pbdoc: p.pbdocNumber,
+          responsible: p.responsibleId
+        })));
       }
       
       if (filters.status) {
@@ -322,6 +334,7 @@ export class MemStorage implements IStorage {
       }
     }
     
+    console.log(`Retornando ${processes.length} processos após aplicação de todos os filtros`);
     return processes;
   }
 
