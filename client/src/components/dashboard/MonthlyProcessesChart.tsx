@@ -21,7 +21,7 @@ const MonthlyProcessesChart = ({ filters = {} }: MonthlyProcessesChartProps) => 
   const { data, isLoading, error } = useQuery<MonthlyData[]>({
     queryKey: ['/api/analytics/processes-by-month', filters],
     queryFn: async ({ queryKey }) => {
-      const [endpoint, queryFilters] = queryKey;
+      const [endpoint, queryFilters] = queryKey as [string, FilterState];
       
       // Construir string de parâmetros de consulta
       const params = new URLSearchParams();

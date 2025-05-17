@@ -7,10 +7,38 @@ interface SourceDistribution {
   count: number;
 }
 
-const ResourceDistributionChart = () => {
+interface FilterState {
+  pbdoc?: string;
+  modality?: string;
+  responsible?: string;
+}
+
+interface ResourceDistributionChartProps {
+  filters?: FilterState;
+}
+
+const ResourceDistributionChart = ({ filters = {} }: ResourceDistributionChartProps) => {
   // Get source distributions
   const { data: sourceData, isLoading: sourceLoading, error: sourceError } = useQuery<SourceDistribution[]>({
-    queryKey: ['/api/analytics/processes-by-source'],
+    queryKey: ['/api/analytics/processes-by-source', filters],
+    queryFn: async ({ queryKey }) => {
+      const [endpoint, queryFilters] = queryKey as [string, FilterState];
+      
+      // Construir string de parâmetros de consulta
+      const params = new URLSearchParams();
+      if (queryFilters.pbdoc) params.append('pbdocNumber', queryFilters.pbdoc);
+      if (queryFilters.modality) params.append('modalityId', queryFilters.modality);
+      if (queryFilters.responsible) params.append('responsibleId', queryFilters.responsible);
+      
+      const queryString = params.toString();
+      const url = queryString ? `${endpoint}?${queryString}` : endpoint;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Falha ao buscar dados de processos por fonte');
+      }
+      return response.json();
+    },
   });
   
   // Get resource sources (to get names)

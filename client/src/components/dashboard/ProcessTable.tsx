@@ -5,10 +5,38 @@ import { Link } from "wouter";
 import { Eye, Edit } from "lucide-react";
 import { getProcessStatusLabel, getProcessStatusClass } from "@/lib/utils/process";
 
-const ProcessTable = () => {
+interface FilterState {
+  pbdoc?: string;
+  modality?: string;
+  responsible?: string;
+}
+
+interface ProcessTableProps {
+  filters?: FilterState;
+}
+
+const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
   // Get processes (just the most recent ones)
   const { data: processes, isLoading, error } = useQuery<Process[]>({
-    queryKey: ['/api/processes'],
+    queryKey: ['/api/processes', filters],
+    queryFn: async ({ queryKey }) => {
+      const [endpoint, queryFilters] = queryKey as [string, FilterState];
+      
+      // Construir string de parâmetros de consulta
+      const params = new URLSearchParams();
+      if (queryFilters.pbdoc) params.append('pbdocNumber', queryFilters.pbdoc);
+      if (queryFilters.modality) params.append('modalityId', queryFilters.modality);
+      if (queryFilters.responsible) params.append('responsibleId', queryFilters.responsible);
+      
+      const queryString = params.toString();
+      const url = queryString ? `${endpoint}?${queryString}` : endpoint;
+      
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error('Falha ao buscar processos');
+      }
+      return response.json();
+    },
   });
   
   // Get users for responsible names
