@@ -1,9 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { Process } from "@shared/schema";
+import { Process, User, BiddingModality } from "@shared/schema";
 import { Link } from "wouter";
 import { Eye, Edit } from "lucide-react";
 import { getProcessStatusLabel, getProcessStatusClass } from "@/lib/utils/process";
+import { getQueryFn } from "@/lib/queryClient";
 
 interface FilterState {
   pbdoc?: string;
@@ -19,34 +20,19 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
   // Get processes (just the most recent ones)
   const { data: processes, isLoading, error } = useQuery<Process[]>({
     queryKey: ['/api/processes', filters],
-    queryFn: async ({ queryKey }) => {
-      const [endpoint, queryFilters] = queryKey as [string, FilterState];
-      
-      // Construir string de parâmetros de consulta
-      const params = new URLSearchParams();
-      if (queryFilters.pbdoc) params.append('pbdocNumber', queryFilters.pbdoc);
-      if (queryFilters.modality) params.append('modalityId', queryFilters.modality);
-      if (queryFilters.responsible) params.append('responsibleId', queryFilters.responsible);
-      
-      const queryString = params.toString();
-      const url = queryString ? `${endpoint}?${queryString}` : endpoint;
-      
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Falha ao buscar processos');
-      }
-      return response.json();
-    },
+    queryFn: getQueryFn({ on401: "throw" }),
   });
   
   // Get users for responsible names
-  const { data: users } = useQuery({
+  const { data: users } = useQuery<User[]>({
     queryKey: ['/api/users'],
+    queryFn: getQueryFn({ on401: "throw" }),
   });
   
   // Get modalities
   const { data: modalities } = useQuery({
     queryKey: ['/api/modalities'],
+    queryFn: getQueryFn({ on401: "throw" }),
   });
   
   if (isLoading) {

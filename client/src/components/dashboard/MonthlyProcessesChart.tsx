@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { getQueryFn } from "@/lib/queryClient";
 
 interface MonthlyData {
   month: number;
@@ -20,24 +21,7 @@ interface MonthlyProcessesChartProps {
 const MonthlyProcessesChart = ({ filters = {} }: MonthlyProcessesChartProps) => {
   const { data, isLoading, error } = useQuery<MonthlyData[]>({
     queryKey: ['/api/analytics/processes-by-month', filters],
-    queryFn: async ({ queryKey }) => {
-      const [endpoint, queryFilters] = queryKey as [string, FilterState];
-      
-      // Construir string de parâmetros de consulta
-      const params = new URLSearchParams();
-      if (queryFilters.pbdoc) params.append('pbdocNumber', queryFilters.pbdoc);
-      if (queryFilters.modality) params.append('modalityId', queryFilters.modality);
-      if (queryFilters.responsible) params.append('responsibleId', queryFilters.responsible);
-      
-      const queryString = params.toString();
-      const url = queryString ? `${endpoint}?${queryString}` : endpoint;
-      
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Falha ao buscar dados de processos por mês');
-      }
-      return response.json();
-    },
+    queryFn: getQueryFn({ on401: "throw" }),
   });
   
   if (isLoading) {
