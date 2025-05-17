@@ -32,8 +32,8 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
   const handleApplyFilters = () => {
     onApplyFilters({
       pbdoc: pbdoc || undefined,
-      modality: modality || undefined,
-      responsible: responsible || undefined,
+      modality: modality === "all" ? undefined : modality || undefined,
+      responsible: responsible === "all" ? undefined : responsible || undefined,
     });
   };
   

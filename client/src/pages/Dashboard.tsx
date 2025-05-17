@@ -42,6 +42,7 @@ const Dashboard = () => {
   });
   
   const handleApplyFilters = (newFilters: FilterState) => {
+    console.log("Applying filters:", newFilters);
     setFilters(newFilters);
   };
   

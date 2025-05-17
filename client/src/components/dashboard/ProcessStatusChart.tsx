@@ -31,6 +31,9 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
       if (queryFilters.modality) params.append('modalityId', queryFilters.modality);
       if (queryFilters.responsible) params.append('responsibleId', queryFilters.responsible);
       
+      console.log("ProcessStatusChart - Filtros aplicados:", queryFilters);
+      console.log("ProcessStatusChart - URL params:", params.toString());
+      
       const queryString = params.toString();
       const url = queryString ? `${endpoint}?${queryString}` : endpoint;
       

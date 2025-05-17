@@ -389,6 +389,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Extrair filtros da query string
       const { pbdocNumber, modalityId, sourceId, responsibleId, status } = req.query;
       
+      // Log para debugging
+      console.log('GET /api/analytics/process-statistics - Query params:', req.query);
+      
       const filters = {
         pbdocNumber: pbdocNumber as string | undefined,
         modalityId: modalityId ? parseInt(modalityId as string) : undefined,
@@ -396,6 +399,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         responsibleId: responsibleId ? parseInt(responsibleId as string) : undefined,
         status: status as string | undefined
       };
+      
+      // Log dos filtros processados
+      console.log('GET /api/analytics/process-statistics - Filtros processados:', filters);
       
       const stats = await storage.getProcessesStatistics(filters);
       res.json(stats);
