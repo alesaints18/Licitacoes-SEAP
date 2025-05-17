@@ -301,17 +301,54 @@ export class DatabaseStorage implements IStorage {
     return { total, completed, inProgress, canceled };
   }
 
-  async getProcessesByMonth(): Promise<{month: number; count: number}[]> {
+  async getProcessesByMonth(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{month: number; count: number}[]> {
+    console.log("getProcessesByMonth - Filtrando com:", filters);
+    
+    // Construir condições de filtro
+    let conditions = [];
+    
+    if (filters?.pbdocNumber) {
+      conditions.push(sql`${processes.pbdocNumber} LIKE ${`%${filters.pbdocNumber}%`}`);
+    }
+    
+    if (filters?.modalityId) {
+      conditions.push(eq(processes.modalityId, filters.modalityId));
+    }
+    
+    if (filters?.sourceId) {
+      conditions.push(eq(processes.sourceId, filters.sourceId));
+    }
+    
+    if (filters?.responsibleId) {
+      conditions.push(eq(processes.responsibleId, filters.responsibleId));
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(processes.status, filters.status));
+    }
+    
+    // Adicionar condição de ano atual
     const currentYear = new Date().getFullYear();
+    conditions.push(sql`EXTRACT(YEAR FROM ${processes.createdAt}) = ${currentYear}`);
+    
+    // Combine as condições com 'AND'
+    const whereClause = conditions.length > 0
+      ? and(...conditions)
+      : sql`EXTRACT(YEAR FROM ${processes.createdAt}) = ${currentYear}`;
+    
     const result = await db
       .select({
         month: sql`EXTRACT(MONTH FROM ${processes.createdAt})::integer`,
         count: count()
       })
       .from(processes)
-      .where(
-        sql`EXTRACT(YEAR FROM ${processes.createdAt}) = ${currentYear}`
-      )
+      .where(whereClause)
       .groupBy(sql`EXTRACT(MONTH FROM ${processes.createdAt})::integer`);
 
     // Fill in missing months
@@ -333,24 +370,119 @@ export class DatabaseStorage implements IStorage {
     return filledResults;
   }
 
-  async getProcessesBySource(): Promise<{sourceId: number; count: number}[]> {
-    return await db
-      .select({
-        sourceId: processes.sourceId,
-        count: count()
-      })
-      .from(processes)
-      .groupBy(processes.sourceId);
+  async getProcessesBySource(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{sourceId: number; count: number}[]> {
+    console.log("getProcessesBySource - Filtrando com:", filters);
+    
+    // Construir condições de filtro
+    let conditions = [];
+    
+    if (filters?.pbdocNumber) {
+      conditions.push(sql`${processes.pbdocNumber} LIKE ${`%${filters.pbdocNumber}%`}`);
+    }
+    
+    if (filters?.modalityId) {
+      conditions.push(eq(processes.modalityId, filters.modalityId));
+    }
+    
+    if (filters?.sourceId) {
+      conditions.push(eq(processes.sourceId, filters.sourceId));
+    }
+    
+    if (filters?.responsibleId) {
+      conditions.push(eq(processes.responsibleId, filters.responsibleId));
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(processes.status, filters.status as any));
+    }
+    
+    // Combine as condições com 'AND' ou não aplique filtro
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    const query = whereClause 
+      ? db.select({
+          sourceId: processes.sourceId,
+          count: count()
+        })
+        .from(processes)
+        .where(whereClause)
+        .groupBy(processes.sourceId)
+      : db.select({
+          sourceId: processes.sourceId,
+          count: count()
+        })
+        .from(processes)
+        .groupBy(processes.sourceId);
+    
+    return await query;
   }
 
-  async getProcessesByResponsible(): Promise<{responsibleId: number; total: number; completed: number}[]> {
-    const totalByResponsible = await db
-      .select({
-        responsibleId: processes.responsibleId,
-        total: count()
-      })
-      .from(processes)
-      .groupBy(processes.responsibleId);
+  async getProcessesByResponsible(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{responsibleId: number; total: number; completed: number}[]> {
+    console.log("getProcessesByResponsible - Filtrando com:", filters);
+    
+    // Construir condições de filtro
+    let conditions = [];
+    
+    if (filters?.pbdocNumber) {
+      conditions.push(sql`${processes.pbdocNumber} LIKE ${`%${filters.pbdocNumber}%`}`);
+    }
+    
+    if (filters?.modalityId) {
+      conditions.push(eq(processes.modalityId, filters.modalityId));
+    }
+    
+    if (filters?.sourceId) {
+      conditions.push(eq(processes.sourceId, filters.sourceId));
+    }
+    
+    if (filters?.responsibleId) {
+      conditions.push(eq(processes.responsibleId, filters.responsibleId));
+    }
+    
+    if (filters?.status) {
+      conditions.push(sql`${processes.status}::text = ${filters.status}`);
+    }
+    
+    // Combine as condições com 'AND' ou não aplique filtro
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    
+    // Consulta total com filtros
+    const totalQuery = whereClause 
+      ? db.select({
+          responsibleId: processes.responsibleId,
+          total: count()
+        })
+        .from(processes)
+        .where(whereClause)
+        .groupBy(processes.responsibleId)
+      : db.select({
+          responsibleId: processes.responsibleId,
+          total: count()
+        })
+        .from(processes)
+        .groupBy(processes.responsibleId);
+    
+    const totalByResponsible = await totalQuery;
+      
+    // Consulta completados com filtros + status 'completed'
+    const completedConditions = [...conditions];
+    completedConditions.push(sql`${processes.status}::text = 'completed'`);
+    
+    const completedWhereClause = completedConditions.length > 0 
+      ? and(...completedConditions)
+      : sql`${processes.status}::text = 'completed'`;
     
     const completedByResponsible = await db
       .select({
@@ -358,7 +490,7 @@ export class DatabaseStorage implements IStorage {
         completed: count()
       })
       .from(processes)
-      .where(eq(processes.status, 'completed'))
+      .where(completedWhereClause)
       .groupBy(processes.responsibleId);
     
     const responsibleCompletedMap = new Map<number, number>();
