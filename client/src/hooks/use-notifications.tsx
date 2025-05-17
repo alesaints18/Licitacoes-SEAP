@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from "react";
 import { 
   Notification, 
   NotificationState, 
@@ -211,16 +211,36 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     });
   };
   
+  // Referência para armazenar o último count conhecido
+  const processCountRef = React.useRef<number>(0);
+  const userCountRef = React.useRef<number>(0);
+  
+  // Buscar usuários
+  const { data: users } = useQuery({
+    queryKey: ['/api/users'],
+    refetchOnWindowFocus: false,
+  });
+  
   // Adicionar observadores para eventos no sistema
   useEffect(() => {
-    // Observar mudanças na query de processos
-    const processesArray = processes as any[] || [];
-    const lastProcessCount = processesArray.length || 0;
+    if (!processes || !Array.isArray(processes)) return;
     
-    if (processesArray && processesArray.length > lastProcessCount) {
-      // Novo processo detectado
-      const newProcesses = processesArray.slice(0, processesArray.length - lastProcessCount);
+    const currentCount = processes.length;
+    
+    // Verificar se é a primeira carga
+    if (processCountRef.current === 0) {
+      processCountRef.current = currentCount;
+      return;
+    }
+    
+    // Se temos mais processos do que antes, novos foram adicionados
+    if (currentCount > processCountRef.current) {
+      // Encontrar os novos processos
+      const newProcesses = processes
+        .slice(0, currentCount - processCountRef.current)
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       
+      // Gerar notificações para novos processos
       newProcesses.forEach((process: any) => {
         addNotification({
           title: "Novo processo criado",
@@ -231,7 +251,44 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         });
       });
     }
+    
+    // Atualizar a referência
+    processCountRef.current = currentCount;
   }, [processes]);
+  
+  // Monitorar mudanças em usuários
+  useEffect(() => {
+    if (!users || !Array.isArray(users)) return;
+    
+    const currentCount = users.length;
+    
+    // Verificar se é a primeira carga
+    if (userCountRef.current === 0) {
+      userCountRef.current = currentCount;
+      return;
+    }
+    
+    // Se temos mais usuários do que antes, novos foram adicionados
+    if (currentCount > userCountRef.current) {
+      // Encontrar os novos usuários, presumindo que estão no começo do array
+      const newUsers = users
+        .slice(0, currentCount - userCountRef.current)
+        .sort((a, b) => b.id - a.id); // Presumindo que IDs mais altos são mais recentes
+      
+      // Gerar notificações para novos usuários
+      newUsers.forEach((user: any) => {
+        addNotification({
+          title: "Novo usuário registrado",
+          message: `${user.fullName} (${user.username}) se registrou no sistema`,
+          type: "admin",
+          link: `/users`,
+        });
+      });
+    }
+    
+    // Atualizar a referência
+    userCountRef.current = currentCount;
+  }, [users]);
   
   return (
     <NotificationContext.Provider
