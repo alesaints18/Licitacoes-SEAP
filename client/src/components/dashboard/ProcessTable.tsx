@@ -104,22 +104,22 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider dark-header">
                 PBDOC
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider dark-header">
                 Descrição
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider dark-header">
                 Modalidade
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider dark-header">
                 Responsável
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider dark-header">
                 Status
               </th>
-              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider dark-header">
                 Ações
               </th>
             </tr>
@@ -131,16 +131,16 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
               
               return (
                 <tr key={process.id}>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 process-cell">
                     {process.pbdocNumber}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className="px-6 py-4 text-sm text-gray-900 process-cell">
                     {process.description}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 process-cell">
                     {modality?.name || `Modalidade ${process.modalityId}`}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 process-cell">
                     {responsible?.fullName || `Usuário ${process.responsibleId}`}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -148,14 +148,14 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
                       {getProcessStatusLabel(process.status)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 process-cell">
                     <Link href={`/processes/${process.id}`}>
                       <a className="text-primary-600 hover:text-primary-900 mr-3">
                         <Eye className="h-4 w-4 inline-block" />
                       </a>
                     </Link>
                     <Link href={`/processes/${process.id}/edit`}>
-                      <a className="text-gray-600 hover:text-gray-900">
+                      <a className="text-gray-900 hover:text-gray-900">
                         <Edit className="h-4 w-4 inline-block" />
                       </a>
                     </Link>
@@ -166,7 +166,7 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
             
             {recentProcesses.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
+                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-900 process-cell">
                   Nenhum processo cadastrado
                 </td>
               </tr>
