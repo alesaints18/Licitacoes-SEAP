@@ -60,7 +60,7 @@ function filterReportData(data: ReportData): Process[] {
 }
 
 /**
- * Generate PDF report
+ * Generate PDF report with charts
  */
 export function generatePdfReport(data: ReportData): void {
   const doc = new jsPDF();
@@ -86,6 +86,18 @@ export function generatePdfReport(data: ReportData): void {
       break;
   }
   doc.text(reportTitle, 105, 40, { align: 'center' });
+  
+  // Capture charts if they exist in the page
+  try {
+    const canvas = document.querySelector('.recharts-surface')?.closest('div')?.querySelector('canvas');
+    if (canvas) {
+      const imgData = canvas.toDataURL('image/png');
+      doc.addImage(imgData, 'PNG', 15, 45, 180, 80);
+      doc.addPage();
+    }
+  } catch (error) {
+    console.error('Error capturing charts for PDF:', error);
+  }
   
   // Add filters information
   doc.setFontSize(10);

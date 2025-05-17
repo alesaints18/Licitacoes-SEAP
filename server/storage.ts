@@ -443,6 +443,16 @@ export class MemStorage implements IStorage {
   }
 }
 
+// Adicionar método deleteUser na classe MemStorage
+MemStorage.prototype.deleteUser = async function(id: number): Promise<boolean> {
+  // Não permitir exclusão do admin padrão (ID 1)
+  if (id === 1) return false;
+  
+  if (!this.users.has(id)) return false;
+  
+  return this.users.delete(id);
+};
+
 // Import DatabaseStorage implementation
 import { DatabaseStorage } from './storage.db';
 

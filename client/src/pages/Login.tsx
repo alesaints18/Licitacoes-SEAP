@@ -164,9 +164,21 @@ const Login = () => {
               </form>
             </Form>
           </CardContent>
-          <CardFooter className="flex flex-col space-y-2">
+          <CardFooter className="flex flex-col space-y-4">
+            <Button 
+              variant="outline" 
+              className="w-full"
+              onClick={() => {
+                toast({
+                  title: "Cadastro",
+                  description: "Para criar uma nova conta, entre em contato com o administrador do sistema",
+                });
+              }}
+            >
+              Cadastre-se
+            </Button>
             <div className="text-sm text-center text-gray-500">
-              <p>Usuário comum: gabriel / gabriel123</p>
+              <p>Usuário comum: user / user123</p>
               <p>Administrador: admin / admin123</p>
             </div>
           </CardFooter>
