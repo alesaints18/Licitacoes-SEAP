@@ -8,6 +8,7 @@ import { generateId } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useInterval } from "./use-interval";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 
 // API simulada - no futuro pode ser substituída por chamadas reais à API
 const MOCK_NOTIFICATIONS: Notification[] = [
@@ -88,6 +89,10 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     refetchOnWindowFocus: false,
   });
   
+  // Estado do WebSocket
+  const [socket, setSocket] = useState<WebSocket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  
   // Verificar processos com prazo próximo
   useInterval(() => {
     checkDeadlines();
@@ -131,8 +136,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     });
   };
   
-  // Efeito para carregar notificações salvas no localStorage
+  // Efeito para carregar notificações salvas no localStorage e configurar WebSocket
   useEffect(() => {
+    // Carregar notificações do localStorage
     const savedNotifications = localStorage.getItem('notifications');
     if (savedNotifications) {
       try {
@@ -153,8 +159,98 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }
     }
     
+    // Configurar WebSocket para atualizações em tempo real
+    const connectWebSocket = () => {
+      try {
+        // Determinar o protocolo correto (ws ou wss)
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws`;
+        
+        console.log('Conectando ao WebSocket para notificações:', wsUrl);
+        const ws = new WebSocket(wsUrl);
+        
+        ws.onopen = () => {
+          console.log('Conexão WebSocket estabelecida para notificações');
+          setIsConnected(true);
+          setSocket(ws);
+        };
+        
+        ws.onclose = () => {
+          console.log('Conexão WebSocket fechada, tentando reconectar em 5 segundos...');
+          setIsConnected(false);
+          setSocket(null);
+          
+          // Tentar reconectar após 5 segundos
+          setTimeout(connectWebSocket, 5000);
+        };
+        
+        ws.onerror = (error) => {
+          console.error('Erro na conexão WebSocket:', error);
+        };
+        
+        ws.onmessage = (event) => {
+          try {
+            const data = JSON.parse(event.data);
+            console.log('Mensagem WebSocket recebida:', data);
+            
+            // Processar diferentes tipos de mensagens
+            switch (data.type) {
+              case 'new_process':
+                // Adicionar nova notificação para o processo criado
+                addNotification({
+                  title: "Novo processo criado (tempo real)",
+                  message: data.message,
+                  type: "new_process",
+                  link: `/processes/${data.process.id}`,
+                  entityId: data.process.id
+                });
+                break;
+                
+              case 'process_updated':
+                // Adicionar notificação para atualização de processo
+                addNotification({
+                  title: "Processo atualizado",
+                  message: data.message,
+                  type: "update",
+                  link: `/processes/${data.process.id}`,
+                  entityId: data.process.id
+                });
+                break;
+                
+              case 'user_created':
+                // Adicionar notificação para novo usuário
+                addNotification({
+                  title: "Novo usuário registrado (tempo real)",
+                  message: data.message,
+                  type: "admin",
+                  link: "/users"
+                });
+                break;
+            }
+          } catch (error) {
+            console.error('Erro ao processar mensagem WebSocket:', error);
+          }
+        };
+        
+        return ws;
+      } catch (error) {
+        console.error('Erro ao criar conexão WebSocket:', error);
+        return null;
+      }
+    };
+    
+    // Iniciar conexão WebSocket
+    const ws = connectWebSocket();
+    
     // Verificar prazos na inicialização
     checkDeadlines();
+    
+    // Limpar conexão ao desmontar
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+    };
   }, []);
   
   // Salvar notificações no localStorage quando o estado mudar
