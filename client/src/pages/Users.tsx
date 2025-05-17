@@ -7,30 +7,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/ui/data-table";
 import { Card, CardContent } from "@/components/ui/card";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { 
-  Form, 
-  FormControl, 
-  FormDescription, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "@/components/ui/form";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select";
 import { PlusCircle, Search, UserPlus, Edit, Trash } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
@@ -54,25 +54,27 @@ const Users = () => {
   const [openUserDialog, setOpenUserDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [deleting, setDeleting] = useState(false);
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  
+
   // Extended user schema for the form
-  const userFormSchema = insertUserSchema.extend({
-    confirmPassword: z.string().min(1, "Confirme sua senha"),
-  }).superRefine(({ password, confirmPassword }, ctx) => {
-    if (password !== confirmPassword) {
-      ctx.addIssue({
-        code: "custom",
-        message: "As senhas não conferem",
-        path: ["confirmPassword"],
-      });
-    }
-  });
-  
+  const userFormSchema = insertUserSchema
+    .extend({
+      confirmPassword: z.string().min(1, "Confirme sua senha"),
+    })
+    .superRefine(({ password, confirmPassword }, ctx) => {
+      if (password !== confirmPassword) {
+        ctx.addIssue({
+          code: "custom",
+          message: "As senhas não conferem",
+          path: ["confirmPassword"],
+        });
+      }
+    });
+
   type UserFormValues = z.infer<typeof userFormSchema>;
-  
+
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
     defaultValues: {
@@ -85,24 +87,26 @@ const Users = () => {
       role: "common",
     },
   });
-  
+
   // Get all users
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
-    queryKey: ['/api/users'],
+    queryKey: ["/api/users"],
   });
-  
+
   // Get all departments
   const { data: departments } = useQuery<Department[]>({
-    queryKey: ['/api/departments'],
+    queryKey: ["/api/departments"],
   });
-  
+
   // Filter users based on name filter
-  const filteredUsers = users?.filter(user => {
+  const filteredUsers = users?.filter((user) => {
     if (!nameFilter) return true;
-    return user.fullName.toLowerCase().includes(nameFilter.toLowerCase()) ||
-           user.username.toLowerCase().includes(nameFilter.toLowerCase());
+    return (
+      user.fullName.toLowerCase().includes(nameFilter.toLowerCase()) ||
+      user.username.toLowerCase().includes(nameFilter.toLowerCase())
+    );
   });
-  
+
   const openAddUserDialog = () => {
     form.reset({
       username: "",
@@ -116,7 +120,7 @@ const Users = () => {
     setEditingUser(null);
     setOpenUserDialog(true);
   };
-  
+
   const openEditUserDialog = (user: User) => {
     form.reset({
       username: user.username,
@@ -130,16 +134,18 @@ const Users = () => {
     setEditingUser(user);
     setOpenUserDialog(true);
   };
-  
+
   const onSubmit = async (data: UserFormValues) => {
     try {
       // Remove confirmPassword as it's not in the API
       const { confirmPassword, ...userData } = data;
-      
+
       if (editingUser) {
         // If password is empty, don't send it (keep existing)
-        const updateData = userData.password ? userData : { ...userData, password: undefined };
-        
+        const updateData = userData.password
+          ? userData
+          : { ...userData, password: undefined };
+
         await apiRequest("PATCH", `/api/users/${editingUser.id}`, updateData);
         toast({
           title: "Usuário atualizado",
@@ -152,10 +158,10 @@ const Users = () => {
           description: "O usuário foi criado com sucesso",
         });
       }
-      
+
       // Refresh users list
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-      
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+
       // Close dialog
       setOpenUserDialog(false);
     } catch (error) {
@@ -167,19 +173,20 @@ const Users = () => {
       });
     }
   };
-  
+
   const handleDeleteUser = async (userId: number) => {
     setDeleting(true);
     try {
-      await apiRequest("DELETE", `/api/users/${userId}`, undefined);
-      
+      console.log("Deleting user ID:", userId); // debug
+
+      await apiRequest("DELETE", `/api/users/${userId}`, null);
+
       toast({
         title: "Usuário excluído",
         description: "O usuário foi excluído com sucesso",
       });
-      
-      // Refresh users list
-      queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+
+      await queryClient.invalidateQueries({ queryKey: ["/api/users"] });
     } catch (error) {
       console.error("Error deleting user:", error);
       toast({
@@ -232,7 +239,7 @@ const Users = () => {
             >
               <Edit className="h-4 w-4" />
             </Button>
-            
+
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="ghost" size="sm">
@@ -243,12 +250,13 @@ const Users = () => {
                 <AlertDialogHeader>
                   <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Tem certeza que deseja excluir o usuário "{user.fullName}"? Esta ação não pode ser desfeita.
+                    Tem certeza que deseja excluir o usuário "{user.fullName}"?
+                    Esta ação não pode ser desfeita.
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction 
+                  <AlertDialogAction
                     onClick={() => handleDeleteUser(user.id)}
                     disabled={deleting}
                   >
@@ -275,13 +283,16 @@ const Users = () => {
           Novo Usuário
         </Button>
       </div>
-      
+
       {/* Filters */}
       <Card className="mb-6">
         <CardContent className="p-4">
           <div className="flex items-center space-x-2">
             <div className="flex-1">
-              <label htmlFor="name-filter" className="block text-sm font-medium text-gray-700 mb-1">
+              <label
+                htmlFor="name-filter"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
                 Nome ou Usuário
               </label>
               <div className="relative">
@@ -298,33 +309,32 @@ const Users = () => {
           </div>
         </CardContent>
       </Card>
-      
+
       {/* Users Table */}
       <Card>
         <CardContent className="p-0 sm:p-0">
           {usersLoading ? (
             <div className="p-8 text-center">Carregando usuários...</div>
           ) : (
-            <DataTable
-              columns={columns}
-              data={filteredUsers || []}
-            />
+            <DataTable columns={columns} data={filteredUsers || []} />
           )}
         </CardContent>
       </Card>
-      
+
       {/* Add/Edit User Dialog */}
       <Dialog open={openUserDialog} onOpenChange={setOpenUserDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingUser ? "Editar Usuário" : "Novo Usuário"}</DialogTitle>
+            <DialogTitle>
+              {editingUser ? "Editar Usuário" : "Novo Usuário"}
+            </DialogTitle>
             <DialogDescription>
-              {editingUser 
-                ? "Edite as informações do usuário abaixo" 
+              {editingUser
+                ? "Edite as informações do usuário abaixo"
                 : "Preencha as informações para criar um novo usuário"}
             </DialogDescription>
           </DialogHeader>
-          
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -343,7 +353,7 @@ const Users = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="fullName"
@@ -357,26 +367,32 @@ const Users = () => {
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{editingUser ? "Nova Senha" : "Senha"}</FormLabel>
+                      <FormLabel>
+                        {editingUser ? "Nova Senha" : "Senha"}
+                      </FormLabel>
                       <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder={editingUser ? "Deixe em branco para manter a atual" : "Senha"} 
-                          {...field} 
+                        <Input
+                          type="password"
+                          placeholder={
+                            editingUser
+                              ? "Deixe em branco para manter a atual"
+                              : "Senha"
+                          }
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="confirmPassword"
@@ -384,10 +400,10 @@ const Users = () => {
                     <FormItem>
                       <FormLabel>Confirmar Senha</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="password" 
-                          placeholder="Confirme a senha" 
-                          {...field} 
+                        <Input
+                          type="password"
+                          placeholder="Confirme a senha"
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -395,7 +411,7 @@ const Users = () => {
                   )}
                 />
               </div>
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -403,17 +419,17 @@ const Users = () => {
                   <FormItem>
                     <FormLabel>Email</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="email" 
-                        placeholder="email@exemplo.com" 
-                        {...field} 
+                      <Input
+                        type="email"
+                        placeholder="email@exemplo.com"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -421,8 +437,8 @@ const Users = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Setor</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
+                      <Select
+                        onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -431,9 +447,9 @@ const Users = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {departments?.map(department => (
-                            <SelectItem 
-                              key={department.id} 
+                          {departments?.map((department) => (
+                            <SelectItem
+                              key={department.id}
                               value={department.name}
                             >
                               {department.name}
@@ -445,15 +461,15 @@ const Users = () => {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={form.control}
                   name="role"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Perfil</FormLabel>
-                      <Select 
-                        onValueChange={field.onChange} 
+                      <Select
+                        onValueChange={field.onChange}
                         defaultValue={field.value}
                       >
                         <FormControl>
@@ -471,7 +487,7 @@ const Users = () => {
                   )}
                 />
               </div>
-              
+
               <DialogFooter>
                 <Button type="submit">
                   {editingUser ? "Salvar Alterações" : "Criar Usuário"}

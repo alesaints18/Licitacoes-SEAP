@@ -49,34 +49,33 @@ const Login = () => {
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    
+
     try {
       // Call login API
       await apiRequest("POST", "/api/auth/login", data);
-      
+
       // Show success toast
       toast({
         title: "Login realizado com sucesso",
         description: "Você será redirecionado para o dashboard",
       });
-      
+
       console.log("Login successful - redirecting to dashboard");
-      
+
       // Delay the redirect slightly to allow time for the session to be established
       setTimeout(() => {
         // First try with the router's setLocation
         setLocation("/");
-        
+
         // As a fallback, if that doesn't work in 300ms, use window.location
         setTimeout(() => {
           console.log("Forcing hard navigation to dashboard");
           window.location.href = "/";
         }, 300);
       }, 200);
-      
     } catch (error) {
       console.error("Login error:", error);
-      
+
       // Show error toast
       toast({
         title: "Erro ao fazer login",
@@ -90,6 +89,13 @@ const Login = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md px-4">
+        <img
+          src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
+          alt="Logo"
+          className="mx-auto mb-4"
+          width={250}
+        />
+
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-secondary-700 mb-2">
             SEAP-PB
@@ -98,7 +104,6 @@ const Login = () => {
             Sistema de Controle de Processos de Licitação
           </h2>
         </div>
-        
         <Card>
           <CardHeader>
             <CardTitle>Login</CardTitle>
@@ -108,7 +113,10 @@ const Login = () => {
           </CardHeader>
           <CardContent>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <form
+                onSubmit={form.handleSubmit(onSubmit)}
+                className="space-y-4"
+              >
                 <FormField
                   control={form.control}
                   name="username"
@@ -118,10 +126,10 @@ const Login = () => {
                       <FormControl>
                         <div className="relative">
                           <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                          <Input 
-                            placeholder="Seu nome de usuário" 
-                            className="pl-10" 
-                            {...field} 
+                          <Input
+                            placeholder="Seu nome de usuário"
+                            className="pl-10"
+                            {...field}
                           />
                         </div>
                       </FormControl>
@@ -138,11 +146,11 @@ const Login = () => {
                       <FormControl>
                         <div className="relative">
                           <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                          <Input 
-                            type="password" 
-                            placeholder="Sua senha" 
-                            className="pl-10" 
-                            {...field} 
+                          <Input
+                            type="password"
+                            placeholder="Sua senha"
+                            className="pl-10"
+                            {...field}
                           />
                         </div>
                       </FormControl>
@@ -150,11 +158,7 @@ const Login = () => {
                     </FormItem>
                   )}
                 />
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isLoading}
-                >
+                <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Entrando..." : "Entrar"}
                 </Button>
               </form>
