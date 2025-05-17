@@ -10,6 +10,9 @@ app.use(express.urlencoded({ extended: false }));
 // Servir arquivos estáticos da pasta public
 app.use('/downloads', express.static(path.join(process.cwd(), 'public', 'downloads')));
 
+// Servir a página de download estática
+app.use('/download', express.static(path.join(process.cwd(), 'public', 'download')));
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

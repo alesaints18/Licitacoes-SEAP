@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download do Aplicativo - SEAP-PB</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to bottom, #f3f4f6, #e5e7eb);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .card {
+      background: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      max-width: 28rem;
+      width: 100%;
+      overflow: hidden;
+    }
+    .header {
+      text-align: center;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 1.5rem;
+    }
+    .content {
+      padding: 1.5rem;
+    }
+    .footer {
+      border-top: 1px solid #e5e7eb;
+      padding: 1rem 1.5rem;
+      text-align: center;
+    }
+    .download-icon {
+      background-color: #f0f9ff;
+      border-radius: 9999px;
+      padding: 1rem;
+      width: 4rem;
+      height: 4rem;
+      margin: 0 auto 1rem auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .alert {
+      background-color: #fffbeb;
+      border: 1px solid #fef3c7;
+      border-radius: 0.375rem;
+      padding: 0.75rem;
+      margin-top: 1rem;
+    }
+    .btn {
+      background-color: #2563eb;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.375rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .btn:hover {
+      background-color: #1d4ed8;
+    }
+    .badge {
+      background-color: #fef3c7;
+      color: #92400e;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      display: inline-flex;
+      margin-left: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <h1 class="text-xl font-bold text-blue-600">Sistema de Controle de Processos de Licitação</h1>
+      <p class="text-sm text-gray-600 mt-1">Secretaria de Estado da Administração Penitenciária</p>
+    </div>
+    
+    <div class="content">
+      <div class="text-center mb-6">
+        <div class="download-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6 text-blue-500">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-medium">Download do Aplicativo</h3>
+        <p class="text-sm text-gray-600 mt-2">
+          Versão para Windows 64 bits. Clique no botão abaixo para baixar.
+        </p>
+      </div>
+      
+      <div class="alert">
+        <h4 class="text-amber-800 font-medium text-sm">Requisitos do Sistema</h4>
+        <ul class="text-xs text-amber-700 mt-2 list-disc list-inside space-y-1">
+          <li>Windows 10 ou posterior (64 bits)</li>
+          <li>4GB de RAM mínimo</li>
+          <li>500MB de espaço em disco</li>
+          <li>Conexão com internet</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <a href="/downloads/SEAP-PB-win-x64.rar" download class="btn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4 mr-2">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Baixar Aplicativo
+        <span class="badge">64MB</span>
+      </a>
+      
+      <p class="text-xs text-gray-500 mt-3">
+        Ao baixar, você concorda com os termos de uso do software.
+      </p>
+    </div>
+  </div>
+</body>
+</html>
