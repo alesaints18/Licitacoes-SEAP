@@ -212,33 +212,92 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Dashboard analytics
-  async getProcessesStatistics(): Promise<{
+  async getProcessesStatistics(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{
     total: number;
     completed: number;
     inProgress: number;
     canceled: number;
   }> {
-    const totalResult = await db.select({ value: count() }).from(processes);
+    console.log("getProcessesStatistics - Filtrando com:", filters);
+    
+    // Construir condições de filtro
+    let conditions = [];
+    
+    if (filters?.pbdocNumber) {
+      conditions.push(sql`${processes.pbdocNumber} LIKE ${`%${filters.pbdocNumber}%`}`);
+    }
+    
+    if (filters?.modalityId) {
+      conditions.push(eq(processes.modalityId, filters.modalityId));
+    }
+    
+    if (filters?.sourceId) {
+      conditions.push(eq(processes.sourceId, filters.sourceId));
+    }
+    
+    if (filters?.responsibleId) {
+      conditions.push(eq(processes.responsibleId, filters.responsibleId));
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(processes.status, filters.status));
+    }
+    
+    // Combine as condições com 'AND' ou use uma condição padrão 'true'
+    const whereClause = conditions.length > 0
+      ? and(...conditions)
+      : undefined; // Se não houver condições, não aplique filtro
+    
+    // Consulta total com filtros
+    const totalQuery = whereClause 
+      ? db.select({ value: count() }).from(processes).where(whereClause)
+      : db.select({ value: count() }).from(processes);
+    
+    const totalResult = await totalQuery;
     const total = totalResult[0]?.value || 0;
-
+    
+    // Consulta completados com filtros + status 'completed'
+    const completedConditions = [...(conditions || []), eq(processes.status, 'completed')];
+    const completedWhereClause = completedConditions.length > 0 
+      ? and(...completedConditions)
+      : eq(processes.status, 'completed');
+    
     const completedResult = await db
       .select({ value: count() })
       .from(processes)
-      .where(eq(processes.status, 'completed'));
+      .where(completedWhereClause);
     const completed = completedResult[0]?.value || 0;
-
+    
+    // Consulta em andamento com filtros + status 'in_progress'
+    const inProgressConditions = [...(conditions || []), eq(processes.status, 'in_progress')];
+    const inProgressWhereClause = inProgressConditions.length > 0 
+      ? and(...inProgressConditions)
+      : eq(processes.status, 'in_progress');
+    
     const inProgressResult = await db
       .select({ value: count() })
       .from(processes)
-      .where(eq(processes.status, 'in_progress'));
+      .where(inProgressWhereClause);
     const inProgress = inProgressResult[0]?.value || 0;
-
+    
+    // Consulta cancelados com filtros + status 'canceled'
+    const canceledConditions = [...(conditions || []), eq(processes.status, 'canceled')];
+    const canceledWhereClause = canceledConditions.length > 0 
+      ? and(...canceledConditions)
+      : eq(processes.status, 'canceled');
+    
     const canceledResult = await db
       .select({ value: count() })
       .from(processes)
-      .where(eq(processes.status, 'canceled'));
+      .where(canceledWhereClause);
     const canceled = canceledResult[0]?.value || 0;
-
+    
     return { total, completed, inProgress, canceled };
   }
 
