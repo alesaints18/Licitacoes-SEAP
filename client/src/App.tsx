@@ -9,6 +9,7 @@ import Login from "@/pages/Login";
 import Processes from "@/pages/Processes";
 import ProcessDetail from "@/pages/ProcessDetail";
 import ProcessCreate from "@/pages/ProcessCreate";
+import ProcessEdit from "@/pages/ProcessEdit";
 import BiddingFlow from "@/pages/BiddingFlow";
 import Reports from "@/pages/Reports";
 import Users from "@/pages/Users";
@@ -98,6 +99,14 @@ function Router() {
         {params => (
           <Layout>
             <ProcessDetail id={params.id} />
+          </Layout>
+        )}
+      </Route>
+      
+      <Route path="/processes/:id/edit">
+        {params => (
+          <Layout>
+            <ProcessEdit id={params.id} />
           </Layout>
         )}
       </Route>

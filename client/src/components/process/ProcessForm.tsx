@@ -48,11 +48,12 @@ type ProcessFormValues = z.infer<typeof processFormSchema>;
 
 interface ProcessFormProps {
   defaultValues?: Partial<ProcessFormValues>;
+  initialData?: any;
   onSubmit: (data: ProcessFormValues) => void;
   isSubmitting: boolean;
 }
 
-const ProcessForm = ({ defaultValues, onSubmit, isSubmitting }: ProcessFormProps) => {
+const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: ProcessFormProps) => {
   // Get users for responsible selector
   const { data: users, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
@@ -68,18 +69,30 @@ const ProcessForm = ({ defaultValues, onSubmit, isSubmitting }: ProcessFormProps
     queryKey: ['/api/sources'],
   });
   
+  // Combine defaultValues and initialData, with initialData taking precedence
+  const combinedDefaultValues = {
+    pbdocNumber: "",
+    description: "",
+    modalityId: 0,
+    sourceId: 0,
+    responsibleId: 0,
+    priority: "medium",
+    status: "draft",
+    ...defaultValues,
+    ...(initialData && {
+      pbdocNumber: initialData.pbdocNumber,
+      description: initialData.description,
+      modalityId: initialData.modalityId,
+      sourceId: initialData.sourceId,
+      responsibleId: initialData.responsibleId,
+      priority: initialData.priority,
+      status: initialData.status,
+    }),
+  };
+
   const form = useForm<ProcessFormValues>({
     resolver: zodResolver(processFormSchema),
-    defaultValues: {
-      pbdocNumber: "",
-      description: "",
-      modalityId: 0,
-      sourceId: 0,
-      responsibleId: 0,
-      priority: "medium",
-      status: "draft",
-      ...defaultValues,
-    },
+    defaultValues: combinedDefaultValues,
   });
   
   const isLoading = usersLoading || modalitiesLoading || sourcesLoading;
@@ -277,42 +290,45 @@ const ProcessForm = ({ defaultValues, onSubmit, isSubmitting }: ProcessFormProps
                 )}
               />
               
-              {defaultValues && (
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem className="space-y-3">
-                      <FormLabel>Status</FormLabel>
-                      <FormControl>
-                        <RadioGroup
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          className="flex space-x-4"
-                        >
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="draft" id="status-draft" />
-                            <Label htmlFor="status-draft" className="text-gray-600">Rascunho</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="in_progress" id="status-progress" />
-                            <Label htmlFor="status-progress" className="text-yellow-600">Em Andamento</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="completed" id="status-completed" />
-                            <Label htmlFor="status-completed" className="text-green-600">Concluído</Label>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="canceled" id="status-canceled" />
-                            <Label htmlFor="status-canceled" className="text-red-600">Cancelado</Label>
-                          </div>
-                        </RadioGroup>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem className="space-y-3">
+                    <FormLabel>Status</FormLabel>
+                    <FormControl>
+                      <RadioGroup
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        className="flex flex-wrap gap-y-2 space-x-4"
+                      >
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="draft" id="status-draft" />
+                          <Label htmlFor="status-draft" className="text-gray-600">Rascunho</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="in_progress" id="status-progress" />
+                          <Label htmlFor="status-progress" className="text-yellow-600">Em Andamento</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="completed" id="status-completed" />
+                          <Label htmlFor="status-completed" className="text-green-600">Concluído</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="canceled" id="status-canceled" />
+                          <Label htmlFor="status-canceled" className="text-red-600">Cancelado</Label>
+                        </div>
+                      </RadioGroup>
+                    </FormControl>
+                    <FormDescription>
+                      {initialData 
+                        ? "Atualize o status do processo conforme necessário" 
+                        : "Novos processos são criados como rascunhos por padrão"}
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Salvando..." : defaultValues ? "Atualizar Processo" : "Criar Processo"}
