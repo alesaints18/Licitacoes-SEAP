@@ -55,8 +55,8 @@ export class DatabaseStorage implements IStorage {
     const user = await this.getUserByUsername(username);
     if (!user) return undefined;
 
-    // Removendo verificação de isActive por enquanto já que a coluna não existe ainda
-    // Adicionaremos isso de volta depois de criar a coluna adequadamente
+    // Verificar se o usuário está ativo
+    if (user.isActive === false) return undefined;
     
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) return undefined;
