@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import AdminProtectedRoute from "@/lib/admin-protected-route";
+import { NotificationProvider } from "@/hooks/use-notifications";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -227,7 +228,9 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Router />
+        <NotificationProvider>
+          <Router />
+        </NotificationProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );

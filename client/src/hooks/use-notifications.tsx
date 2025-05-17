@@ -6,7 +6,7 @@ import {
 } from "@/types/notification";
 import { generateId } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useInterval } from "@/hooks/use-interval";
+import { useInterval } from "./use-interval";
 import { useQuery } from "@tanstack/react-query";
 
 // API simulada - no futuro pode ser substituída por chamadas reais à API

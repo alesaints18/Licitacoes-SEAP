@@ -1,4 +1,4 @@
-import { BellIcon, RefreshCw } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -7,6 +7,8 @@ import { ThemeToggle } from "./theme-toggle";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
+import NotificationDropdown from "./notifications/NotificationDropdown";
+import { useNotifications } from "@/hooks/use-notifications";
 
 interface HeaderProps {
   title: string;
@@ -16,6 +18,7 @@ const Header = ({ title }: HeaderProps) => {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   
   // Get current user data
   const { data: user } = useQuery<User>({ 
@@ -97,12 +100,12 @@ const Header = ({ title }: HeaderProps) => {
         </div>
         
         <div className="flex items-center">
-          <button 
-            type="button" 
-            className="p-2 rounded-full text-gray-500 hover:text-secondary-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
-          >
-            <BellIcon className="h-6 w-6" />
-          </button>
+          <NotificationDropdown 
+            notifications={notifications}
+            unreadCount={unreadCount}
+            onMarkAllAsRead={markAllAsRead}
+            onReadNotification={markAsRead}
+          />
           
           <button 
             type="button" 
