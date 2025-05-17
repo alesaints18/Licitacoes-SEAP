@@ -18,28 +18,57 @@ interface FilterState {
 const Dashboard = () => {
   const [filters, setFilters] = useState<FilterState>({});
   
-  // Criar chaves de consulta que incluem os filtros
-  const { data: stats, isLoading } = useQuery({
-    queryKey: ['/api/analytics/process-statistics', filters],
-    queryFn: async ({ queryKey }) => {
-      const [endpoint, queryFilters] = queryKey as [string, FilterState];
-      
-      // Construir string de parâmetros de consulta
-      const params = new URLSearchParams();
-      if (queryFilters.pbdoc) params.append('pbdocNumber', queryFilters.pbdoc);
-      if (queryFilters.modality) params.append('modalityId', queryFilters.modality);
-      if (queryFilters.responsible) params.append('responsibleId', queryFilters.responsible);
-      
-      const queryString = params.toString();
-      const url = queryString ? `${endpoint}?${queryString}` : endpoint;
-      
-      const response = await fetch(url);
+  // Implementação customizada de consulta para pegar processos e executar filtragem no frontend
+  const { data: processos } = useQuery({
+    queryKey: ['/api/processes'],
+    queryFn: async () => {
+      const response = await fetch('/api/processes');
       if (!response.ok) {
-        throw new Error('Falha ao buscar estatísticas');
+        throw new Error('Falha ao buscar processos');
       }
       return response.json();
     },
   });
+  
+  // Função para filtrar os processos no client-side
+  const filtrarProcessos = (processos: any[] = []) => {
+    console.log("Filtrando processos client-side:", processos.length);
+    console.log("Filtros aplicados:", filters);
+    
+    let processosFiltrados = [...processos];
+    
+    if (filters.pbdoc) {
+      processosFiltrados = processosFiltrados.filter(p => 
+        p.pbdocNumber.toLowerCase().includes(filters.pbdoc!.toLowerCase())
+      );
+    }
+    
+    if (filters.modality) {
+      const modalityId = parseInt(filters.modality);
+      processosFiltrados = processosFiltrados.filter(p => p.modalityId === modalityId);
+    }
+    
+    if (filters.responsible) {
+      const responsibleId = parseInt(filters.responsible);
+      console.log(`Filtrando responsibleId=${responsibleId}, tipo: ${typeof responsibleId}`);
+      processosFiltrados = processosFiltrados.filter(p => {
+        console.log(`Processo ${p.id}: ${p.responsibleId} === ${responsibleId} => ${p.responsibleId === responsibleId}`);
+        return p.responsibleId === responsibleId;
+      });
+    }
+    
+    console.log("Processos após filtragem:", processosFiltrados.length);
+    return processosFiltrados;
+  };
+  
+  // Filtrar processos e calcular estatísticas no client-side
+  const processosFiltrados = processos ? filtrarProcessos(processos) : [];
+  const stats = {
+    total: processosFiltrados.length,
+    completed: processosFiltrados.filter(p => p.status === 'completed').length,
+    inProgress: processosFiltrados.filter(p => p.status === 'in_progress').length,
+    canceled: processosFiltrados.filter(p => p.status === 'canceled').length
+  };
   
   const handleApplyFilters = (newFilters: FilterState) => {
     console.log("Applying filters:", newFilters);

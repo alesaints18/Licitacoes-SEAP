@@ -5,6 +5,7 @@ import { Link } from "wouter";
 import { Eye, Edit } from "lucide-react";
 import { getProcessStatusLabel, getProcessStatusClass } from "@/lib/utils/process";
 import { getQueryFn } from "@/lib/queryClient";
+import { useMemo } from "react";
 
 interface FilterState {
   pbdoc?: string;
@@ -17,11 +18,37 @@ interface ProcessTableProps {
 }
 
 const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
-  // Get processes (just the most recent ones)
-  const { data: processes, isLoading, error } = useQuery<Process[]>({
-    queryKey: ['/api/processes', filters],
+  // Get all processes
+  const { data: allProcesses, isLoading, error } = useQuery<Process[]>({
+    queryKey: ['/api/processes'],
     queryFn: getQueryFn({ on401: "throw" }),
   });
+  
+  // Filtrar processos no lado do cliente
+  const processes = useMemo(() => {
+    if (!allProcesses) return [];
+    
+    let filteredProcesses = [...allProcesses];
+    
+    if (filters?.pbdoc) {
+      filteredProcesses = filteredProcesses.filter(p => 
+        p.pbdocNumber.toLowerCase().includes(filters.pbdoc!.toLowerCase())
+      );
+    }
+    
+    if (filters?.modality) {
+      const modalityId = parseInt(filters.modality);
+      filteredProcesses = filteredProcesses.filter(p => p.modalityId === modalityId);
+    }
+    
+    if (filters?.responsible) {
+      const responsibleId = parseInt(filters.responsible);
+      console.log(`ProcessTable - Filtrando responsibleId=${responsibleId}, tipo: ${typeof responsibleId}`);
+      filteredProcesses = filteredProcesses.filter(p => p.responsibleId === responsibleId);
+    }
+    
+    return filteredProcesses;
+  }, [allProcesses, filters]);
   
   // Get users for responsible names
   const { data: users } = useQuery<User[]>({
