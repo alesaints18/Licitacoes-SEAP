@@ -16,6 +16,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getUsers(): Promise<User[]>;
   updateUser(id: number, userData: Partial<InsertUser>): Promise<User | undefined>;
+  deleteUser(id: number): Promise<boolean>;
   authenticateUser(username: string, password: string): Promise<User | undefined>;
 
   // Department operations

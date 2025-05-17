@@ -135,6 +135,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(400).json({ message: "Erro ao atualizar usuário", error });
     }
   });
+  
+  app.delete('/api/users/:id', isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      // Verificar se é o usuário administrador padrão
+      if (id === 1) {
+        return res.status(403).json({ message: "Não é possível excluir o usuário administrador padrão" });
+      }
+      
+      const user = await storage.getUser(id);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
+      }
+      
+      // Implementar a exclusão do usuário
+      await storage.deleteUser(id);
+      
+      res.status(200).json({ message: "Usuário excluído com sucesso" });
+    } catch (error) {
+      console.error("Erro ao excluir usuário:", error);
+      res.status(500).json({ message: "Erro ao excluir usuário", error });
+    }
+  });
 
   // Department routes
   app.get('/api/departments', isAuthenticated, async (req, res) => {

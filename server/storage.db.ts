@@ -40,6 +40,16 @@ export class DatabaseStorage implements IStorage {
       .returning();
     return updatedUser;
   }
+  
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(users).where(eq(users.id, id));
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (error) {
+      console.error("Erro ao excluir usuário:", error);
+      return false;
+    }
+  }
 
   async authenticateUser(username: string, password: string): Promise<User | undefined> {
     const user = await this.getUserByUsername(username);
