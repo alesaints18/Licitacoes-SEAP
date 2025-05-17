@@ -58,7 +58,23 @@ export class DatabaseStorage implements IStorage {
     // Verificar se o usuário está ativo
     if (user.isActive === false) return undefined;
     
-    const passwordMatch = await bcrypt.compare(password, user.password);
+    // Verificar se a senha começa com $2b$ (hash bcrypt)
+    // Se não, verificar diretamente (compatibilidade com senhas em texto simples)
+    let passwordMatch = false;
+    
+    if (user.password.startsWith('$2b$')) {
+      passwordMatch = await bcrypt.compare(password, user.password);
+    } else {
+      // Compatibilidade: verificar senha em texto simples
+      passwordMatch = password === user.password;
+      
+      // Se a senha estiver correta, atualize para hash bcrypt
+      if (passwordMatch) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        await this.updateUser(user.id, { password: hashedPassword });
+      }
+    }
+    
     if (!passwordMatch) return undefined;
 
     return user;
