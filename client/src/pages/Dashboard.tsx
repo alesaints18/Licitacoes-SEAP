@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileText, CheckCircle, Clock, XCircle } from "lucide-react";
+import { FileText, CheckCircle, Clock, XCircle, RefreshCw } from "lucide-react";
 import StatsCard from "@/components/dashboard/StatsCard";
 import ProcessStatusChart from "@/components/dashboard/ProcessStatusChart";
 import MonthlyProcessesChart from "@/components/dashboard/MonthlyProcessesChart";
@@ -9,6 +9,9 @@ import ProcessTable from "@/components/dashboard/ProcessTable";
 import DashboardFilters from "@/components/dashboard/DashboardFilters";
 import MonthlyGoalSettings from "@/components/dashboard/MonthlyGoalSettings";
 import { useQuery } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 
 interface FilterState {
   pbdoc?: string;
@@ -118,12 +121,46 @@ const Dashboard = () => {
     setFilters(newFilters);
   };
   
+  // Função para atualizar manualmente os dados do dashboard
+  const { toast } = useToast();
+  
+  const refreshData = () => {
+    // Invalidar todas as consultas para forçar a atualização
+    queryClient.invalidateQueries({ queryKey: ['/api/processes'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/analytics/process-statistics'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/analytics/processes-by-source'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/analytics/processes-by-responsible'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/settings/monthly-goal'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/modalities'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/sources'] });
+    
+    // Mostrar notificação de dados atualizados
+    toast({
+      title: "Dados atualizados",
+      description: "Os dados do dashboard foram atualizados com sucesso.",
+      duration: 3000,
+    });
+  };
+
   return (
     <div>
       <div className="mb-6 flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
-          <p className="text-gray-600">Visão geral dos processos de licitação</p>
+        <div className="flex items-center gap-3">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
+            <p className="text-gray-600">Visão geral dos processos de licitação</p>
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={refreshData}
+            className="flex items-center gap-1 h-9"
+            title="Atualizar dados"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span className="hidden sm:inline">Atualizar</span>
+          </Button>
         </div>
         
         {isAdmin && <MonthlyGoalSettings isAdmin={isAdmin} />}
