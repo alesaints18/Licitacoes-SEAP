@@ -89,7 +89,16 @@ const Login = () => {
 
     try {
       // Call login API
-      await apiRequest("POST", "/api/auth/login", data);
+      const response = await apiRequest("POST", "/api/auth/login", data);
+      
+      if (!response.ok) {
+        // Se a resposta não for bem-sucedida, lançamos um erro para ir para o bloco catch
+        throw new Error("Falha na autenticação");
+      }
+      
+      // Validar resposta
+      const user = await response.json();
+      console.log("Login bem-sucedido:", user);
 
       // Show success toast
       toast({
@@ -97,16 +106,26 @@ const Login = () => {
         description: "Você será redirecionado para o dashboard",
       });
 
-      // Delay the redirect slightly to allow time for the session to be established
-      setTimeout(() => {
-        // First try with the router's setLocation
+      // Sempre concluir o loading independente do resultado do redirecionamento
+      setIsLoading(false);
+      
+      // Redirecionamento mais robusto
+      try {
+        // Tentativa 1: Usar a API de navegação do wouter
         setLocation("/");
-
-        // As a fallback, if that doesn't work in 300ms, use window.location
+        
+        // Se após 500ms ainda estivermos na página de login, tentar abordagem alternativa
         setTimeout(() => {
-          window.location.href = "/";
-        }, 300);
-      }, 200);
+          if (window.location.pathname.includes("/auth")) {
+            console.log("Redirecionamento via wouter falhou, tentando com window.location");
+            window.location.href = "/";
+          }
+        }, 500);
+      } catch (navigationError) {
+        console.error("Erro durante navegação:", navigationError);
+        // Fallback final: forçar redirecionamento
+        window.location.href = "/";
+      }
     } catch (error) {
       console.error("Login error:", error);
 
