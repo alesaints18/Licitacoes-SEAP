@@ -1,9 +1,12 @@
-import { BellIcon } from "lucide-react";
+import { BellIcon, RefreshCw } from "lucide-react";
 import { useLocation, Link } from "wouter";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { ThemeToggle } from "./theme-toggle";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
 
 interface HeaderProps {
   title: string;
@@ -12,12 +15,33 @@ interface HeaderProps {
 const Header = ({ title }: HeaderProps) => {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { toast } = useToast();
   
   // Get current user data
   const { data: user } = useQuery<User>({ 
     queryKey: ['/api/auth/status'],
     refetchOnWindowFocus: false,
   });
+  
+  // Função para atualizar todos os dados
+  const refreshData = () => {
+    // Invalidar as consultas mais comuns para forçar a atualização
+    queryClient.invalidateQueries({ queryKey: ['/api/processes'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/analytics/process-statistics'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/analytics/processes-by-source'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/analytics/processes-by-responsible'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/settings/monthly-goal'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/modalities'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/sources'] });
+    
+    // Mostrar notificação de dados atualizados
+    toast({
+      title: "Dados atualizados",
+      description: "Todas as informações foram atualizadas com sucesso.",
+      duration: 3000,
+    });
+  };
   
   // Get user initials for the avatar
   const userInitials = user?.fullName
@@ -58,6 +82,18 @@ const Header = ({ title }: HeaderProps) => {
           <div className="text-lg font-medium text-secondary-500 dark:text-white">
             {title}
           </div>
+          
+          {/* Botão de atualização */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={refreshData}
+            className="ml-3 flex items-center gap-1 h-8"
+            title="Atualizar dados"
+          >
+            <RefreshCw className="h-4 w-4" />
+            <span className="hidden sm:inline text-sm">Atualizar</span>
+          </Button>
         </div>
         
         <div className="flex items-center">
