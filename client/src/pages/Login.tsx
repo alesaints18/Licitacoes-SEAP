@@ -158,8 +158,7 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background relative">
-      <LoginThemeToggle />
+    <div className="flex items-center justify-center min-h-screen bg-background">
       <div className="w-full max-w-md px-4">
         <img
           src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
@@ -185,11 +184,14 @@ const Login = () => {
           
           <TabsContent value="login">
             <Card>
-              <CardHeader>
-                <CardTitle>Login</CardTitle>
-                <CardDescription>
-                  Acesse o sistema com suas credenciais
-                </CardDescription>
+              <CardHeader className="flex justify-between items-start">
+                <div>
+                  <CardTitle>Login</CardTitle>
+                  <CardDescription>
+                    Acesse o sistema com suas credenciais
+                  </CardDescription>
+                </div>
+                <LoginThemeToggle />
               </CardHeader>
               <CardContent>
                 <Form {...loginForm}>
@@ -255,15 +257,18 @@ const Login = () => {
           
           <TabsContent value="register">
             <Card>
-              <CardHeader>
-                <CardTitle>Cadastre-se</CardTitle>
-                <CardDescription>
-                  Crie uma nova conta para acessar o sistema.
-                  <br/>
-                  <span className="text-amber-500 font-medium">
-                    Seu cadastro será analisado por um administrador.
-                  </span>
-                </CardDescription>
+              <CardHeader className="flex justify-between items-start">
+                <div>
+                  <CardTitle>Cadastre-se</CardTitle>
+                  <CardDescription>
+                    Crie uma nova conta para acessar o sistema.
+                    <br/>
+                    <span className="text-amber-500 font-medium">
+                      Seu cadastro será analisado por um administrador.
+                    </span>
+                  </CardDescription>
+                </div>
+                <LoginThemeToggle />
               </CardHeader>
               <CardContent>
                 <Form {...registerForm}>
