@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FileText, CheckCircle, Clock, XCircle } from "lucide-react";
 import StatsCard from "@/components/dashboard/StatsCard";
 import ProcessStatusChart from "@/components/dashboard/ProcessStatusChart";
@@ -7,6 +7,7 @@ import ResourceDistributionChart from "@/components/dashboard/ResourceDistributi
 import ResponsibleTable from "@/components/dashboard/ResponsibleTable";
 import ProcessTable from "@/components/dashboard/ProcessTable";
 import DashboardFilters from "@/components/dashboard/DashboardFilters";
+import MonthlyGoalSettings from "@/components/dashboard/MonthlyGoalSettings";
 import { useQuery } from "@tanstack/react-query";
 
 interface FilterState {
@@ -17,6 +18,48 @@ interface FilterState {
 
 const Dashboard = () => {
   const [filters, setFilters] = useState<FilterState>({});
+  const [monthlyGoal, setMonthlyGoal] = useState<number>(200);
+  
+  // Verificar se o usuário é administrador
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/auth/status'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/status');
+      if (!response.ok) {
+        return null;
+      }
+      return response.json();
+    },
+  });
+  
+  const isAdmin = currentUser?.role === 'admin';
+  
+  // Buscar a meta mensal configurada
+  const { data: goalData } = useQuery({
+    queryKey: ['/api/settings/monthly-goal'],
+    queryFn: async () => {
+      try {
+        const response = await fetch('/api/settings/monthly-goal');
+        if (response.ok) {
+          const data = await response.json();
+          return data.value;
+        }
+      } catch (error) {
+        console.error("Erro ao buscar meta mensal:", error);
+      }
+      
+      // Como fallback, usa o localStorage ou o valor padrão
+      const storedGoal = localStorage.getItem('monthlyGoal');
+      return storedGoal ? parseInt(storedGoal) : 200;
+    },
+  });
+  
+  // Atualizar a meta quando os dados forem carregados
+  useEffect(() => {
+    if (goalData) {
+      setMonthlyGoal(goalData);
+    }
+  }, [goalData]);
   
   // Implementação customizada de consulta para pegar processos e executar filtragem no frontend
   const { data: processos } = useQuery({
@@ -77,9 +120,13 @@ const Dashboard = () => {
   
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
-        <p className="text-gray-600">Visão geral dos processos de licitação</p>
+      <div className="mb-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
+          <p className="text-gray-600">Visão geral dos processos de licitação</p>
+        </div>
+        
+        {isAdmin && <MonthlyGoalSettings isAdmin={isAdmin} />}
       </div>
       
       {/* Filter Controls */}
@@ -91,7 +138,7 @@ const Dashboard = () => {
           title="Total de Processos"
           value={stats?.total || 0}
           icon={<FileText className="h-6 w-6" />}
-          progress={{ current: stats?.total || 0, max: 200 }}
+          progress={{ current: stats?.total || 0, max: monthlyGoal }}
           color="blue"
         />
         

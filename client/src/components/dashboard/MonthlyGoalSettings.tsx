@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,7 +50,7 @@ const MonthlyGoalSettings = ({ isAdmin }: MonthlyGoalSettingsProps) => {
   });
   
   // Atualizar estados quando os dados chegarem
-  React.useEffect(() => {
+  useEffect(() => {
     if (data) {
       setMonthlyGoal(data);
       setInputValue(data.toString());
