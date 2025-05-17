@@ -50,13 +50,13 @@
 
 .dark {
   --background: 240 10% 3.9%;
-  --foreground: 210 40% 98%;
+  --foreground: 0 0% 100%;
   --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 80%;
+  --muted-foreground: 240 5% 90%;
   --popover: 240 10% 3.9%;
-  --popover-foreground: 210 40% 98%;
+  --popover-foreground: 0 0% 100%;
   --card: 240 10% 3.9%;
-  --card-foreground: 210 40% 98%;
+  --card-foreground: 0 0% 100%;
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
   --primary: 256 100% 6.5%;

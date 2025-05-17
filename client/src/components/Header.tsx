@@ -61,11 +61,9 @@ const Header = ({ title }: HeaderProps) => {
         </div>
         
         <div className="flex items-center">
-          <ThemeToggle />
-          
           <button 
             type="button" 
-            className="ml-2 p-2 rounded-full text-gray-500 hover:text-secondary-500 hover:bg-gray-100 focus:outline-none"
+            className="p-2 rounded-full text-gray-500 hover:text-secondary-500 hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
           >
             <BellIcon className="h-6 w-6" />
           </button>
@@ -74,7 +72,7 @@ const Header = ({ title }: HeaderProps) => {
             type="button" 
             className="ml-3 flex items-center text-sm focus:outline-none"
           >
-            <span className="mr-2 hidden md:block">{user?.fullName}</span>
+            <span className="mr-2 hidden md:block text-foreground">{user?.fullName}</span>
             <div className="w-8 h-8 rounded-full bg-secondary-500 flex items-center justify-center text-white">
               <span>{userInitials}</span>
             </div>
