@@ -27,22 +27,46 @@ function Router() {
   useEffect(() => {
     const checkAuthStatus = async () => {
       try {
-        const res = await fetch("/api/auth/status", {
+        // Adicionando timestamp para evitar cache
+        const timestamp = Date.now();
+        const res = await fetch(`/api/auth/status?_t=${timestamp}`, {
           credentials: "include",
+          cache: "no-store" // Forçar sempre atualizar 
         });
         
+        console.log("Resposta de verificação de autenticação:", res.status);
+        
         if (res.ok) {
+          const userData = await res.json();
+          console.log("User is authenticated:", userData.username);
           setIsAuthenticated(true);
-          console.log("User is authenticated");
-          // If the user is on the login page and is already authenticated, redirect to dashboard
+          
+          // Se o usuário estiver na página de login e já estiver autenticado, redireciona para o dashboard
           if (location === "/login") {
+            console.log("Redirecionando usuário autenticado para o dashboard");
             setLocation("/");
+            // Fallback se o redirecionamento via wouter falhar
+            setTimeout(() => {
+              if (window.location.pathname === "/login") {
+                console.log("Fallback: usando window.location para redirecionar");
+                window.location.href = "/";
+              }
+            }, 300);
           }
         } else {
+          console.log("User is not authenticated, status:", res.status);
           setIsAuthenticated(false);
-          console.log("User is not authenticated");
+          
           if (location !== "/login") {
+            console.log("Redirecionando para tela de login");
             setLocation("/login");
+            // Adicionar um fallback se o redirecionamento via setLocation falhar
+            setTimeout(() => {
+              if (window.location.pathname !== "/login") {
+                console.log("Fallback: usando window.location para redirecionar para login");
+                window.location.href = "/login";
+              }
+            }, 300);
           }
         }
       } catch (error) {
@@ -53,6 +77,11 @@ function Router() {
           description: "Não foi possível conectar ao servidor",
           variant: "destructive",
         });
+        
+        // Em caso de erro, redirecionar para login
+        if (location !== "/login") {
+          setTimeout(() => setLocation("/login"), 100);
+        }
       }
     };
 

@@ -12,17 +12,22 @@ import MemoryStore from "memorystore";
 let monthlyGoal = 200; // Valor padrão
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Configurar trust proxy para que as sessões funcionem corretamente em produção
+  app.set('trust proxy', 1);
+  
   // Setup session
   const SessionStore = MemoryStore(session);
   app.use(session({
-    secret: process.env.SESSION_SECRET || 'seap-pb-bidding-system',
+    name: 'seap-session',
+    secret: process.env.SESSION_SECRET || 'seap-pb-bidding-system-secure-key-2025',
     resave: false,
     saveUninitialized: false,
     cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      secure: false, // Definindo como false para funcionar independente do ambiente
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
+      secure: false, // Sempre false para garantir compatibilidade
       httpOnly: true,
-      sameSite: 'lax'
+      sameSite: 'lax',
+      path: '/'
     },
     store: new SessionStore({
       checkPeriod: 86400000 // 24 hours
@@ -35,25 +40,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   passport.use(new LocalStrategy(async (username, password, done) => {
     try {
+      console.log("Tentativa de autenticação para usuário:", username);
       const user = await storage.authenticateUser(username, password);
+      
       if (!user) {
+        console.log("Autenticação falhou para:", username);
         return done(null, false, { message: "Credenciais inválidas." });
       }
+      
+      if (!user.isActive) {
+        console.log("Usuário não está ativo:", username);
+        return done(null, false, { message: "Sua conta ainda não foi ativada por um administrador." });
+      }
+      
+      console.log("Autenticação bem-sucedida para:", username);
       return done(null, user);
     } catch (error) {
+      console.error("Erro na autenticação:", error);
       return done(error);
     }
   }));
 
   passport.serializeUser((user: any, done) => {
+    console.log("Serializando usuário:", user.id);
     done(null, user.id);
   });
 
   passport.deserializeUser(async (id: number, done) => {
     try {
+      console.log("Desserializando usuário ID:", id);
       const user = await storage.getUser(id);
+      
+      if (!user) {
+        console.log("Usuário não encontrado na desserialização:", id);
+        return done(null, false);
+      }
+      
+      console.log("Usuário desserializado com sucesso:", user.username);
       done(null, user);
     } catch (error) {
+      console.error("Erro durante desserialização:", error);
       done(error);
     }
   });
