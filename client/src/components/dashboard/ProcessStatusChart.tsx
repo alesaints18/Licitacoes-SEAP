@@ -29,7 +29,10 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
       const params = new URLSearchParams();
       if (queryFilters.pbdoc) params.append('pbdocNumber', queryFilters.pbdoc);
       if (queryFilters.modality) params.append('modalityId', queryFilters.modality);
-      if (queryFilters.responsible) params.append('responsibleId', queryFilters.responsible);
+      if (queryFilters.responsible) {
+        console.log("Adicionando responsibleId:", queryFilters.responsible, "tipo:", typeof queryFilters.responsible);
+        params.append('responsibleId', queryFilters.responsible);
+      }
       
       console.log("ProcessStatusChart - Filtros aplicados:", queryFilters);
       console.log("ProcessStatusChart - URL params:", params.toString());

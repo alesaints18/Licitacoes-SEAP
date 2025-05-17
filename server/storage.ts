@@ -416,8 +416,25 @@ export class MemStorage implements IStorage {
     inProgress: number;
     canceled: number;
   }> {
-    // Usar o método getProcesses que já implementa a lógica de filtragem
-    const processes = await this.getProcesses(filters);
+    console.log('getProcessesStatistics - Filtros recebidos:', filters);
+    
+    // Vamos fazer a filtragem diretamente aqui para fins de depuração
+    let processes = Array.from(this.processes.values());
+    console.log('Processos antes da filtragem:', processes.length);
+    
+    if (filters && filters.responsibleId) {
+      const responsibleId = Number(filters.responsibleId);
+      console.log(`Filtrando por responsibleId=${responsibleId} (numérico)`);
+      
+      processes = processes.filter(p => {
+        const result = p.responsibleId === responsibleId;
+        console.log(`Processo ${p.id}: responsibleId=${p.responsibleId} (${typeof p.responsibleId}) === ${responsibleId} (${typeof responsibleId}) => ${result}`);
+        return result;
+      });
+      
+      console.log('Processos após filtragem por responsibleId:', processes.length);
+      console.log('Processos filtrados:', processes.map(p => ({id: p.id, pbdoc: p.pbdocNumber})));
+    }
     
     return {
       total: processes.length,
