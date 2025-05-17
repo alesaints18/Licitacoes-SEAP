@@ -55,7 +55,7 @@ const Header = ({ title }: HeaderProps) => {
             </svg>
           </button>
           
-          <div className="text-lg font-medium text-secondary-500">
+          <div className="text-lg font-medium text-secondary-500 dark:text-white">
             {title}
           </div>
         </div>

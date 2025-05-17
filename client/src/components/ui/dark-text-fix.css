@@ -1,0 +1,58 @@
+/* Este arquivo adiciona classes para garantir que textos sejam legíveis no modo escuro */
+
+/* Aplicar texto branco a cabeçalhos e títulos no modo escuro */
+.dark h1,
+.dark h2,
+.dark h3,
+.dark h4,
+.dark h5,
+.dark h6,
+.dark .text-2xl,
+.dark .text-xl,
+.dark .text-lg,
+.dark .font-semibold,
+.dark .font-bold,
+.dark .card-title {
+  color: white !important;
+}
+
+/* Títulos específicos e textos de descrição */
+.dark .text-gray-800 {
+  color: white !important;
+}
+
+.dark .text-gray-600,
+.dark .text-gray-700 {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Textos no corpo de cards e outros elementos */
+.dark .card-content .text-foreground,
+.dark .card-content .text-secondary-500,
+.dark .card-content .text-gray-800 {
+  color: white !important;
+}
+
+/* Aplicar texto branco a rótulos e etiquetas */
+.dark label,
+.dark .label,
+.dark .font-medium {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Ajustar cor do texto em botões */
+.dark button:not(.btn-primary):not(.btn-secondary) .text-gray-800 {
+  color: white !important;
+}
+
+/* Ajustar cores nos itens de navegação */
+.dark .nav-item .text-gray-800 {
+  color: white !important;
+}
+
+/* Garantir que textos em tabelas sejam legíveis */
+.dark table th,
+.dark table td,
+.dark table caption {
+  color: white !important;
+}
