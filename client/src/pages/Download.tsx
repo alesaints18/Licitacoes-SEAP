@@ -7,16 +7,22 @@ import { Download as DownloadIcon } from "lucide-react";
 const Download = () => {
   // Função para lidar com o download
   const handleDownload = () => {
-    // URL do arquivo para download (ajuste o caminho para o arquivo real)
+    // URL do arquivo para download
     const fileUrl = "/downloads/SEAP-PB-win-x64.rar";
     
     // Criando um elemento de link para iniciar o download
     const link = document.createElement("a");
     link.href = fileUrl;
     link.setAttribute("download", "SEAP-PB-win-x64.rar");
+    
+    // Adicionar ao corpo do documento, clicar e remover
     document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    
+    // Mostrar feedback ao usuário antes de iniciar o download
+    setTimeout(() => {
+      link.click();
+      document.body.removeChild(link);
+    }, 100);
   };
 
   return (
