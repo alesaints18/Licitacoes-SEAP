@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { getQueryFn } from "@/lib/queryClient";
+import { useMemo } from "react";
+import { Process } from "@shared/schema";
 
 interface MonthlyData {
   month: number;
@@ -19,10 +21,60 @@ interface MonthlyProcessesChartProps {
 }
 
 const MonthlyProcessesChart = ({ filters = {} }: MonthlyProcessesChartProps) => {
-  const { data, isLoading, error } = useQuery<MonthlyData[]>({
-    queryKey: ['/api/analytics/processes-by-month', filters],
+  // Obter todos os processos
+  const { data: processos, isLoading: loadingProcessos, error: processosError } = useQuery<Process[]>({
+    queryKey: ['/api/processes'],
     queryFn: getQueryFn({ on401: "throw" }),
   });
+  
+  // Calcular dados por mês aplicando filtros no frontend
+  const { data, isLoading, error } = useMemo(() => {
+    if (loadingProcessos) return { data: undefined, isLoading: true, error: undefined };
+    if (processosError) return { data: undefined, isLoading: false, error: processosError };
+    if (!processos) return { data: undefined, isLoading: false, error: undefined };
+    
+    // Filtrar processos
+    let processosFiltrados = [...processos];
+    
+    if (filters?.pbdoc) {
+      processosFiltrados = processosFiltrados.filter(p => 
+        p.pbdocNumber.toLowerCase().includes(filters.pbdoc!.toLowerCase())
+      );
+    }
+    
+    if (filters?.modality) {
+      const modalityId = parseInt(filters.modality);
+      processosFiltrados = processosFiltrados.filter(p => p.modalityId === modalityId);
+    }
+    
+    if (filters?.responsible) {
+      const responsibleId = parseInt(filters.responsible);
+      console.log(`MonthlyChart - Filtrando responsibleId=${responsibleId}, processos antes: ${processosFiltrados.length}`);
+      processosFiltrados = processosFiltrados.filter(p => {
+        console.log(`Processo ${p.id}: responsibleId=${p.responsibleId} === ${responsibleId} => ${p.responsibleId === responsibleId}`);
+        return p.responsibleId === responsibleId;
+      });
+      console.log(`MonthlyChart - Após filtro: ${processosFiltrados.length} processos`);
+    }
+    
+    // Agrupar por mês
+    const processosPorMes = new Map<number, number>();
+    for (let i = 0; i < 12; i++) {
+      processosPorMes.set(i, 0);
+    }
+    
+    processosFiltrados.forEach(processo => {
+      const mes = new Date(processo.createdAt).getMonth();
+      processosPorMes.set(mes, (processosPorMes.get(mes) || 0) + 1);
+    });
+    
+    const monthlyData: MonthlyData[] = Array.from(processosPorMes.entries()).map(([month, count]) => ({
+      month,
+      count
+    }));
+    
+    return { data: monthlyData, isLoading: false, error: undefined };
+  }, [processos, loadingProcessos, processosError, filters]);
   
   if (isLoading) {
     return (
