@@ -53,15 +53,39 @@ export interface IStorage {
   updateProcessStep(id: number, stepData: Partial<InsertProcessStep>): Promise<ProcessStep | undefined>;
   
   // Dashboard analytics
-  getProcessesStatistics(): Promise<{
+  getProcessesStatistics(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{
     total: number;
     completed: number;
     inProgress: number;
     canceled: number;
   }>;
-  getProcessesByMonth(): Promise<{month: number; count: number}[]>;
-  getProcessesBySource(): Promise<{sourceId: number; count: number}[]>;
-  getProcessesByResponsible(): Promise<{responsibleId: number; total: number; completed: number}[]>;
+  getProcessesByMonth(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{month: number; count: number}[]>;
+  getProcessesBySource(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{sourceId: number; count: number}[]>;
+  getProcessesByResponsible(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{responsibleId: number; total: number; completed: number}[]>;
 }
 
 // Memory storage implementation
@@ -358,13 +382,20 @@ export class MemStorage implements IStorage {
   }
 
   // Dashboard analytics methods
-  async getProcessesStatistics(): Promise<{
+  async getProcessesStatistics(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{
     total: number;
     completed: number;
     inProgress: number;
     canceled: number;
   }> {
-    const processes = Array.from(this.processes.values());
+    // Usar o método getProcesses que já implementa a lógica de filtragem
+    const processes = await this.getProcesses(filters);
     
     return {
       total: processes.length,
@@ -374,8 +405,15 @@ export class MemStorage implements IStorage {
     };
   }
 
-  async getProcessesByMonth(): Promise<{month: number; count: number}[]> {
-    const processes = Array.from(this.processes.values());
+  async getProcessesByMonth(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{month: number; count: number}[]> {
+    // Usar o método getProcesses que já implementa a lógica de filtragem
+    const processes = await this.getProcesses(filters);
     const processesByMonth = new Map<number, number>();
     
     // Initialize all months with zero
@@ -395,8 +433,15 @@ export class MemStorage implements IStorage {
     }));
   }
 
-  async getProcessesBySource(): Promise<{sourceId: number; count: number}[]> {
-    const processes = Array.from(this.processes.values());
+  async getProcessesBySource(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{sourceId: number; count: number}[]> {
+    // Usar o método getProcesses que já implementa a lógica de filtragem
+    const processes = await this.getProcesses(filters);
     const processesBySource = new Map<number, number>();
     
     // Count processes by source
@@ -413,8 +458,15 @@ export class MemStorage implements IStorage {
     }));
   }
 
-  async getProcessesByResponsible(): Promise<{responsibleId: number; total: number; completed: number}[]> {
-    const processes = Array.from(this.processes.values());
+  async getProcessesByResponsible(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{responsibleId: number; total: number; completed: number}[]> {
+    // Usar o método getProcesses que já implementa a lógica de filtragem
+    const processes = await this.getProcesses(filters);
     const processesByResponsible = new Map<number, {total: number; completed: number}>();
     
     // Initialize with all users
