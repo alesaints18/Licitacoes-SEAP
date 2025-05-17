@@ -50,9 +50,11 @@
   color: white !important;
 }
 
-/* Garantir que textos em tabelas sejam legíveis */
+/* Comentado para manter tabelas com cor original */
+/* 
 .dark table th,
 .dark table td,
 .dark table caption {
   color: white !important;
 }
+*/
