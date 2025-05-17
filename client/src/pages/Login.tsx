@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { LoginThemeToggle } from "@/components/login-theme-toggle";
 import {
   Card,
   CardContent,
@@ -157,7 +158,8 @@ const Login = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="flex items-center justify-center min-h-screen bg-background relative">
+      <LoginThemeToggle />
       <div className="w-full max-w-md px-4">
         <img
           src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
