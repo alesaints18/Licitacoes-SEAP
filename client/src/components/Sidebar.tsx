@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
+import { ThemeToggle } from "./theme-toggle";
 
 const Sidebar = () => {
   const [location, setLocation] = useLocation();
@@ -138,8 +139,18 @@ const Sidebar = () => {
           </ul>
         </nav>
 
+        {/* Version and Theme */}
+        <div className="p-2 border-t border-[#5892c2]">
+          <div className="flex items-center justify-between px-4 py-2 text-white text-xs">
+            <span>v1.0.0</span>
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
+          </div>
+        </div>
+        
         {/* Logout Link */}
-        <div className="p-4 border-t border-[#5892c2]">
+        <div className="p-2 border-t border-[#5892c2]">
           <button
             onClick={handleLogout}
             className="flex items-center w-full px-4 py-2 text-white hover:bg-[#396a9c] rounded-md group transition-colors"

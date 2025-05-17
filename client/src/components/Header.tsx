@@ -30,7 +30,7 @@ const Header = ({ title }: HeaderProps) => {
     : "US";
   
   return (
-    <header className="bg-white shadow-sm">
+    <header className="bg-background shadow-sm">
       <div className="flex justify-between items-center px-4 py-3">
         <div className="flex items-center">
           {/* Mobile Menu Button */}
@@ -84,33 +84,33 @@ const Header = ({ title }: HeaderProps) => {
       
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-white shadow-lg absolute z-10 w-full">
+        <div className="md:hidden bg-background shadow-lg absolute z-10 w-full">
           <nav className="px-4 py-2">
             <ul className="space-y-2">
               <li>
                 <Link href="/">
-                  <a className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                  <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
                     Dashboard
                   </a>
                 </Link>
               </li>
               <li>
                 <Link href="/processes">
-                  <a className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                  <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
                     Processos
                   </a>
                 </Link>
               </li>
               <li>
                 <Link href="/bidding-flow">
-                  <a className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                  <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
                     Fluxo de Licitação
                   </a>
                 </Link>
               </li>
               <li>
                 <Link href="/reports">
-                  <a className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                  <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
                     Relatórios
                   </a>
                 </Link>
@@ -118,7 +118,7 @@ const Header = ({ title }: HeaderProps) => {
               {user?.role === 'admin' && (
                 <li>
                   <Link href="/users">
-                    <a className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                    <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
                       Usuários
                     </a>
                   </Link>
@@ -126,7 +126,7 @@ const Header = ({ title }: HeaderProps) => {
               )}
               <li>
                 <Link href="/settings">
-                  <a className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md">
+                  <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
                     Configurações
                   </a>
                 </Link>
