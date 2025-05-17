@@ -1,6 +1,7 @@
 import express, { type Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import path from "path";
 import { insertUserSchema, insertDepartmentSchema, insertBiddingModalitySchema, 
          insertResourceSourceSchema, insertProcessSchema, insertProcessStepSchema } from "@shared/schema";
 import session from "express-session";
@@ -12,6 +13,21 @@ import MemoryStore from "memorystore";
 let monthlyGoal = 200; // Valor padrão
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Rota direta para download do arquivo
+  app.get('/download-app', (req, res) => {
+    const filePath = path.join(process.cwd(), 'public', 'downloads', 'SEAP-PB-win-x64.rar');
+    res.download(filePath, 'SEAP-PB.rar', (err) => {
+      if (err) {
+        console.error('Erro ao fazer download do arquivo:', err);
+        res.status(500).send('Erro ao baixar o arquivo');
+      }
+    });
+  });
+  
+  // Rota para a página de download
+  app.get('/download-page', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'public', 'download-page.html'));
+  });
   // Configurar trust proxy para que as sessões funcionem corretamente em produção
   app.set('trust proxy', 1);
   
