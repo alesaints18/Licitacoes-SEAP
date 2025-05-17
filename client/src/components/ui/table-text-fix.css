@@ -2,14 +2,50 @@
 .dark table th,
 .dark table td,
 .dark table caption,
-.dark .table-cell {
+.dark .table-cell,
+.dark table td span,
+.dark table td p,
+.dark table td div,
+.dark td .text-sm,
+.dark td .text-xs,
+.dark td .text-lg,
+.dark td .font-medium,
+.dark td a,
+.dark td span,
+.dark td div,
+.dark .user-item-name,
+.dark .user-card-name,
+.dark .recharts-text,
+.dark .recharts-label,
+.dark .recharts-cartesian-axis-tick-value {
   color: rgba(0, 0, 0, 0.9) !important; /* Preto com alta opacidade */
 }
 
 /* Para elementos específicos de tabela que possam precisar de ajuste */
 .dark .data-table th,
 .dark .data-table td,
-.dark .process-table td {
+.dark .process-table td,
+.dark .user-table td,
+.dark .data-grid td,
+.dark [role="gridcell"],
+.dark [role="cell"],
+.dark .card span,
+.dark .card-title,
+.dark .card-header,
+.dark .card-content {
+  color: rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Garantir que nomes de responsáveis e estatísticas sejam em preto */
+.dark .statistics-card .value,
+.dark .statistics-card .label,
+.dark .responsible-name,
+.dark .user-name,
+.dark .process-data,
+.dark .completed-value,
+.dark .percentage-value,
+.dark .label-value,
+.dark .text-value {
   color: rgba(0, 0, 0, 0.9) !important;
 }
 

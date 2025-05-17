@@ -1,0 +1,81 @@
+/* Estilos específicos para garantir que os textos em componentes de estatísticas e responsáveis fiquem pretos no tema escuro */
+
+/* Textos de estatísticas e valores */
+.dark .card.p-4 h2,
+.dark .card.p-4 h3,
+.dark .card.p-4 p,
+.dark .card.p-4 span,
+.dark .card.p-4 div,
+.dark .card.p-6 h2,
+.dark .card.p-6 h3,
+.dark .card.p-6 p,
+.dark .card.p-6 span,
+.dark .card.p-6 div {
+  color: black !important;
+}
+
+/* Nomes de responsáveis nas tabelas */
+.dark tbody tr td span,
+.dark tbody tr td div,
+.dark tbody tr td p {
+  color: black !important;
+}
+
+/* Estatísticas específicas na tabela de responsáveis */
+.dark .responsible-stats,
+.dark .process-count,
+.dark .completed-count,
+.dark .percentage {
+  color: black !important;
+}
+
+/* Texto em headers de tabelas */
+.dark thead tr th {
+  color: black !important;
+  background-color: #f0f0f0 !important;
+}
+
+/* Textos em células específicas */
+.dark [data-label="Responsável"] span,
+.dark [data-label="Processos"] span,
+.dark [data-label="Concluídos"] span,
+.dark [data-label="%"] span {
+  color: black !important;
+}
+
+/* Texto em componentes de gráficos */
+.dark .recharts-legend-item-text,
+.dark .recharts-tooltip-label,
+.dark .recharts-default-tooltip {
+  color: black !important;
+}
+
+/* Fundo de tabelas para melhor contraste */
+.dark table {
+  background-color: white !important;
+}
+
+/* Garantir que os textos do cabeçalho da aplicação permaneçam brancos */
+.dark .sidebar-text,
+.dark .sidebar-link,
+.dark header .text-white {
+  color: white !important;
+}
+
+/* Ajustes para os cartões de estatísticas */
+.dark .stat-card .card-title,
+.dark .stat-card h3,
+.dark .stat-card .value,
+.dark .stat-card .label {
+  color: black !important;
+}
+
+/* Ajustes para todos os elementos do tipo "table" */
+.dark table * {
+  color: black !important;
+}
+
+/* Garantir que os elementos dentro de .card tenham texto preto */
+.dark .card-content * {
+  color: black !important;
+}

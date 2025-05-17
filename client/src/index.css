@@ -1,5 +1,6 @@
 @import url("./components/ui/dark-text-fix.css");
 @import url("./components/ui/table-text-fix.css");
+@import url("./components/ui/dark-mode-stats-fix.css");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
