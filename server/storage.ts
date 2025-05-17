@@ -290,26 +290,35 @@ export class MemStorage implements IStorage {
     status?: string;
   }): Promise<Process[]> {
     let processes = Array.from(this.processes.values());
+    console.log("getProcesses - Processos iniciais:", processes.length, "Filtros:", filters);
     
     if (filters) {
       if (filters.pbdocNumber) {
         processes = processes.filter(p => p.pbdocNumber.includes(filters.pbdocNumber!));
+        console.log(`Após filtro pbdocNumber (${filters.pbdocNumber}):`, processes.length);
       }
       
       if (filters.modalityId) {
         processes = processes.filter(p => p.modalityId === filters.modalityId);
+        console.log(`Após filtro modalityId (${filters.modalityId}):`, processes.length);
       }
       
       if (filters.sourceId) {
         processes = processes.filter(p => p.sourceId === filters.sourceId);
+        console.log(`Após filtro sourceId (${filters.sourceId}):`, processes.length);
       }
       
       if (filters.responsibleId) {
+        console.log(`Aplicando filtro responsibleId (${filters.responsibleId}). Processos antes:`, processes.length);
+        console.log(`Valores de responsibleId nos processos:`, processes.map(p => p.responsibleId));
+        
         processes = processes.filter(p => p.responsibleId === filters.responsibleId);
+        console.log(`Após filtro responsibleId (${filters.responsibleId}):`, processes.length);
       }
       
       if (filters.status) {
         processes = processes.filter(p => p.status === filters.status);
+        console.log(`Após filtro status (${filters.status}):`, processes.length);
       }
     }
     
