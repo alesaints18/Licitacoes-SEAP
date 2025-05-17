@@ -93,9 +93,9 @@ const Sidebar = () => {
 
   return (
     <aside className="flex flex-shrink-0">
-      <div className="flex flex-col w-64 bg-[#4682B4] shadow-lg">
+      <div className="flex flex-col w-64 dark:bg-[#010021] bg-[#4682B4] shadow-lg">
         {/* Logo */}
-        <div className="flex flex-col items-center justify-center h-auto px-30 bg-[#396a9c]">
+        <div className="flex flex-col items-center justify-center h-auto px-30 dark:bg-[#01001A] bg-[#396a9c]">
           <img
             src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
             alt="Logo"
@@ -108,14 +108,14 @@ const Sidebar = () => {
         </div>
 
         {/* User Info */}
-        <div className="flex flex-col items-center py-4 border-b border-[#5892c2]">
+        <div className="flex flex-col items-center py-4 border-b dark:border-[#090935] border-[#5892c2]">
           <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-2">
-            <span className="text-[#4682B4] font-bold text-lg">
+            <span className="dark:text-[#010021] text-[#4682B4] font-bold text-lg">
               {userInitials}
             </span>
           </div>
           <div className="text-white text-sm font-medium">{user?.fullName}</div>
-          <div className="text-blue-100 text-xs capitalize">{user?.role}</div>
+          <div className="dark:text-blue-200 text-blue-100 text-xs capitalize">{user?.role}</div>
         </div>
 
         {/* Navigation Links */}
@@ -127,8 +127,8 @@ const Sidebar = () => {
                   href={item.path}
                   className={`flex items-center px-4 py-3 rounded-md group transition-colors ${
                     location === item.path
-                      ? "text-white bg-[#396a9c] font-medium"
-                      : "text-white hover:bg-[#5892c2]"
+                      ? "text-white dark:bg-[#01001A] bg-[#396a9c] font-medium"
+                      : "text-white dark:hover:bg-[#020035] hover:bg-[#5892c2]"
                   }`}
                 >
                   {item.icon}
@@ -140,7 +140,7 @@ const Sidebar = () => {
         </nav>
 
         {/* Version and Theme */}
-        <div className="p-2 border-t border-[#5892c2]">
+        <div className="p-2 border-t dark:border-[#090935] border-[#5892c2]">
           <div className="flex items-center justify-between px-4 py-2 text-white text-xs">
             <span>v1.0.0</span>
             <div className="hidden md:block">
@@ -150,10 +150,10 @@ const Sidebar = () => {
         </div>
         
         {/* Logout Link */}
-        <div className="p-2 border-t border-[#5892c2]">
+        <div className="p-2 border-t dark:border-[#090935] border-[#5892c2]">
           <button
             onClick={handleLogout}
-            className="flex items-center w-full px-4 py-2 text-white hover:bg-[#396a9c] rounded-md group transition-colors"
+            className="flex items-center w-full px-4 py-2 text-white dark:hover:bg-[#01001A] hover:bg-[#396a9c] rounded-md group transition-colors"
           >
             <LogOut className="h-5 w-5 mr-3" />
             <span>Sair</span>

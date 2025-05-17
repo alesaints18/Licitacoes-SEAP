@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { PlusCircle, Search, UserPlus, Edit, Trash } from "lucide-react";
+import { PlusCircle, Search, UserPlus, Edit, Trash, UserCheck, UserX } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -177,7 +177,7 @@ const Users = () => {
   const handleDeleteUser = async (userId: number) => {
     setDeleting(true);
     try {
-      console.log("Deleting user ID:", userId); // debug
+      console.log("Deleting user ID:", userId);
 
       await apiRequest("DELETE", `/api/users/${userId}`, null);
 
@@ -196,6 +196,30 @@ const Users = () => {
       });
     } finally {
       setDeleting(false);
+    }
+  };
+  
+  const toggleUserActive = async (userId: number, isActive: boolean) => {
+    try {
+      await apiRequest("PATCH", `/api/users/${userId}`, { 
+        isActive: !isActive 
+      });
+      
+      toast({
+        title: isActive ? "Usuário desativado" : "Usuário ativado",
+        description: isActive 
+          ? "O usuário foi desativado com sucesso" 
+          : "O usuário foi ativado e agora pode acessar o sistema",
+      });
+      
+      await queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    } catch (error) {
+      console.error("Error toggling user active status:", error);
+      toast({
+        title: "Erro",
+        description: `Erro ao ${isActive ? "desativar" : "ativar"} usuário`,
+        variant: "destructive",
+      });
     }
   };
 
@@ -226,6 +250,22 @@ const Users = () => {
       },
     },
     {
+      accessorKey: "isActive",
+      header: "Status",
+      cell: ({ row }) => {
+        const isActive = row.getValue("isActive") as boolean;
+        return (
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+            isActive 
+              ? "bg-green-100 text-green-800" 
+              : "bg-orange-100 text-orange-800"
+          }`}>
+            {isActive ? "Ativo" : "Pendente"}
+          </span>
+        );
+      },
+    },
+    {
       id: "actions",
       header: "Ações",
       cell: ({ row }) => {
@@ -238,6 +278,20 @@ const Users = () => {
               onClick={() => openEditUserDialog(user)}
             >
               <Edit className="h-4 w-4" />
+            </Button>
+            
+            {/* Botão para ativar/desativar usuário */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => toggleUserActive(user.id, user.isActive)}
+              title={user.isActive ? "Desativar usuário" : "Ativar usuário"}
+            >
+              {user.isActive ? (
+                <UserX className="h-4 w-4 text-orange-500" />
+              ) : (
+                <UserCheck className="h-4 w-4 text-green-500" />
+              )}
             </Button>
 
             <AlertDialog>
