@@ -8,6 +8,9 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
 
+// Configuração para meta mensal
+let monthlyGoal = 200; // Valor padrão
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session
   const SessionStore = MemoryStore(session);
@@ -469,7 +472,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar processos por responsável", error });
     }
   });
+  
+  // Configuração para meta mensal
+  let monthlyGoal = 200; // Valor padrão
+  
+  app.get('/api/settings/monthly-goal', isAuthenticated, (req, res) => {
+    res.json({ value: monthlyGoal });
+  });
+  
+  app.post('/api/settings/monthly-goal', isAdmin, (req, res) => {
+    try {
+      const { value } = req.body;
+      
+      if (typeof value !== 'number' || value <= 0) {
+        return res.status(400).json({ message: "Valor de meta inválido. Deve ser um número positivo." });
+      }
+      
+      monthlyGoal = value;
+      res.json({ value: monthlyGoal });
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao atualizar meta mensal", error });
+    }
+  });
 
+  // Endpoints para meta mensal
+  app.get('/api/settings/monthly-goal', isAuthenticated, (req, res) => {
+    res.json({ value: monthlyGoal });
+  });
+  
+  app.post('/api/settings/monthly-goal', isAdmin, (req, res) => {
+    try {
+      const { value } = req.body;
+      
+      if (typeof value !== 'number' || value <= 0) {
+        return res.status(400).json({ message: "Valor de meta inválido. Deve ser um número positivo." });
+      }
+      
+      monthlyGoal = value;
+      res.json({ value: monthlyGoal });
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao atualizar meta mensal", error });
+    }
+  });
+  
   const httpServer = createServer(app);
   return httpServer;
 }
