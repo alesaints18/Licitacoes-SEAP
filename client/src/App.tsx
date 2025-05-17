@@ -14,6 +14,7 @@ import BiddingFlow from "@/pages/BiddingFlow";
 import Reports from "@/pages/Reports";
 import Users from "@/pages/Users";
 import Settings from "@/pages/Settings";
+import Download from "@/pages/Download";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -158,6 +159,19 @@ function Router() {
   return (
     <Switch>
       <Route path="/login" component={Login} />
+      
+      {/* Página de download protegida por token, acessível apenas por link direto */}
+      <Route path="/download/:token">
+        {(params) => {
+          // Token de acesso fixo para validação - na prática pode vir do banco de dados
+          const validToken = "seappb2025";
+          if (params.token === validToken) {
+            return <Download />;
+          } else {
+            return <NotFound />;
+          }
+        }}
+      </Route>
       
       <Route path="/">
         <Layout>
