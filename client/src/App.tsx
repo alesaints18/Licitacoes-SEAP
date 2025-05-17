@@ -272,11 +272,48 @@ function Router() {
   );
 }
 
+// Componente para forçar carregamento correto de imagens
+function ImagePreloader() {
+  useEffect(() => {
+    // Funções para pré-carregar imagens críticas
+    const preloadImages = () => {
+      // Lista de imagens que precisam ser pré-carregadas
+      const imagesToPreload = [
+        "https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
+      ];
+      
+      // Pré-carregar cada imagem
+      imagesToPreload.forEach(src => {
+        const img = new Image();
+        img.src = src;
+        
+        // Garantir que a imagem seja armazenada em cache
+        img.onload = () => console.log(`Imagem pré-carregada: ${src}`);
+        img.onerror = () => console.error(`Erro ao carregar imagem: ${src}`);
+      });
+    };
+    
+    // Carregar imagens quando o componente for montado
+    preloadImages();
+    
+    // Recarregar imagens quando a página estiver totalmente carregada
+    window.addEventListener('load', preloadImages);
+    
+    return () => {
+      window.removeEventListener('load', preloadImages);
+    };
+  }, []);
+  
+  return null;
+}
+
+// Componente principal da aplicação
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <NotificationProvider>
+          <ImagePreloader />
           <Router />
         </NotificationProvider>
       </TooltipProvider>
