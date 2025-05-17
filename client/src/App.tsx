@@ -26,6 +26,13 @@ function Router() {
   const [location, setLocation] = useLocation();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
+  
+  // Lista de rotas públicas que não precisam de autenticação
+  const publicRoutes = [
+    "/login",
+    "/download/seappb2025",
+    "/termos"
+  ];
 
   // Verificar status da autenticação e atualizar dados quando o usuário retorna à aba
   useEffect(() => {
@@ -147,12 +154,14 @@ function Router() {
     return null;
   }
 
-  // Se não estiver autenticado, permitir apenas acesso à página de login e à página de download
-  if (!isAuthenticated && 
-      location !== "/login" && 
-      !location.startsWith("/download/") && 
-      !location.startsWith("/termos")) {
-    console.log("Not authenticated and not on allowed pages, redirecting to login");
+  // Verificar se a rota atual é pública ou requer autenticação
+  const isPublicRoute = publicRoutes.some(route => 
+    location === route || location.startsWith(route)
+  );
+  
+  // Se não estiver autenticado e tentar acessar uma rota protegida
+  if (!isAuthenticated && !isPublicRoute) {
+    console.log("Not authenticated and attempting to access protected route, redirecting to login");
     // Use setTimeout to break the synchronous flow and avoid potential infinite loops
     setTimeout(() => {
       setLocation("/login");
