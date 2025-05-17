@@ -24,7 +24,10 @@ function Router() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const { toast } = useToast();
 
+  // Verificar status da autenticação e atualizar dados quando o usuário retorna à aba
   useEffect(() => {
+    let visibilityChangeHandler: () => void;
+    
     const checkAuthStatus = async () => {
       try {
         // Adicionando timestamp para evitar cache
@@ -85,8 +88,56 @@ function Router() {
       }
     };
 
+    // Configurar o manipulador de mudança de visibilidade
+    visibilityChangeHandler = () => {
+      // Quando o usuário retorna à aba, verificar autenticação e atualizar os dados
+      if (!document.hidden) {
+        console.log("Aba tornou-se visível, atualizando dados");
+        
+        // Verificar autenticação
+        checkAuthStatus();
+        
+        // Invalidar cache de consultas para forçar atualização dos dados
+        if (isAuthenticated) {
+          // Verificar a localização atual para invalidar as consultas relevantes
+          if (location === "/") {
+            // Invalidar consultas da página inicial/dashboard
+            import("./lib/queryClient").then(({ queryClient }) => {
+              queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+              queryClient.invalidateQueries({ queryKey: ["/api/analytics/process-statistics"] });
+              queryClient.invalidateQueries({ queryKey: ["/api/analytics/processes-by-source"] });
+              queryClient.invalidateQueries({ queryKey: ["/api/analytics/processes-by-responsible"] });
+              queryClient.invalidateQueries({ queryKey: ["/api/settings/monthly-goal"] });
+              console.log("Dados do dashboard atualizados");
+            });
+          } else if (location.includes("/processes")) {
+            // Invalidar consultas relacionadas a processos
+            import("./lib/queryClient").then(({ queryClient }) => {
+              queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+              console.log("Dados de processos atualizados");
+            });
+          } else if (location === "/users") {
+            // Invalidar consultas relacionadas a usuários
+            import("./lib/queryClient").then(({ queryClient }) => {
+              queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+              console.log("Dados de usuários atualizados");
+            });
+          }
+        }
+      }
+    };
+
+    // Iniciar verificação de autenticação
     checkAuthStatus();
-  }, [location, setLocation, toast]);
+    
+    // Adicionar event listener para mudança de visibilidade
+    document.addEventListener("visibilitychange", visibilityChangeHandler);
+    
+    // Limpar event listener ao desmontar
+    return () => {
+      document.removeEventListener("visibilitychange", visibilityChangeHandler);
+    };
+  }, [location, setLocation, toast, isAuthenticated]);
 
   // Show nothing while checking authentication
   if (isAuthenticated === null) {
