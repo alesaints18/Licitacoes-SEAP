@@ -13,27 +13,20 @@ import MemoryStore from "memorystore";
 let monthlyGoal = 200; // Valor padrão
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Rota direta para download do arquivo
-  app.get('/download-app', (req, res) => {
-    try {
-      const filePath = path.join(process.cwd(), 'public', 'downloads', 'SEAP-PB-win-x64.rar');
-      console.log('Tentando servir arquivo:', filePath);
-      
-      // Configurar headers para download
-      res.setHeader('Content-Disposition', 'attachment; filename=SEAP-PB.rar');
-      res.setHeader('Content-Type', 'application/octet-stream');
-      
-      // Enviar o arquivo
-      res.sendFile(filePath, (err) => {
-        if (err) {
-          console.error('Erro ao enviar arquivo:', err);
-          res.status(500).send('Erro ao baixar o arquivo');
-        }
-      });
-    } catch (error) {
-      console.error('Erro ao processar download:', error);
-      res.status(500).send('Erro interno ao processar o download');
+  // Configuração para servir arquivos estáticos da pasta de downloads
+  app.use('/downloads', express.static(path.join(process.cwd(), 'public', 'downloads'), {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.rar')) {
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', 'attachment');
+      }
     }
+  }));
+  
+  // Rota direta para download do arquivo (agora usando o middleware static)
+  app.get('/download-app', (req, res) => {
+    // Redirecionar para o arquivo estático
+    res.redirect('/downloads/SEAP-PB-win-x64.rar');
   });
   
   // Rota para a página de download
