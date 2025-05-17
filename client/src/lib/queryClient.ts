@@ -2,8 +2,15 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+    // Tenta obter o corpo da resposta como JSON, se falhar, usa o texto
+    try {
+      const errorData = await res.json();
+      throw new Error(errorData.message || `${res.status}: ${res.statusText}`);
+    } catch (e) {
+      // Se não conseguir parsear como JSON, tenta obter como texto
+      const text = (await res.text().catch(() => res.statusText)) || res.statusText;
+      throw new Error(`${res.status}: ${text}`);
+    }
   }
 }
 
@@ -12,13 +19,22 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  // Adiciona um timestamp para evitar cache
+  const cacheBusterUrl = url.includes('?') 
+    ? `${url}&_t=${Date.now()}` 
+    : `${url}?_t=${Date.now()}`;
+  
+  console.log(`Requisição ${method} para ${cacheBusterUrl}`);
+  
+  const res = await fetch(cacheBusterUrl, {
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
+  console.log(`Resposta ${method} ${url}: status=${res.status}`);
+  
   await throwIfResNotOk(res);
   return res;
 }
@@ -29,16 +45,27 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    // Adiciona um cache buster para evitar caches indesejados
+    const url = (queryKey[0] as string).includes('?') 
+      ? `${queryKey[0]}&_t=${Date.now()}` 
+      : `${queryKey[0]}?_t=${Date.now()}`;
+      
+    console.log(`Realizando consulta para ${url}`);
+    
+    const res = await fetch(url, {
       credentials: "include",
     });
+    
+    console.log(`Resposta de consulta ${url}: status=${res.status}`);
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      console.log(`Retornando null para erro 401 em ${url}`);
       return null;
     }
 
     await throwIfResNotOk(res);
-    return await res.json();
+    const data = await res.json();
+    return data;
   };
 
 export const queryClient = new QueryClient({

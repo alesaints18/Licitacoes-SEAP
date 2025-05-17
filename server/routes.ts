@@ -20,7 +20,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     saveUninitialized: false,
     cookie: {
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      secure: process.env.NODE_ENV === 'production',
+      secure: false, // Definindo como false para funcionar independente do ambiente
+      httpOnly: true,
+      sameSite: 'lax'
     },
     store: new SessionStore({
       checkPeriod: 86400000 // 24 hours
@@ -57,14 +59,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Authentication endpoints
-  app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
-    res.json(req.user);
+  app.post('/api/auth/login', (req, res, next) => {
+    passport.authenticate('local', (err, user, info) => {
+      if (err) {
+        console.error("Erro na autenticação:", err);
+        return res.status(500).json({ message: "Erro interno na autenticação" });
+      }
+      
+      if (!user) {
+        return res.status(401).json({ message: info?.message || "Credenciais inválidas" });
+      }
+      
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error("Erro no login:", loginErr);
+          return res.status(500).json({ message: "Erro ao estabelecer sessão" });
+        }
+        
+        console.log("Login bem-sucedido para:", user.username);
+        return res.json(user);
+      });
+    })(req, res, next);
   });
 
   app.get('/api/auth/status', (req, res) => {
     if (req.isAuthenticated()) {
+      console.log("Usuário autenticado:", req.user?.username);
       res.json(req.user);
     } else {
+      console.log("Usuário não autenticado");
       res.status(401).json({ message: "Não autenticado" });
     }
   });

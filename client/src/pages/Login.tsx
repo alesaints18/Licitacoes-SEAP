@@ -88,15 +88,16 @@ const Login = () => {
     setIsLoading(true);
 
     try {
+      // Adiciona um timestamp para evitar caching
+      console.log("Iniciando login para:", data.username);
+      
       // Call login API
       const response = await apiRequest("POST", "/api/auth/login", data);
       
-      if (!response.ok) {
-        // Se a resposta não for bem-sucedida, lançamos um erro para ir para o bloco catch
-        throw new Error("Falha na autenticação");
-      }
+      // Verificar resposta explicitamente
+      console.log("Resposta do login:", response.status);
       
-      // Validar resposta
+      // Validar resposta e obter dados do usuário
       const user = await response.json();
       console.log("Login bem-sucedido:", user);
 
@@ -105,29 +106,55 @@ const Login = () => {
         title: "Login realizado com sucesso",
         description: "Você será redirecionado para o dashboard",
       });
-
-      // Sempre concluir o loading independente do resultado do redirecionamento
-      setIsLoading(false);
       
-      // Redirecionamento mais robusto
+      // Verificar o status da autenticação após o login
+      const checkAuth = async () => {
+        try {
+          const statusResponse = await fetch('/api/auth/status?_t=' + Date.now(), { credentials: 'include' });
+          console.log("Status da autenticação após login:", statusResponse.status);
+          if (statusResponse.ok) {
+            return true;
+          }
+          return false;
+        } catch (e) {
+          console.error("Erro ao verificar autenticação:", e);
+          return false;
+        }
+      };
+      
+      // Verificar se estamos autenticados
+      const isAuthenticated = await checkAuth();
+      console.log("Estado de autenticação:", isAuthenticated ? "Autenticado" : "Não autenticado");
+
+      // Redirecionamento aprimorado
       try {
         // Tentativa 1: Usar a API de navegação do wouter
+        console.log("Tentando redirecionamento via wouter");
         setLocation("/");
         
-        // Se após 500ms ainda estivermos na página de login, tentar abordagem alternativa
+        // Tentativa 2: Verifica se ainda estamos na página de login após um curto delay
         setTimeout(() => {
-          if (window.location.pathname.includes("/auth")) {
-            console.log("Redirecionamento via wouter falhou, tentando com window.location");
+          if (window.location.pathname.includes("/auth") || window.location.pathname === "/login") {
+            console.log("Tentando redirecionamento via location.href");
             window.location.href = "/";
+            
+            // Tentativa 3: Se ainda não redirecionou, tenta recarregar a página
+            setTimeout(() => {
+              if (window.location.pathname.includes("/auth") || window.location.pathname === "/login") {
+                console.log("Tentando redirecionamento com reload");
+                window.location.reload();
+              }
+            }, 200);
           }
-        }, 500);
+        }, 300);
       } catch (navigationError) {
         console.error("Erro durante navegação:", navigationError);
-        // Fallback final: forçar redirecionamento
+        // Fallback final: forçar redirecionamento com reload
         window.location.href = "/";
+        setTimeout(() => window.location.reload(), 200);
       }
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Erro no login:", error);
 
       // Show error toast
       toast({
@@ -135,6 +162,7 @@ const Login = () => {
         description: "Verifique seu nome de usuário e senha ou se sua conta foi ativada pelo administrador",
         variant: "destructive",
       });
+    } finally {
       setIsLoading(false);
     }
   };
