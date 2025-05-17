@@ -117,63 +117,201 @@ export function generatePdfReport(data: ReportData): void {
   doc.text(filterText, margin, 60);
   
   try {
-    // Capturar os gráficos da página
-    const chartContainers = document.querySelectorAll('.recharts-wrapper');
+    // Adicionar um título para a seção de gráficos
+    let currentY = 70;
+    doc.setFontSize(14);
+    doc.setTextColor(0, 51, 102);
+    doc.text('Análise Visual de Dados', 105, currentY, { align: 'center' });
+    currentY += 15;
     
-    if (chartContainers.length > 0) {
-      let currentY = 70;
+    // Vamos criar gráficos simples diretamente no PDF em vez de capturar dos elementos
+    if (data.reportType === 'processes') {
+      // Crie um gráfico simples por status
+      doc.setFontSize(12);
+      doc.text('Processos por Status', 105, currentY, { align: 'center' });
+      currentY += 10;
       
-      // Processar cada gráfico
-      for (let i = 0; i < chartContainers.length; i++) {
-        const chartContainer = chartContainers[i];
-        const svg = chartContainer.querySelector('svg');
-        
-        if (svg) {
-          const chartTitle = document.querySelector(`.recharts-wrapper:nth-child(${i+1})`)
-            ?.closest('.card')
-            ?.querySelector('.card-title')
-            ?.textContent || `Gráfico ${i+1}`;
-          
-          // Verificar se precisamos de uma nova página
-          if (i > 0 && currentY + 100 > pageHeight - margin) {
-            doc.addPage();
-            currentY = margin;
-          }
-          
-          // Adicionar título do gráfico
-          doc.setFontSize(12);
-          doc.setTextColor(0, 51, 102);
-          doc.text(chartTitle, 105, currentY, { align: 'center' });
-          currentY += 10;
-          
-          // Converter SVG para canvas
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const bounds = svg.getBoundingClientRect();
-          
-          canvas.width = bounds.width;
-          canvas.height = bounds.height;
-          
-          if (ctx) {
-            const svgData = new XMLSerializer().serializeToString(svg);
-            const img = new Image();
-            
-            // Criar um objeto Blob com o SVG
-            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
-            const url = URL.createObjectURL(svgBlob);
-            
-            // Desenhar no canvas e adicionar ao PDF
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            ctx.drawImage(img, 0, 0);
-            doc.addImage(canvas.toDataURL('image/png'), 'PNG', margin, currentY, usableWidth, 70);
-            
-            currentY += 85; // Altura do gráfico + margem
-            URL.revokeObjectURL(url);
-          }
+      // Calcular estatísticas
+      const statusCounts = {
+        draft: 0,
+        in_progress: 0,
+        completed: 0,
+        canceled: 0
+      };
+      
+      const filteredProcesses = filterReportData(data);
+      
+      // Contar processos por status
+      filteredProcesses.forEach(process => {
+        if (process.status in statusCounts) {
+          statusCounts[process.status]++;
         }
+      });
+      
+      // Desenhar barras coloridas para cada status
+      const barHeight = 20;
+      const barSpace = 30;
+      const barMaxWidth = usableWidth - 80;
+      const total = filteredProcesses.length || 1; // Evitar divisão por zero
+      
+      // Status: Rascunho
+      doc.setFillColor(200, 200, 200); // Cinza
+      const draftWidth = (statusCounts.draft / total) * barMaxWidth;
+      doc.text('Rascunho:', margin, currentY + 5);
+      doc.rect(margin + 50, currentY, draftWidth, barHeight, 'F');
+      doc.text(`${statusCounts.draft} (${Math.round((statusCounts.draft / total) * 100)}%)`, margin + draftWidth + 55, currentY + 5);
+      currentY += barSpace;
+      
+      // Status: Em Andamento
+      doc.setFillColor(255, 193, 7); // Amarelo
+      const inProgressWidth = (statusCounts.in_progress / total) * barMaxWidth;
+      doc.text('Em Andamento:', margin, currentY + 5);
+      doc.rect(margin + 50, currentY, inProgressWidth, barHeight, 'F');
+      doc.text(`${statusCounts.in_progress} (${Math.round((statusCounts.in_progress / total) * 100)}%)`, margin + inProgressWidth + 55, currentY + 5);
+      currentY += barSpace;
+      
+      // Status: Concluído
+      doc.setFillColor(40, 167, 69); // Verde
+      const completedWidth = (statusCounts.completed / total) * barMaxWidth;
+      doc.text('Concluído:', margin, currentY + 5);
+      doc.rect(margin + 50, currentY, completedWidth, barHeight, 'F');
+      doc.text(`${statusCounts.completed} (${Math.round((statusCounts.completed / total) * 100)}%)`, margin + completedWidth + 55, currentY + 5);
+      currentY += barSpace;
+      
+      // Status: Cancelado
+      doc.setFillColor(220, 53, 69); // Vermelho
+      const canceledWidth = (statusCounts.canceled / total) * barMaxWidth;
+      doc.text('Cancelado:', margin, currentY + 5);
+      doc.rect(margin + 50, currentY, canceledWidth, barHeight, 'F');
+      doc.text(`${statusCounts.canceled} (${Math.round((statusCounts.canceled / total) * 100)}%)`, margin + canceledWidth + 55, currentY + 5);
+      currentY += barSpace + 10;
+      
+      // Adicionar gráfico por modalidade se tiver espaço
+      if (currentY + 100 < pageHeight - margin) {
+        doc.text('Processos por Modalidade', 105, currentY, { align: 'center' });
+        currentY += 10;
+        
+        // Contagem por modalidade
+        const modalityCounts = {};
+        filteredProcesses.forEach(process => {
+          const modalityId = process.modalityId;
+          if (!modalityCounts[modalityId]) {
+            modalityCounts[modalityId] = 0;
+          }
+          modalityCounts[modalityId]++;
+        });
+        
+        // Desenhar barras para cada modalidade
+        Object.keys(modalityCounts).forEach(modalityId => {
+          const modalityIdNum = parseInt(modalityId);
+          const modality = data.modalities.find(m => m.id === modalityIdNum);
+          const count = modalityCounts[modalityId];
+          const width = (count / total) * barMaxWidth;
+          
+          doc.setFillColor(0, 123, 255); // Azul
+          doc.text(`${modality?.name || `Modalidade ${modalityId}`}:`, margin, currentY + 5);
+          doc.rect(margin + 80, currentY, width, barHeight, 'F');
+          doc.text(`${count} (${Math.round((count / total) * 100)}%)`, margin + width + 85, currentY + 5);
+          currentY += barSpace;
+        });
       }
+    } else if (data.reportType === 'users') {
+      // Adicionar gráfico de usuários ativos vs. inativos
+      doc.text('Status dos Usuários', 105, currentY, { align: 'center' });
+      currentY += 10;
+      
+      const activeUsers = data.users.filter(u => u.isActive).length;
+      const inactiveUsers = data.users.length - activeUsers;
+      const total = data.users.length || 1;
+      
+      const barHeight = 20;
+      const barSpace = 30;
+      const barMaxWidth = usableWidth - 80;
+      
+      // Usuários ativos
+      doc.setFillColor(40, 167, 69); // Verde
+      const activeWidth = (activeUsers / total) * barMaxWidth;
+      doc.text('Ativos:', margin, currentY + 5);
+      doc.rect(margin + 50, currentY, activeWidth, barHeight, 'F');
+      doc.text(`${activeUsers} (${Math.round((activeUsers / total) * 100)}%)`, margin + activeWidth + 55, currentY + 5);
+      currentY += barSpace;
+      
+      // Usuários inativos
+      doc.setFillColor(220, 53, 69); // Vermelho
+      const inactiveWidth = (inactiveUsers / total) * barMaxWidth;
+      doc.text('Inativos:', margin, currentY + 5);
+      doc.rect(margin + 50, currentY, inactiveWidth, barHeight, 'F');
+      doc.text(`${inactiveUsers} (${Math.round((inactiveUsers / total) * 100)}%)`, margin + inactiveWidth + 55, currentY + 5);
+      currentY += barSpace + 10;
+      
+      // Adicionar gráfico de usuários por setor se tiver espaço
+      if (currentY + 100 < pageHeight - margin) {
+        doc.text('Usuários por Setor', 105, currentY, { align: 'center' });
+        currentY += 10;
+        
+        // Contagem por setor
+        const departmentCounts = {};
+        data.users.forEach(user => {
+          const dept = user.department;
+          if (!departmentCounts[dept]) {
+            departmentCounts[dept] = 0;
+          }
+          departmentCounts[dept]++;
+        });
+        
+        // Desenhar barras para cada setor
+        Object.keys(departmentCounts).forEach(dept => {
+          const count = departmentCounts[dept];
+          const width = (count / total) * barMaxWidth;
+          
+          doc.setFillColor(0, 123, 255); // Azul
+          doc.text(`${dept}:`, margin, currentY + 5);
+          const textWidth = doc.getTextWidth(`${dept}:`);
+          doc.rect(margin + Math.max(50, textWidth + 5), currentY, width, barHeight, 'F');
+          doc.text(`${count} (${Math.round((count / total) * 100)}%)`, margin + width + Math.max(55, textWidth + 10), currentY + 5);
+          currentY += barSpace;
+        });
+      }
+    } else if (data.reportType === 'departments' && data.departments) {
+      // Adicionar gráfico de processos por setor
+      doc.text('Processos por Setor', 105, currentY, { align: 'center' });
+      currentY += 10;
+      
+      // Criar contagem de processos por setor
+      const deptProcessCounts = {};
+      data.departments.forEach(dept => {
+        const deptUsers = data.users.filter(u => u.department === dept.name);
+        let count = 0;
+        
+        deptUsers.forEach(user => {
+          count += data.processes.filter(p => p.responsibleId === user.id).length;
+        });
+        
+        deptProcessCounts[dept.name] = count;
+      });
+      
+      // Determinar o total para percentuais
+      const totalProcesses = Object.values(deptProcessCounts).reduce((sum: number, count: number) => sum + count, 0) || 1;
+      
+      // Configurações para as barras
+      const barHeight = 20;
+      const barSpace = 30;
+      const barMaxWidth = usableWidth - 80;
+      
+      // Desenhar barras para cada setor
+      Object.keys(deptProcessCounts).forEach(deptName => {
+        const count = deptProcessCounts[deptName];
+        if (count > 0) { // Só mostrar setores com processos
+          const width = (count / totalProcesses) * barMaxWidth;
+          
+          doc.setFillColor(0, 123, 255); // Azul
+          doc.text(`${deptName}:`, margin, currentY + 5);
+          const textWidth = doc.getTextWidth(`${deptName}:`);
+          doc.rect(margin + Math.max(50, textWidth + 5), currentY, width, barHeight, 'F');
+          doc.text(`${count} (${Math.round((count / totalProcesses) * 100)}%)`, margin + width + Math.max(55, textWidth + 10), currentY + 5);
+          currentY += barSpace;
+        }
+      });
     }
     
     // Adicionar tabela de dados
