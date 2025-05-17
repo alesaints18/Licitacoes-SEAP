@@ -104,7 +104,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     // Verificar processos com passos que vencem em até 3 dias
     processes.forEach(process => {
       if (process.steps && Array.isArray(process.steps)) {
-        process.steps.forEach(step => {
+        process.steps.forEach((step: any) => {
           if (step.dueDate && !step.isCompleted) {
             const dueDate = new Date(step.dueDate);
             
@@ -214,13 +214,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   // Adicionar observadores para eventos no sistema
   useEffect(() => {
     // Observar mudanças na query de processos
-    const lastProcessCount = processes?.length || 0;
+    const processesArray = processes as any[] || [];
+    const lastProcessCount = processesArray.length || 0;
     
-    if (processes && Array.isArray(processes) && processes.length > lastProcessCount) {
+    if (processesArray && processesArray.length > lastProcessCount) {
       // Novo processo detectado
-      const newProcesses = processes.slice(0, processes.length - lastProcessCount);
+      const newProcesses = processesArray.slice(0, processesArray.length - lastProcessCount);
       
-      newProcesses.forEach(process => {
+      newProcesses.forEach((process: any) => {
         addNotification({
           title: "Novo processo criado",
           message: `O processo ${process.pbdocNumber} foi adicionado ao sistema`,
@@ -247,7 +248,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useNotifications() {
+// Extraindo o hook em uma variável constante para evitar problemas com Fast Refresh
+const useNotifications = () => {
   const context = useContext(NotificationContext);
   
   if (!context) {
@@ -256,3 +258,5 @@ export function useNotifications() {
   
   return context;
 }
+
+export { useNotifications };
