@@ -59,7 +59,7 @@
   --card-foreground: 0 0% 98%;
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
-  --primary: 207 90% 54%;
+  --primary: 256 100% 6.5%;
   --primary-foreground: 211 100% 99%;
   --secondary: 240 3.7% 15.9%;
   --secondary-foreground: 0 0% 98%;
@@ -68,6 +68,16 @@
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
   --ring: 240 4.9% 83.9%;
+  
+  /* Sidebar colors in dark mode - #010021 */
+  --sidebar-background: 256 100% 6.5%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 256 100% 16.5%;
+  --sidebar-primary-foreground: 211 100% 99%;
+  --sidebar-accent: 256 100% 10.5%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 256 100% 10.5%;
+  --sidebar-ring: 0 0% 83.9%;
 }
 
 @layer base {

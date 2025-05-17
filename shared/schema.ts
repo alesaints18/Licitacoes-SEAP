@@ -16,6 +16,7 @@ export const users = pgTable('users', {
   email: text('email'),
   department: text('department').notNull(),
   role: roleEnum('role').notNull().default('common'),
+  isActive: boolean('is_active').notNull().default(true),
 });
 
 // Departments table

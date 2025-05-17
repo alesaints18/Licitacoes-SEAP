@@ -53,7 +53,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Authentication endpoint
+  // Authentication endpoints
   app.post('/api/auth/login', passport.authenticate('local'), (req, res) => {
     res.json(req.user);
   });
@@ -70,6 +70,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     req.logout(() => {
       res.json({ success: true });
     });
+  });
+  
+  // Registro de usuários públicos
+  app.post('/api/auth/register', async (req, res) => {
+    try {
+      // Valide os dados de entrada
+      const validatedData = insertUserSchema.parse({
+        ...req.body,
+        role: 'common' // Força o papel como 'common' para segurança
+      });
+      
+      // Verifique se o nome de usuário já existe
+      const existingUser = await storage.getUserByUsername(validatedData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Nome de usuário já existe" });
+      }
+      
+      // Crie o usuário como inativo
+      const user = await storage.createUser({
+        ...validatedData,
+        isActive: false // Usuário precisa ser ativado por um administrador
+      });
+      
+      res.status(201).json({ 
+        ...user, 
+        password: '***',
+        message: "Cadastro realizado com sucesso. Aguarde a aprovação de um administrador para acessar o sistema."
+      });
+    } catch (error) {
+      res.status(400).json({ message: "Dados de usuário inválidos", error });
+    }
   });
 
   // Middleware to check if user is authenticated
