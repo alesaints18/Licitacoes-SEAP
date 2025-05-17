@@ -17,6 +17,7 @@ import Settings from "@/pages/Settings";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import AdminProtectedRoute from "@/lib/admin-protected-route";
 
 function Router() {
   const [location, setLocation] = useLocation();
@@ -119,7 +120,9 @@ function Router() {
       
       <Route path="/reports">
         <Layout>
-          <Reports />
+          <AdminProtectedRoute>
+            <Reports />
+          </AdminProtectedRoute>
         </Layout>
       </Route>
       

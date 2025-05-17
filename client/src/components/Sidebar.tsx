@@ -59,6 +59,7 @@ const Sidebar = () => {
         path: "/reports",
         icon: <BarChart2 className="h-5 w-5 mr-3" />,
         label: "Relatórios",
+        adminOnly: true,
       },
       {
         path: "/users",
