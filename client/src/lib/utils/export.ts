@@ -20,12 +20,12 @@ interface ReportData {
 }
 
 /**
- * Filter data based on report filters
+ * Filtra os processos com base nos filtros selecionados
  */
 function filterReportData(data: ReportData): Process[] {
   let filteredProcesses = [...data.processes];
   
-  // Filter by month if specified
+  // Filtrar por mês
   if (data.filters.month && data.filters.month !== "all") {
     const monthIndex = parseInt(data.filters.month) - 1;
     filteredProcesses = filteredProcesses.filter(process => {
@@ -34,7 +34,7 @@ function filterReportData(data: ReportData): Process[] {
     });
   }
   
-  // Filter by year if specified
+  // Filtrar por ano
   if (data.filters.year) {
     const year = parseInt(data.filters.year);
     filteredProcesses = filteredProcesses.filter(process => {
@@ -43,7 +43,7 @@ function filterReportData(data: ReportData): Process[] {
     });
   }
   
-  // Filter by department if specified
+  // Filtrar por departamento
   if (data.filters.department && data.filters.department !== "all" && data.departments) {
     const departmentId = parseInt(data.filters.department);
     const department = data.departments.find(d => d.id === departmentId);
@@ -60,361 +60,324 @@ function filterReportData(data: ReportData): Process[] {
 }
 
 /**
- * Generate PDF report with charts
+ * Desenha um arco de círculo em coordenadas polares
+ */
+function drawArc(doc: jsPDF, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number) {
+  // Converter ângulos para radianos
+  const startRad = (startAngle * Math.PI) / 180;
+  const endRad = (endAngle * Math.PI) / 180;
+  
+  // Número de pontos para compor o arco
+  const numPoints = Math.max(Math.ceil((endAngle - startAngle) / 5), 2);
+  
+  // Início do arco
+  let x = centerX + radius * Math.cos(startRad);
+  let y = centerY + radius * Math.sin(startRad);
+  doc.lines([[0, 0]], centerX, centerY);
+  doc.lines([[x - centerX, y - centerY]], centerX, centerY);
+  
+  // Desenhar segmentos do arco
+  for (let i = 1; i <= numPoints; i++) {
+    const angle = startRad + (i / numPoints) * (endRad - startRad);
+    const nextX = centerX + radius * Math.cos(angle);
+    const nextY = centerY + radius * Math.sin(angle);
+    doc.lines([[nextX - x, nextY - y]], x, y);
+    x = nextX;
+    y = nextY;
+  }
+  
+  // Fechar o arco voltando ao centro
+  doc.lines([[centerX - x, centerY - y]], x, y);
+}
+
+/**
+ * Desenha um gráfico de rosca (donut)
+ */
+function drawDonut(doc: jsPDF, centerX: number, centerY: number, innerRadius: number, outerRadius: number, data: {value: number, color: number[]}[]) {
+  // Calcular total
+  const total = data.reduce((sum, item) => sum + item.value, 0) || 1;
+  
+  // Ângulo inicial
+  let currentAngle = 0;
+  
+  // Desenhar cada segmento
+  data.forEach(item => {
+    // Calcular ângulo do segmento
+    const segmentAngle = (item.value / total) * 360;
+    
+    // Definir cor do segmento
+    doc.setFillColor(item.color[0], item.color[1], item.color[2]);
+    
+    // Desenhar segmento externo
+    const endAngle = currentAngle + segmentAngle;
+    
+    // Desenhar segmento como um setor circular
+    if (segmentAngle > 0) {
+      const startRad = (currentAngle * Math.PI) / 180;
+      const endRad = (endAngle * Math.PI) / 180;
+      
+      // Desenhar o segmento como uma série de pequenos triângulos
+      const steps = Math.max(Math.ceil(segmentAngle / 5), 1);
+      
+      for (let i = 0; i < steps; i++) {
+        const angle1 = startRad + (i / steps) * (endRad - startRad);
+        const angle2 = startRad + ((i + 1) / steps) * (endRad - startRad);
+        
+        const x1 = centerX + innerRadius * Math.cos(angle1);
+        const y1 = centerY + innerRadius * Math.sin(angle1);
+        const x2 = centerX + outerRadius * Math.cos(angle1);
+        const y2 = centerY + outerRadius * Math.sin(angle1);
+        const x3 = centerX + outerRadius * Math.cos(angle2);
+        const y3 = centerY + outerRadius * Math.sin(angle2);
+        const x4 = centerX + innerRadius * Math.cos(angle2);
+        const y4 = centerY + innerRadius * Math.sin(angle2);
+        
+        // Desenhar polígono
+        doc.setFillColor(item.color[0], item.color[1], item.color[2]);
+        doc.triangle(x1, y1, x2, y2, x3, y3, 'F');
+        doc.triangle(x1, y1, x3, y3, x4, y4, 'F');
+      }
+    }
+    
+    // Atualizar ângulo para o próximo segmento
+    currentAngle = endAngle;
+  });
+}
+
+/**
+ * Gera um relatório PDF com gráficos e tabelas
+ * Formato baseado no exemplo fornecido na imagem
  */
 export function generatePdfReport(data: ReportData): void {
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const pageHeight = doc.internal.pageSize.getHeight();
-  const margin = 15;
-  const usableWidth = pageWidth - (2 * margin);
-  
-  // Add header with logo
-  doc.setFontSize(18);
-  doc.setTextColor(0, 51, 102); // Azul institucional
-  doc.text('SEAP-PB - Secretaria de Estado da Administração Penitenciária', 105, 15, { align: 'center' });
-  doc.setFontSize(14);
-  doc.setTextColor(0, 0, 0);
-  doc.text('Sistema de Controle de Processos de Licitação', 105, 25, { align: 'center' });
-  
-  // Add report title based on type
-  doc.setFontSize(16);
-  doc.setTextColor(0, 51, 102); // Azul institucional
-  let reportTitle = '';
-  switch (data.reportType) {
-    case 'processes':
-      reportTitle = 'Relatório de Processos de Licitação';
-      break;
-    case 'users':
-      reportTitle = 'Relatório de Usuários';
-      break;
-    case 'departments':
-      reportTitle = 'Relatório de Setores';
-      break;
-  }
-  doc.text(reportTitle, 105, 40, { align: 'center' });
-  doc.setTextColor(0, 0, 0);
-  
-  // Add timestamp and filter information
-  const now = new Date();
-  doc.setFontSize(10);
-  doc.text(`Gerado em: ${now.toLocaleString('pt-BR')}`, margin, 55);
-  
-  let filterText = 'Filtros: ';
-  if (data.filters.department && data.filters.department !== 'all') {
-    const deptId = parseInt(data.filters.department);
-    const dept = data.departments?.find(d => d.id === deptId);
-    filterText += `Setor: ${dept?.name || deptId}; `;
-  }
-  if (data.filters.month && data.filters.month !== 'all') {
-    const monthIndex = parseInt(data.filters.month) - 1;
-    filterText += `Mês: ${MONTHS[monthIndex]}; `;
-  }
-  if (data.filters.year) {
-    filterText += `Ano: ${data.filters.year}; `;
-  }
-  
-  doc.text(filterText, margin, 60);
-  
   try {
-    // Adicionar um título para a seção de gráficos
-    let currentY = 70;
-    doc.setFontSize(14);
-    doc.setTextColor(0, 51, 102);
-    doc.text('Análise Visual de Dados', 105, currentY, { align: 'center' });
-    currentY += 15;
+    // Criar novo documento PDF
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 15;
+    const usableWidth = pageWidth - (2 * margin);
     
-    // Vamos criar gráficos simples diretamente no PDF em vez de capturar dos elementos
-    if (data.reportType === 'processes') {
-      // Crie um gráfico simples por status
-      doc.setFontSize(12);
-      doc.text('Processos por Status', 105, currentY, { align: 'center' });
-      currentY += 10;
-      
-      // Calcular estatísticas
-      const statusCounts = {
-        draft: 0,
-        in_progress: 0,
-        completed: 0,
-        canceled: 0
-      };
-      
-      const filteredProcesses = filterReportData(data);
-      
-      // Contar processos por status
-      filteredProcesses.forEach(process => {
-        if (process.status in statusCounts) {
-          statusCounts[process.status]++;
-        }
-      });
-      
-      // Desenhar barras coloridas para cada status
-      const barHeight = 20;
-      const barSpace = 30;
-      const barMaxWidth = usableWidth - 80;
-      const total = filteredProcesses.length || 1; // Evitar divisão por zero
-      
-      // Status: Rascunho
-      doc.setFillColor(200, 200, 200); // Cinza
-      const draftWidth = (statusCounts.draft / total) * barMaxWidth;
-      doc.text('Rascunho:', margin, currentY + 5);
-      doc.rect(margin + 50, currentY, draftWidth, barHeight, 'F');
-      doc.text(`${statusCounts.draft} (${Math.round((statusCounts.draft / total) * 100)}%)`, margin + draftWidth + 55, currentY + 5);
-      currentY += barSpace;
-      
-      // Status: Em Andamento
-      doc.setFillColor(255, 193, 7); // Amarelo
-      const inProgressWidth = (statusCounts.in_progress / total) * barMaxWidth;
-      doc.text('Em Andamento:', margin, currentY + 5);
-      doc.rect(margin + 50, currentY, inProgressWidth, barHeight, 'F');
-      doc.text(`${statusCounts.in_progress} (${Math.round((statusCounts.in_progress / total) * 100)}%)`, margin + inProgressWidth + 55, currentY + 5);
-      currentY += barSpace;
-      
-      // Status: Concluído
-      doc.setFillColor(40, 167, 69); // Verde
-      const completedWidth = (statusCounts.completed / total) * barMaxWidth;
-      doc.text('Concluído:', margin, currentY + 5);
-      doc.rect(margin + 50, currentY, completedWidth, barHeight, 'F');
-      doc.text(`${statusCounts.completed} (${Math.round((statusCounts.completed / total) * 100)}%)`, margin + completedWidth + 55, currentY + 5);
-      currentY += barSpace;
-      
-      // Status: Cancelado
-      doc.setFillColor(220, 53, 69); // Vermelho
-      const canceledWidth = (statusCounts.canceled / total) * barMaxWidth;
-      doc.text('Cancelado:', margin, currentY + 5);
-      doc.rect(margin + 50, currentY, canceledWidth, barHeight, 'F');
-      doc.text(`${statusCounts.canceled} (${Math.round((statusCounts.canceled / total) * 100)}%)`, margin + canceledWidth + 55, currentY + 5);
-      currentY += barSpace + 10;
-      
-      // Adicionar gráfico por modalidade se tiver espaço
-      if (currentY + 100 < pageHeight - margin) {
-        doc.text('Processos por Modalidade', 105, currentY, { align: 'center' });
-        currentY += 10;
-        
-        // Contagem por modalidade
-        const modalityCounts = {};
-        filteredProcesses.forEach(process => {
-          const modalityId = process.modalityId;
-          if (!modalityCounts[modalityId]) {
-            modalityCounts[modalityId] = 0;
-          }
-          modalityCounts[modalityId]++;
-        });
-        
-        // Desenhar barras para cada modalidade
-        Object.keys(modalityCounts).forEach(modalityId => {
-          const modalityIdNum = parseInt(modalityId);
-          const modality = data.modalities.find(m => m.id === modalityIdNum);
-          const count = modalityCounts[modalityId];
-          const width = (count / total) * barMaxWidth;
-          
-          doc.setFillColor(0, 123, 255); // Azul
-          doc.text(`${modality?.name || `Modalidade ${modalityId}`}:`, margin, currentY + 5);
-          doc.rect(margin + 80, currentY, width, barHeight, 'F');
-          doc.text(`${count} (${Math.round((count / total) * 100)}%)`, margin + width + 85, currentY + 5);
-          currentY += barSpace;
-        });
-      }
-    } else if (data.reportType === 'users') {
-      // Adicionar gráfico de usuários ativos vs. inativos
-      doc.text('Status dos Usuários', 105, currentY, { align: 'center' });
-      currentY += 10;
-      
-      const activeUsers = data.users.filter(u => u.isActive).length;
-      const inactiveUsers = data.users.length - activeUsers;
-      const total = data.users.length || 1;
-      
-      const barHeight = 20;
-      const barSpace = 30;
-      const barMaxWidth = usableWidth - 80;
-      
-      // Usuários ativos
-      doc.setFillColor(40, 167, 69); // Verde
-      const activeWidth = (activeUsers / total) * barMaxWidth;
-      doc.text('Ativos:', margin, currentY + 5);
-      doc.rect(margin + 50, currentY, activeWidth, barHeight, 'F');
-      doc.text(`${activeUsers} (${Math.round((activeUsers / total) * 100)}%)`, margin + activeWidth + 55, currentY + 5);
-      currentY += barSpace;
-      
-      // Usuários inativos
-      doc.setFillColor(220, 53, 69); // Vermelho
-      const inactiveWidth = (inactiveUsers / total) * barMaxWidth;
-      doc.text('Inativos:', margin, currentY + 5);
-      doc.rect(margin + 50, currentY, inactiveWidth, barHeight, 'F');
-      doc.text(`${inactiveUsers} (${Math.round((inactiveUsers / total) * 100)}%)`, margin + inactiveWidth + 55, currentY + 5);
-      currentY += barSpace + 10;
-      
-      // Adicionar gráfico de usuários por setor se tiver espaço
-      if (currentY + 100 < pageHeight - margin) {
-        doc.text('Usuários por Setor', 105, currentY, { align: 'center' });
-        currentY += 10;
-        
-        // Contagem por setor
-        const departmentCounts = {};
-        data.users.forEach(user => {
-          const dept = user.department;
-          if (!departmentCounts[dept]) {
-            departmentCounts[dept] = 0;
-          }
-          departmentCounts[dept]++;
-        });
-        
-        // Desenhar barras para cada setor
-        Object.keys(departmentCounts).forEach(dept => {
-          const count = departmentCounts[dept];
-          const width = (count / total) * barMaxWidth;
-          
-          doc.setFillColor(0, 123, 255); // Azul
-          doc.text(`${dept}:`, margin, currentY + 5);
-          const textWidth = doc.getTextWidth(`${dept}:`);
-          doc.rect(margin + Math.max(50, textWidth + 5), currentY, width, barHeight, 'F');
-          doc.text(`${count} (${Math.round((count / total) * 100)}%)`, margin + width + Math.max(55, textWidth + 10), currentY + 5);
-          currentY += barSpace;
-        });
-      }
-    } else if (data.reportType === 'departments' && data.departments) {
-      // Adicionar gráfico de processos por setor
-      doc.text('Processos por Setor', 105, currentY, { align: 'center' });
-      currentY += 10;
-      
-      // Criar contagem de processos por setor
-      const deptProcessCounts = {};
-      data.departments.forEach(dept => {
-        const deptUsers = data.users.filter(u => u.department === dept.name);
-        let count = 0;
-        
-        deptUsers.forEach(user => {
-          count += data.processes.filter(p => p.responsibleId === user.id).length;
-        });
-        
-        deptProcessCounts[dept.name] = count;
-      });
-      
-      // Determinar o total para percentuais
-      const totalProcesses = Object.values(deptProcessCounts).reduce((sum: number, count: number) => sum + count, 0) || 1;
-      
-      // Configurações para as barras
-      const barHeight = 20;
-      const barSpace = 30;
-      const barMaxWidth = usableWidth - 80;
-      
-      // Desenhar barras para cada setor
-      Object.keys(deptProcessCounts).forEach(deptName => {
-        const count = deptProcessCounts[deptName];
-        if (count > 0) { // Só mostrar setores com processos
-          const width = (count / totalProcesses) * barMaxWidth;
-          
-          doc.setFillColor(0, 123, 255); // Azul
-          doc.text(`${deptName}:`, margin, currentY + 5);
-          const textWidth = doc.getTextWidth(`${deptName}:`);
-          doc.rect(margin + Math.max(50, textWidth + 5), currentY, width, barHeight, 'F');
-          doc.text(`${count} (${Math.round((count / totalProcesses) * 100)}%)`, margin + width + Math.max(55, textWidth + 10), currentY + 5);
-          currentY += barSpace;
-        }
-      });
-    }
-    
-    // Adicionar tabela de dados
-    doc.addPage();
+    // Filtrar processos baseado nos critérios
     const filteredProcesses = filterReportData(data);
+    const total = filteredProcesses.length || 1;
     
-    // Título da tabela
+    // CABEÇALHO DO RELATÓRIO
     doc.setFontSize(14);
     doc.setTextColor(0, 51, 102);
-    doc.text('Dados Detalhados', 105, margin, { align: 'center' });
+    doc.text('QUANTIDADE DE PROCESSOS', margin, 25);
     
-    if (data.reportType === 'processes') {
-      const tableData = filteredProcesses.map(process => {
-        const modality = data.modalities.find(m => m.id === process.modalityId);
-        const user = data.users.find(u => u.id === process.responsibleId);
-        
-        return [
-          process.pbdocNumber,
-          process.description.length > 30 ? process.description.substring(0, 30) + '...' : process.description,
-          modality?.name || `Modalidade ${process.modalityId}`,
-          user?.fullName || `Usuário ${process.responsibleId}`,
-          getProcessStatusLabel(process.status),
-          getProcessPriorityLabel(process.priority),
-          new Date(process.createdAt).toLocaleDateString('pt-BR')
-        ];
-      });
-      
-      autoTable(doc, {
-        startY: margin + 10,
-        head: [['PBDOC', 'Descrição', 'Modalidade', 'Responsável', 'Status', 'Prioridade', 'Data Criação']],
-        body: tableData,
-        theme: 'striped',
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
-        margin: { top: margin, right: margin, bottom: margin, left: margin }
-      });
-    } else if (data.reportType === 'users') {
-      const tableData = data.users.map(user => {
-        return [
-          user.fullName,
-          user.username,
-          user.department,
-          user.role === 'admin' ? 'Administrador' : 'Comum',
-          user.isActive ? 'Ativo' : 'Inativo',
-          user.email || 'N/A'
-        ];
-      });
-      
-      autoTable(doc, {
-        startY: margin + 10,
-        head: [['Nome', 'Usuário', 'Setor', 'Função', 'Status', 'Email']],
-        body: tableData,
-        theme: 'striped',
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
-        margin: { top: margin, right: margin, bottom: margin, left: margin }
-      });
-    } else if (data.reportType === 'departments' && data.departments) {
-      const tableData = data.departments.map(dept => {
-        const usersInDept = data.users.filter(u => u.department === dept.name);
-        return [
-          dept.name,
-          dept.description || 'N/A',
-          usersInDept.length.toString(),
-          usersInDept.filter(u => u.isActive).length.toString()
-        ];
-      });
-      
-      autoTable(doc, {
-        startY: margin + 10,
-        head: [['Nome', 'Descrição', 'Total Usuários', 'Usuários Ativos']],
-        body: tableData,
-        theme: 'striped',
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
-        margin: { top: margin, right: margin, bottom: margin, left: margin }
-      });
-    }
+    // Botão de filtros
+    doc.setFillColor(30, 144, 255);
+    doc.roundedRect(pageWidth - margin - 30, 18, 30, 10, 1, 1, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.text('Filtros', pageWidth - margin - 15, 25, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
     
-    // Adicionar rodapé em todas as páginas
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.text(
-        `SEAP-PB - Sistema de Controle de Processos de Licitação - Página ${i} de ${pageCount}`,
-        105,
-        pageHeight - 10,
-        { align: 'center' }
-      );
+    // Layout do relatório
+    const startY = 40;
+    const chartHeight = 80;
+    const chartWidth = (usableWidth - 20) / 3;
+    
+    // SEÇÃO 1: GRÁFICO DE PRIORIDADE
+    doc.setFontSize(10);
+    doc.text('Grau de Prioridade', margin + chartWidth/2, startY, { align: 'center' });
+    
+    // Dados de prioridade
+    const priorityCounts = {
+      low: 0,
+      medium: 0,
+      high: 0
+    };
+    
+    filteredProcesses.forEach(process => {
+      if (process.priority) {
+        priorityCounts[process.priority]++;
+      }
+    });
+    
+    // Calcular percentuais
+    const highPct = priorityCounts.high / total;
+    const mediumPct = priorityCounts.medium / total;
+    const lowPct = priorityCounts.low / total;
+    
+    // Desenhar gráfico de rosca
+    const centerX1 = margin + chartWidth/2;
+    const centerY1 = startY + 40;
+    const outerRadius = 25;
+    const innerRadius = 12;
+    
+    // Desenhar gráfico de rosca de prioridades
+    drawDonut(doc, centerX1, centerY1, innerRadius, outerRadius, [
+      { value: priorityCounts.high, color: [67, 160, 71] },  // Alta - Verde
+      { value: priorityCounts.medium, color: [255, 193, 7] }, // Média - Amarelo
+      { value: priorityCounts.low, color: [66, 165, 245] }   // Baixa - Azul
+    ]);
+    
+    // Adicionar percentuais
+    doc.setFontSize(8);
+    doc.text(`${Math.round(highPct * 100)}%`, centerX1 - 20, centerY1 + 50);
+    doc.text(`${Math.round(mediumPct * 100)}%`, centerX1, centerY1 + 50);
+    doc.text(`${Math.round(lowPct * 100)}%`, centerX1 + 20, centerY1 + 50);
+    
+    // SEÇÃO 2: GRÁFICO DE STATUS
+    doc.setFontSize(10);
+    doc.text('Status', margin + chartWidth + 10 + chartWidth/2, startY, { align: 'center' });
+    
+    // Dados de status
+    const statusCounts = {
+      draft: 0,
+      in_progress: 0,
+      completed: 0,
+      canceled: 0
+    };
+    
+    filteredProcesses.forEach(process => {
+      if (process.status) {
+        statusCounts[process.status]++;
+      }
+    });
+    
+    // Calcular percentuais
+    const completedPct = statusCounts.completed / total;
+    const inProgressPct = statusCounts.in_progress / total;
+    
+    // Centro do gráfico de status
+    const centerX2 = margin + chartWidth + 10 + chartWidth/2;
+    const centerY2 = centerY1;
+    
+    // Desenhar gráfico de rosca de status
+    drawDonut(doc, centerX2, centerY2, innerRadius, outerRadius, [
+      { value: statusCounts.completed, color: [67, 160, 71] },   // Concluído - Verde
+      { value: statusCounts.in_progress, color: [66, 165, 245] } // Em andamento - Azul
+    ]);
+    
+    // Adicionar legendas de status
+    doc.setFontSize(6);
+    doc.text("CONCLUÍDOS", centerX2 - 35, centerY2 - 20);
+    doc.text("EM ANDAMENTO", centerX2 + 15, centerY2 - 20);
+    
+    // Adicionar percentuais
+    doc.setFontSize(8);
+    doc.text(`${Math.round(completedPct * 100)}%`, centerX2 - 15, centerY2 + 50);
+    doc.text(`${Math.round(inProgressPct * 100)}%`, centerX2 + 15, centerY2 + 50);
+    
+    // SEÇÃO 3: GRÁFICO DE FONTES (BARRAS HORIZONTAIS)
+    doc.setFontSize(10);
+    doc.text('Fonte', margin + 2*chartWidth + 20 + chartWidth/2, startY, { align: 'center' });
+    
+    // Processos por fonte
+    const sourceCounts = new Map<number, number>();
+    filteredProcesses.forEach(process => {
+      const count = sourceCounts.get(process.sourceId) || 0;
+      sourceCounts.set(process.sourceId, count + 1);
+    });
+    
+    // Ordenar fontes por quantidade
+    const sortedSources = Array.from(sourceCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+    
+    // Configurações para barras horizontais
+    const barStartX = margin + 2*chartWidth + 35;
+    const barStartY = startY + 10;
+    const barMaxWidth = chartWidth - 40;
+    const barHeight = 8;
+    const barGap = 15;
+    
+    // Desenhar barras para cada fonte
+    sortedSources.forEach((sourceEntry, index) => {
+      const [sourceId, count] = sourceEntry;
+      const source = data.sources.find(s => s.id === sourceId);
+      const maxCount = Math.max(...sortedSources.map(s => s[1]));
+      const barWidth = (count / maxCount) * barMaxWidth;
+      
+      // Desenhar barra
+      doc.setFillColor(44, 123, 182);
+      doc.rect(barStartX, barStartY + index * barGap, barWidth, barHeight, 'F');
+      
+      // Adicionar label e valor
+      doc.setFontSize(7);
+      const sourceLabel = source?.code || `ID ${sourceId}`;
+      doc.text(sourceLabel, barStartX - 5, barStartY + index * barGap + barHeight/2 + 2, { align: 'right' });
+      doc.text(`${count}`, barStartX + barWidth + 3, barStartY + index * barGap + barHeight/2 + 2);
+    });
+    
+    // Adicionar título "Responsável (Qtde)"
+    doc.setFontSize(9);
+    doc.text('Responsável (Qtde)', barStartX + barMaxWidth/2, barStartY + 5*barGap + 10, { align: 'center' });
+    
+    // SEÇÃO 4: GRÁFICO DE LINHA (CONCLUSÃO POR MÊS)
+    const lineChartY = startY + chartHeight + 20;
+    doc.setFontSize(10);
+    doc.text('Conclusão de Processos / Mês', margin + usableWidth/2, lineChartY, { align: 'center' });
+    
+    // Configuração do gráfico de linha
+    const lineStartX = margin + 10;
+    const lineEndX = pageWidth - margin - 10;
+    const lineY = lineChartY + 40;
+    const lineWidth = lineEndX - lineStartX;
+    
+    // Desenhar linha base
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.line(lineStartX, lineY, lineEndX, lineY);
+    
+    // Dados fictícios para o gráfico de linha
+    const monthlyValues = [
+      { month: "Out 2023", value: 15 },
+      { month: "Nov 2023", value: 25 },
+      { month: "Dez 2023", value: 20 },
+      { month: "Jan 2024", value: 30 },
+      { month: "Fev 2024", value: 18 },
+      { month: "Mar 2024", value: 28 },
+      { month: "Abr 2024", value: 22 },
+      { month: "Mai 2024", value: 32 }
+    ];
+    
+    // Valor máximo para escala
+    const maxValue = Math.max(...monthlyValues.map(mv => mv.value));
+    const valueScale = 30 / maxValue;
+    
+    // Desenhar o gráfico de linha
+    const linePoints: {x: number, y: number}[] = [];
+    const segmentWidth = lineWidth / (monthlyValues.length - 1);
+    
+    monthlyValues.forEach((mv, index) => {
+      const x = lineStartX + (index * segmentWidth);
+      const y = lineY - (mv.value * valueScale);
+      linePoints.push({ x, y });
+      
+      // Desenhar ponto
+      doc.setFillColor(54, 162, 235);
+      doc.circle(x, y, 1.5, 'F');
+      
+      // Adicionar label do mês
+      doc.setFontSize(6);
+      doc.text(mv.month, x, lineY + 7, { align: 'center' });
+    });
+    
+    // Desenhar linhas entre pontos
+    doc.setDrawColor(54, 162, 235);
+    doc.setLineWidth(0.8);
+    for (let i = 0; i < linePoints.length - 1; i++) {
+      doc.line(linePoints[i].x, linePoints[i].y, linePoints[i+1].x, linePoints[i+1].y);
     }
     
     // Salvar o PDF
-    doc.save(`relatorio_${data.reportType}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    doc.save(`relatorio_processos_${new Date().toISOString().slice(0, 10)}.pdf`);
   } catch (error) {
-    console.error('Error generating PDF report:', error);
+    console.error('Erro ao gerar relatório PDF:', error);
+    alert('Ocorreu um erro ao gerar o relatório PDF. Por favor, tente novamente.');
   }
 }
 
 /**
  * Exporta o dataset para arquivo Excel
  */
+export function generateExcelReport(data: ReportData): void {
+  console.log('Exportação para Excel não implementada');
+  alert('Exportação para Excel ainda não está implementada. Por favor, use a exportação para PDF.');
+}
 function generateDepartmentReport(doc: jsPDF, data: ReportData): void {
   if (!data.departments) return;
   
