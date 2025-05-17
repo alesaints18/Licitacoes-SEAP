@@ -21,7 +21,7 @@ export function LoginThemeToggle() {
       variant="ghost"
       size="icon"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="w-8 h-8 rounded-full opacity-50 hover:opacity-100 transition-opacity"
+      className="w-8 h-8 rounded-full opacity-50 hover:opacity-100 transition-opacity absolute top-3 right-3"
       title={theme === "dark" ? "Mudar para modo claro" : "Mudar para modo escuro"}
     >
       {theme === "dark" ? (

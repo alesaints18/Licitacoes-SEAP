@@ -184,13 +184,11 @@ const Login = () => {
           
           <TabsContent value="login">
             <Card>
-              <CardHeader className="flex justify-between items-start">
-                <div>
-                  <CardTitle>Login</CardTitle>
-                  <CardDescription>
-                    Acesse o sistema com suas credenciais
-                  </CardDescription>
-                </div>
+              <CardHeader className="relative">
+                <CardTitle>Login</CardTitle>
+                <CardDescription>
+                  Acesse o sistema com suas credenciais
+                </CardDescription>
                 <LoginThemeToggle />
               </CardHeader>
               <CardContent>
@@ -257,17 +255,15 @@ const Login = () => {
           
           <TabsContent value="register">
             <Card>
-              <CardHeader className="flex justify-between items-start">
-                <div>
-                  <CardTitle>Cadastre-se</CardTitle>
-                  <CardDescription>
-                    Crie uma nova conta para acessar o sistema.
-                    <br/>
-                    <span className="text-amber-500 font-medium">
-                      Seu cadastro será analisado por um administrador.
-                    </span>
-                  </CardDescription>
-                </div>
+              <CardHeader className="relative">
+                <CardTitle>Cadastre-se</CardTitle>
+                <CardDescription>
+                  Crie uma nova conta para acessar o sistema.
+                  <br/>
+                  <span className="text-amber-500 font-medium">
+                    Seu cadastro será analisado por um administrador.
+                  </span>
+                </CardDescription>
                 <LoginThemeToggle />
               </CardHeader>
               <CardContent>
