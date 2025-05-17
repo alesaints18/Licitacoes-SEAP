@@ -64,15 +64,22 @@ function filterReportData(data: ReportData): Process[] {
  */
 export function generatePdfReport(data: ReportData): void {
   const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 15;
+  const usableWidth = pageWidth - (2 * margin);
   
-  // Add header
+  // Add header with logo
   doc.setFontSize(18);
+  doc.setTextColor(0, 51, 102); // Azul institucional
   doc.text('SEAP-PB - Secretaria de Estado da Administração Penitenciária', 105, 15, { align: 'center' });
   doc.setFontSize(14);
+  doc.setTextColor(0, 0, 0);
   doc.text('Sistema de Controle de Processos de Licitação', 105, 25, { align: 'center' });
   
   // Add report title based on type
   doc.setFontSize(16);
+  doc.setTextColor(0, 51, 102); // Azul institucional
   let reportTitle = '';
   switch (data.reportType) {
     case 'processes':
@@ -86,138 +93,189 @@ export function generatePdfReport(data: ReportData): void {
       break;
   }
   doc.text(reportTitle, 105, 40, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
   
-  // Capture charts if they exist in the page
-  try {
-    const canvas = document.querySelector('.recharts-surface')?.closest('div')?.querySelector('canvas');
-    if (canvas) {
-      const imgData = canvas.toDataURL('image/png');
-      doc.addImage(imgData, 'PNG', 15, 45, 180, 80);
-      doc.addPage();
-    }
-  } catch (error) {
-    console.error('Error capturing charts for PDF:', error);
-  }
-  
-  // Add filters information
+  // Add timestamp and filter information
+  const now = new Date();
   doc.setFontSize(10);
+  doc.text(`Gerado em: ${now.toLocaleString('pt-BR')}`, margin, 55);
+  
   let filterText = 'Filtros: ';
-  
-  if (data.filters.department && data.departments) {
-    const departmentId = parseInt(data.filters.department);
-    const department = data.departments.find(d => d.id === departmentId);
-    filterText += `Setor: ${department?.name || 'Todos'}, `;
-  } else {
-    filterText += 'Setor: Todos, ';
+  if (data.filters.department && data.filters.department !== 'all') {
+    const deptId = parseInt(data.filters.department);
+    const dept = data.departments?.find(d => d.id === deptId);
+    filterText += `Setor: ${dept?.name || deptId}; `;
   }
-  
-  if (data.filters.month) {
+  if (data.filters.month && data.filters.month !== 'all') {
     const monthIndex = parseInt(data.filters.month) - 1;
-    filterText += `Mês: ${MONTHS[monthIndex]}, `;
-  } else {
-    filterText += 'Mês: Todos, ';
+    filterText += `Mês: ${MONTHS[monthIndex]}; `;
+  }
+  if (data.filters.year) {
+    filterText += `Ano: ${data.filters.year}; `;
   }
   
-  filterText += `Ano: ${data.filters.year || 'Todos'}`;
-  doc.text(filterText, 105, 50, { align: 'center' });
+  doc.text(filterText, margin, 60);
   
-  // Generate table based on report type
-  switch (data.reportType) {
-    case 'processes':
-      generateProcessReport(doc, data);
-      break;
-    case 'users':
-      generateUserReport(doc, data);
-      break;
-    case 'departments':
-      generateDepartmentReport(doc, data);
-      break;
+  try {
+    // Capturar os gráficos da página
+    const chartContainers = document.querySelectorAll('.recharts-wrapper');
+    
+    if (chartContainers.length > 0) {
+      let currentY = 70;
+      
+      // Processar cada gráfico
+      for (let i = 0; i < chartContainers.length; i++) {
+        const chartContainer = chartContainers[i];
+        const svg = chartContainer.querySelector('svg');
+        
+        if (svg) {
+          const chartTitle = document.querySelector(`.recharts-wrapper:nth-child(${i+1})`)
+            ?.closest('.card')
+            ?.querySelector('.card-title')
+            ?.textContent || `Gráfico ${i+1}`;
+          
+          // Verificar se precisamos de uma nova página
+          if (i > 0 && currentY + 100 > pageHeight - margin) {
+            doc.addPage();
+            currentY = margin;
+          }
+          
+          // Adicionar título do gráfico
+          doc.setFontSize(12);
+          doc.setTextColor(0, 51, 102);
+          doc.text(chartTitle, 105, currentY, { align: 'center' });
+          currentY += 10;
+          
+          // Converter SVG para canvas
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const bounds = svg.getBoundingClientRect();
+          
+          canvas.width = bounds.width;
+          canvas.height = bounds.height;
+          
+          if (ctx) {
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const img = new Image();
+            
+            // Criar um objeto Blob com o SVG
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            
+            // Desenhar no canvas e adicionar ao PDF
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.drawImage(img, 0, 0);
+            doc.addImage(canvas.toDataURL('image/png'), 'PNG', margin, currentY, usableWidth, 70);
+            
+            currentY += 85; // Altura do gráfico + margem
+            URL.revokeObjectURL(url);
+          }
+        }
+      }
+    }
+    
+    // Adicionar tabela de dados
+    doc.addPage();
+    const filteredProcesses = filterReportData(data);
+    
+    // Título da tabela
+    doc.setFontSize(14);
+    doc.setTextColor(0, 51, 102);
+    doc.text('Dados Detalhados', 105, margin, { align: 'center' });
+    
+    if (data.reportType === 'processes') {
+      const tableData = filteredProcesses.map(process => {
+        const modality = data.modalities.find(m => m.id === process.modalityId);
+        const user = data.users.find(u => u.id === process.responsibleId);
+        
+        return [
+          process.pbdocNumber,
+          process.description.length > 30 ? process.description.substring(0, 30) + '...' : process.description,
+          modality?.name || `Modalidade ${process.modalityId}`,
+          user?.fullName || `Usuário ${process.responsibleId}`,
+          getProcessStatusLabel(process.status),
+          getProcessPriorityLabel(process.priority),
+          new Date(process.createdAt).toLocaleDateString('pt-BR')
+        ];
+      });
+      
+      autoTable(doc, {
+        startY: margin + 10,
+        head: [['PBDOC', 'Descrição', 'Modalidade', 'Responsável', 'Status', 'Prioridade', 'Data Criação']],
+        body: tableData,
+        theme: 'striped',
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
+        margin: { top: margin, right: margin, bottom: margin, left: margin }
+      });
+    } else if (data.reportType === 'users') {
+      const tableData = data.users.map(user => {
+        return [
+          user.fullName,
+          user.username,
+          user.department,
+          user.role === 'admin' ? 'Administrador' : 'Comum',
+          user.isActive ? 'Ativo' : 'Inativo',
+          user.email || 'N/A'
+        ];
+      });
+      
+      autoTable(doc, {
+        startY: margin + 10,
+        head: [['Nome', 'Usuário', 'Setor', 'Função', 'Status', 'Email']],
+        body: tableData,
+        theme: 'striped',
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
+        margin: { top: margin, right: margin, bottom: margin, left: margin }
+      });
+    } else if (data.reportType === 'departments' && data.departments) {
+      const tableData = data.departments.map(dept => {
+        const usersInDept = data.users.filter(u => u.department === dept.name);
+        return [
+          dept.name,
+          dept.description || 'N/A',
+          usersInDept.length.toString(),
+          usersInDept.filter(u => u.isActive).length.toString()
+        ];
+      });
+      
+      autoTable(doc, {
+        startY: margin + 10,
+        head: [['Nome', 'Descrição', 'Total Usuários', 'Usuários Ativos']],
+        body: tableData,
+        theme: 'striped',
+        styles: { fontSize: 8 },
+        headStyles: { fillColor: [0, 51, 102], textColor: [255, 255, 255] },
+        margin: { top: margin, right: margin, bottom: margin, left: margin }
+      });
+    }
+    
+    // Adicionar rodapé em todas as páginas
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text(
+        `SEAP-PB - Sistema de Controle de Processos de Licitação - Página ${i} de ${pageCount}`,
+        105,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+    
+    // Salvar o PDF
+    doc.save(`relatorio_${data.reportType}_${new Date().toISOString().slice(0, 10)}.pdf`);
+  } catch (error) {
+    console.error('Error generating PDF report:', error);
   }
-  
-  // Add footer
-  const date = new Date();
-  doc.setFontSize(10);
-  doc.text(`Gerado em: ${date.toLocaleDateString()} às ${date.toLocaleTimeString()}`, 105, 285, { align: 'center' });
-  
-  // Download the report
-  doc.save(`relatorio-${data.reportType}-${date.getTime()}.pdf`);
 }
 
 /**
- * Generate process report table
- */
-function generateProcessReport(doc: jsPDF, data: ReportData): void {
-  const filteredProcesses = filterReportData(data);
-  
-  const tableData = filteredProcesses.map(process => {
-    const modality = data.modalities.find(m => m.id === process.modalityId);
-    const user = data.users.find(u => u.id === process.responsibleId);
-    const source = data.sources.find(s => s.id === process.sourceId);
-    
-    return [
-      process.pbdocNumber,
-      process.description.length > 30 ? process.description.substring(0, 30) + '...' : process.description,
-      modality?.name || `Modalidade ${process.modalityId}`,
-      `Fonte ${source?.code || process.sourceId}`,
-      user?.fullName || `Usuário ${process.responsibleId}`,
-      getProcessStatusLabel(process.status),
-      getProcessPriorityLabel(process.priority),
-      new Date(process.createdAt).toLocaleDateString()
-    ];
-  });
-  
-  autoTable(doc, {
-    head: [['PBDOC', 'Descrição', 'Modalidade', 'Fonte', 'Responsável', 'Status', 'Prioridade', 'Criado em']],
-    body: tableData,
-    startY: 60,
-    theme: 'grid',
-    headStyles: { fillColor: [0, 102, 204], textColor: [255, 255, 255] },
-    alternateRowStyles: { fillColor: [240, 240, 240] },
-    margin: { top: 60 },
-  });
-}
-
-/**
- * Generate user report table
- */
-function generateUserReport(doc: jsPDF, data: ReportData): void {
-  // Get process stats for each user
-  const userStats = data.users.map(user => {
-    const userProcesses = data.processes.filter(p => p.responsibleId === user.id);
-    const completed = userProcesses.filter(p => p.status === 'completed').length;
-    const percentage = userProcesses.length > 0 ? Math.round((completed / userProcesses.length) * 100) : 0;
-    
-    return {
-      user,
-      total: userProcesses.length,
-      completed,
-      percentage
-    };
-  });
-  
-  const tableData = userStats.map(stats => [
-    stats.user.fullName,
-    stats.user.username,
-    stats.user.department,
-    stats.user.role === 'admin' ? 'Administrador' : 'Comum',
-    stats.total.toString(),
-    stats.completed.toString(),
-    `${stats.percentage}%`
-  ]);
-  
-  autoTable(doc, {
-    head: [['Nome', 'Usuário', 'Setor', 'Perfil', 'Processos', 'Concluídos', 'Taxa']],
-    body: tableData,
-    startY: 60,
-    theme: 'grid',
-    headStyles: { fillColor: [0, 102, 204], textColor: [255, 255, 255] },
-    alternateRowStyles: { fillColor: [240, 240, 240] },
-    margin: { top: 60 },
-  });
-}
-
-/**
- * Generate department report table
+ * Exporta o dataset para arquivo Excel
  */
 function generateDepartmentReport(doc: jsPDF, data: ReportData): void {
   if (!data.departments) return;
