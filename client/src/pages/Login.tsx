@@ -319,7 +319,7 @@ const Login = () => {
               </CardContent>
               <CardFooter className="flex flex-col space-y-4">
                 <div className="w-full text-center mt-2">
-                  <a 
+                  {/* <a 
                     href="/download" 
                     className="inline-flex items-center justify-center px-4 py-2 rounded-md bg-green-100 text-green-700 hover:bg-green-200 font-medium transition-colors border border-green-300"
                     target="_blank"
@@ -327,7 +327,7 @@ const Login = () => {
                   >
                     <ArrowRight className="mr-2 h-4 w-4" />
                     Baixar Aplicativo Desktop
-                  </a>
+                  </a> */}
                 </div>
               </CardFooter>
             </Card>
