@@ -30,7 +30,7 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
   });
   
   // Get modalities
-  const { data: modalities } = useQuery({
+  const { data: modalities } = useQuery<BiddingModality[]>({
     queryKey: ['/api/modalities'],
     queryFn: getQueryFn({ on401: "throw" }),
   });
@@ -99,8 +99,8 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {recentProcesses.map((process) => {
-              const responsible = users?.find(u => u.id === process.responsibleId);
-              const modality = modalities?.find(m => m.id === process.modalityId);
+              const responsible = users?.find(user => user.id === process.responsibleId);
+              const modality = modalities?.find(modality => modality.id === process.modalityId);
               
               return (
                 <tr key={process.id}>
