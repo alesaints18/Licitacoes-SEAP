@@ -42,6 +42,9 @@ const processFormSchema = insertProcessSchema.extend({
   priority: z.enum(["low", "medium", "high"], {
     required_error: "Por favor, selecione a prioridade",
   }),
+  currentDepartmentId: z.number({
+    required_error: "Por favor, selecione o setor responsável",
+  }),
 });
 
 type ProcessFormValues = z.infer<typeof processFormSchema>;

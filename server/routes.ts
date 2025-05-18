@@ -562,6 +562,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao remover participante", error });
     }
   });
+  
+  // Rota para transferir processo entre departamentos/setores
+  app.post('/api/processes/:id/transfer/:departmentId', isAuthenticated, async (req, res) => {
+    try {
+      const processId = parseInt(req.params.id);
+      const departmentId = parseInt(req.params.departmentId);
+      const userId = (req.user as any).id;
+      
+      // Verificar se o processo existe e se o usuário tem acesso
+      const process = await storage.getProcess(processId, userId);
+      if (!process) {
+        return res.status(404).json({ message: "Processo não encontrado ou você não tem permissão para acessá-lo" });
+      }
+      
+      // Verificar se o departamento de destino existe
+      const department = await storage.getDepartment(departmentId);
+      if (!department) {
+        return res.status(404).json({ message: "Departamento/setor não encontrado" });
+      }
+      
+      // Transferir o processo para o novo departamento/setor
+      const updatedProcess = await storage.transferProcessToDepartment(processId, departmentId, userId);
+      
+      if (updatedProcess) {
+        // Notificar via WebSocket sobre a transferência
+        broadcast({
+          type: 'process_transferred',
+          processId,
+          departmentId,
+          message: `Processo ${process.pbdocNumber} transferido para ${department.name}`,
+          timestamp: new Date().toISOString()
+        });
+        
+        res.status(200).json(updatedProcess);
+      } else {
+        res.status(500).json({ message: "Erro ao transferir processo" });
+      }
+    } catch (error) {
+      console.error("Erro ao transferir processo:", error);
+      res.status(500).json({ message: "Erro ao transferir processo", error });
+    }
+  });
 
   // Process steps routes
   app.get('/api/processes/:processId/steps', isAuthenticated, async (req, res) => {
