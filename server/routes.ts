@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import path from "path";
 import { WebSocketServer, WebSocket } from "ws";
 import { insertUserSchema, insertDepartmentSchema, insertBiddingModalitySchema, 
-         insertResourceSourceSchema, insertProcessSchema, insertProcessStepSchema } from "@shared/schema";
+         insertResourceSourceSchema, insertProcessSchema, insertProcessStepSchema,
+         insertProcessParticipantSchema } from "@shared/schema";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
