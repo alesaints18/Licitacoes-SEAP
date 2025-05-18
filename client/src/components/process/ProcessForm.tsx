@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
-import { User, BiddingModality, ResourceSource, insertProcessSchema } from "@shared/schema";
+import { User, BiddingModality, ResourceSource, Department, insertProcessSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -72,6 +72,11 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
     queryKey: ['/api/sources'],
   });
   
+  // Get departments for department selector
+  const { data: departments, isLoading: departmentsLoading } = useQuery<Department[]>({
+    queryKey: ['/api/departments'],
+  });
+  
   // Combine defaultValues and initialData, with initialData taking precedence
   const combinedDefaultValues = {
     pbdocNumber: "",
@@ -79,6 +84,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
     modalityId: 0,
     sourceId: 0,
     responsibleId: 0,
+    currentDepartmentId: 0,
     priority: "medium",
     status: "draft",
     ...defaultValues,
@@ -88,6 +94,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
       modalityId: initialData.modalityId,
       sourceId: initialData.sourceId,
       responsibleId: initialData.responsibleId,
+      currentDepartmentId: initialData.currentDepartmentId,
       priority: initialData.priority,
       status: initialData.status,
     }),
@@ -98,7 +105,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
     defaultValues: combinedDefaultValues,
   });
   
-  const isLoading = usersLoading || modalitiesLoading || sourcesLoading;
+  const isLoading = usersLoading || modalitiesLoading || sourcesLoading || departmentsLoading;
   
   return (
     <Card>
