@@ -48,6 +48,7 @@ export const processes = pgTable('processes', {
   modalityId: integer('modality_id').notNull(),
   sourceId: integer('source_id').notNull(),
   responsibleId: integer('responsible_id').notNull(),
+  currentDepartmentId: integer('current_department_id'), // Setor atualmente responsável pelo processo
   priority: priorityEnum('priority').notNull().default('medium'),
   status: processStatusEnum('status').notNull().default('draft'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
@@ -67,13 +68,15 @@ export const processSteps = pgTable('process_steps', {
   dueDate: timestamp('due_date'),
 });
 
-// Process participants table - controla quais usuários têm acesso a cada processo
+// Process participants table - controla quais usuários e setores têm acesso a cada processo
 export const processParticipants = pgTable('process_participants', {
   id: serial('id').primaryKey(),
   processId: integer('process_id').notNull(),
   userId: integer('user_id').notNull(),
+  departmentId: integer('department_id'), // ID do setor participante
   role: text('role').notNull().default('viewer'), // viewer, editor, owner
   addedAt: timestamp('added_at').notNull().defaultNow(),
+  isActive: boolean('is_active').notNull().default(true), // Indica se o participante tem acesso ativo
 });
 
 // Export Zod schemas for insert operations

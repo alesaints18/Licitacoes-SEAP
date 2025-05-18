@@ -49,6 +49,9 @@ export interface IStorage {
   getProcessParticipants(processId: number): Promise<ProcessParticipant[]>;
   addProcessParticipant(participant: InsertProcessParticipant): Promise<ProcessParticipant>;
   removeProcessParticipant(processId: number, userId: number): Promise<boolean>;
+  
+  // Transferência entre setores
+  transferProcessToDepartment(processId: number, departmentId: number, userId: number): Promise<Process | undefined>;
   createProcess(process: InsertProcess): Promise<Process>;
   updateProcess(id: number, processData: Partial<InsertProcess>): Promise<Process | undefined>;
   deleteProcess(id: number): Promise<boolean>;
