@@ -139,18 +139,34 @@ export class DatabaseStorage implements IStorage {
           eq(users.role, 'admin')
         ));
 
-      // Se não for admin, verifica se é participante do processo
+      // Se não for admin, verifica regras de acesso
       if (!admin) {
+        // Obtém o usuário para verificar seu departamento
+        const [user] = await db.select().from(users).where(eq(users.id, userId));
+        if (!user) return undefined;
+        
+        // Obtém o processo
+        const [process] = await db.select().from(processes).where(eq(processes.id, id));
+        if (!process) return undefined;
+        
+        // Verifica se o usuário é participante ativo do processo
         const [participant] = await db
           .select()
           .from(processParticipants)
           .where(and(
             eq(processParticipants.processId, id),
-            eq(processParticipants.userId, userId)
+            eq(processParticipants.userId, userId),
+            eq(processParticipants.isActive, true)
           ));
         
-        // Se não for participante, retorna undefined
-        if (!participant) {
+        // Verifica se o processo está no departamento do usuário
+        // Aqui precisamos converter a string "department" para número para comparação
+        const userDepartmentId = parseInt(user.department);
+        const isUserDepartment = (process.currentDepartmentId === userDepartmentId);
+        
+        // Se não for participante E o processo não estiver no departamento do usuário, retorna undefined
+        if (!participant && !isUserDepartment) {
+          console.log(`Acesso negado: Usuário ${userId} não tem acesso ao processo ${id}`);
           return undefined;
         }
       }
@@ -203,39 +219,47 @@ export class DatabaseStorage implements IStorage {
             eq(users.role, 'admin')
           ));
           
-        // Se não for admin, filtra apenas os processos onde é participante
+        // Se não for admin, aplicar restrições de acesso por departamento
         if (!admin) {
-          console.log(`Filtrando processos apenas para userId=${filters.userId} (não é admin)`);
+          // Buscar usuário para determinar o departamento
+          const [user] = await db.select().from(users).where(eq(users.id, filters.userId));
           
-          // Consulta para processos onde o usuário é participante
-          const query = db
-            .select({
-              id: processes.id,
-              pbdocNumber: processes.pbdocNumber,
-              description: processes.description,
-              modalityId: processes.modalityId,
-              sourceId: processes.sourceId,
-              responsibleId: processes.responsibleId,
-              priority: processes.priority,
-              status: processes.status,
-              createdAt: processes.createdAt,
-              updatedAt: processes.updatedAt
-            })
-            .from(processes)
-            .innerJoin(
-              processParticipants,
-              and(
-                eq(processes.id, processParticipants.processId),
-                eq(processParticipants.userId, filters.userId)
-              )
-            );
-          
-          // Adicionar demais condições de filtro se houver
-          if (conditions.length > 0) {
-            return await query.where(and(...conditions)).orderBy(processes.createdAt);
+          if (user) {
+            console.log(`Filtrando processos para userId=${filters.userId} (departamento=${user.departmentId})`);
+            
+            // Dois casos de acesso:
+            // 1. Processos do departamento atual do usuário
+            // 2. Processos onde o usuário é participante ativo (independente do departamento)
+            
+            // Construir subconsulta para processos onde o usuário é participante ativo
+            const participantSubquery = db
+              .select({ processId: processParticipants.processId })
+              .from(processParticipants)
+              .where(
+                and(
+                  eq(processParticipants.userId, filters.userId),
+                  eq(processParticipants.isActive, true)
+                )
+              );
+            
+            // Converter departamento do usuário para número para comparação
+            const userDepartmentId = parseInt(user.department);
+            
+            // Criar query com todos os campos completos do processo
+            const query = db
+              .select()
+              .from(processes)
+              .where(
+                sql`(${processes.currentDepartmentId} = ${userDepartmentId} OR ${processes.id} IN (${participantSubquery}))`
+              );
+            
+            // Adicionar demais condições de filtro se houver
+            if (conditions.length > 0) {
+              return await query.where(and(...conditions)).orderBy(processes.createdAt);
+            }
+            
+            return await query.orderBy(processes.createdAt);
           }
-          
-          return await query.orderBy(processes.createdAt);
         } else {
           console.log(`Filtrando processos para userId=${filters.userId} (admin - vê todos)`);
         }
