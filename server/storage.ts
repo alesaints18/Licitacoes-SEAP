@@ -35,14 +35,20 @@ export interface IStorage {
   createResourceSource(source: InsertResourceSource): Promise<ResourceSource>;
 
   // Process operations
-  getProcess(id: number): Promise<Process | undefined>;
+  getProcess(id: number, userId?: number): Promise<Process | undefined>;
   getProcesses(filters?: {
     pbdocNumber?: string;
     modalityId?: number;
     sourceId?: number;
     responsibleId?: number;
     status?: string;
+    userId?: number; // Adicionado userId para filtrar por participante
   }): Promise<Process[]>;
+  
+  // Process participant operations
+  getProcessParticipants(processId: number): Promise<ProcessParticipant[]>;
+  addProcessParticipant(participant: InsertProcessParticipant): Promise<ProcessParticipant>;
+  removeProcessParticipant(processId: number, userId: number): Promise<boolean>;
   createProcess(process: InsertProcess): Promise<Process>;
   updateProcess(id: number, processData: Partial<InsertProcess>): Promise<Process | undefined>;
   deleteProcess(id: number): Promise<boolean>;

@@ -67,6 +67,15 @@ export const processSteps = pgTable('process_steps', {
   dueDate: timestamp('due_date'),
 });
 
+// Process participants table - controla quais usuários têm acesso a cada processo
+export const processParticipants = pgTable('process_participants', {
+  id: serial('id').primaryKey(),
+  processId: integer('process_id').notNull(),
+  userId: integer('user_id').notNull(),
+  role: text('role').notNull().default('viewer'), // viewer, editor, owner
+  addedAt: timestamp('added_at').notNull().defaultNow(),
+});
+
 // Export Zod schemas for insert operations
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -95,6 +104,11 @@ export const insertProcessStepSchema = createInsertSchema(processSteps).omit({
   completedAt: true,
 });
 
+export const insertProcessParticipantSchema = createInsertSchema(processParticipants).omit({
+  id: true,
+  addedAt: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -113,3 +127,6 @@ export type InsertProcess = z.infer<typeof insertProcessSchema>;
 
 export type ProcessStep = typeof processSteps.$inferSelect;
 export type InsertProcessStep = z.infer<typeof insertProcessStepSchema>;
+
+export type ProcessParticipant = typeof processParticipants.$inferSelect;
+export type InsertProcessParticipant = z.infer<typeof insertProcessParticipantSchema>;

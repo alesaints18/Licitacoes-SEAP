@@ -5,7 +5,8 @@ import {
   biddingModalities, type BiddingModality, type InsertBiddingModality,
   resourceSources, type ResourceSource, type InsertResourceSource,
   processes, type Process, type InsertProcess,
-  processSteps, type ProcessStep, type InsertProcessStep
+  processSteps, type ProcessStep, type InsertProcessStep,
+  processParticipants, type ProcessParticipant, type InsertProcessParticipant
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { eq, and, count, sql } from "drizzle-orm";
@@ -126,7 +127,35 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Process operations
-  async getProcess(id: number): Promise<Process | undefined> {
+  async getProcess(id: number, userId?: number): Promise<Process | undefined> {
+    // Se userId for fornecido, verifica se o usuário tem acesso ao processo
+    if (userId) {
+      // Verifica se o usuário é admin
+      const [admin] = await db
+        .select()
+        .from(users)
+        .where(and(
+          eq(users.id, userId),
+          eq(users.role, 'admin')
+        ));
+
+      // Se não for admin, verifica se é participante do processo
+      if (!admin) {
+        const [participant] = await db
+          .select()
+          .from(processParticipants)
+          .where(and(
+            eq(processParticipants.processId, id),
+            eq(processParticipants.userId, userId)
+          ));
+        
+        // Se não for participante, retorna undefined
+        if (!participant) {
+          return undefined;
+        }
+      }
+    }
+    
     const [process] = await db.select().from(processes).where(eq(processes.id, id));
     return process;
   }
@@ -137,11 +166,51 @@ export class DatabaseStorage implements IStorage {
     sourceId?: number;
     responsibleId?: number;
     status?: string;
+    userId?: number;
   }): Promise<Process[]> {
     let baseQuery = db.select().from(processes);
     let conditions = [];
     
     if (filters) {
+      // Filtrar por usuário participante (se fornecido)
+      if (filters.userId) {
+        // Verifica se o usuário é admin
+        const [admin] = await db
+          .select()
+          .from(users)
+          .where(and(
+            eq(users.id, filters.userId),
+            eq(users.role, 'admin')
+          ));
+          
+        // Se não for admin, filtra apenas os processos onde é participante
+        if (!admin) {
+          return await db
+            .select({
+              id: processes.id,
+              pbdocNumber: processes.pbdocNumber,
+              description: processes.description,
+              modalityId: processes.modalityId,
+              sourceId: processes.sourceId,
+              responsibleId: processes.responsibleId,
+              priority: processes.priority,
+              status: processes.status,
+              createdAt: processes.createdAt,
+              updatedAt: processes.updatedAt
+            })
+            .from(processes)
+            .innerJoin(
+              processParticipants,
+              and(
+                eq(processes.id, processParticipants.processId),
+                eq(processParticipants.userId, filters.userId)
+              )
+            )
+            .where(conditions.length > 0 ? and(...conditions) : undefined)
+            .orderBy(processes.createdAt);
+        }
+      }
+      
       if (filters.pbdocNumber) {
         conditions.push(sql`${processes.pbdocNumber} ILIKE ${`%${filters.pbdocNumber}%`}`);
       }
