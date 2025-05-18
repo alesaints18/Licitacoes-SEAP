@@ -315,6 +315,9 @@ export class DatabaseStorage implements IStorage {
       if (!process) {
         throw new Error("Processo não encontrado");
       }
+
+      // Verificar departamento anterior
+      const oldDepartmentId = process.currentDepartmentId;
       
       // 2. Atualizar o setor atual do processo
       const [updatedProcess] = await db
@@ -326,22 +329,64 @@ export class DatabaseStorage implements IStorage {
         .where(eq(processes.id, processId))
         .returning();
       
-      // 3. Desativar todos os participantes existentes (inclusive setores)
-      await db
-        .update(processParticipants)
-        .set({ isActive: false })
-        .where(eq(processParticipants.processId, processId));
+      // 3. Desativar participantes do departamento antigo
+      if (oldDepartmentId) {
+        console.log(`Desativando participantes do departamento ${oldDepartmentId} no processo ${processId}`);
+        
+        // Buscar usuários que estão no departamento que está perdendo acesso
+        const [oldDepartment] = await db
+          .select()
+          .from(departments)
+          .where(eq(departments.id, oldDepartmentId));
+        
+        if (oldDepartment) {
+          // Desativar participantes associados ao departamento antigo
+          await db
+            .update(processParticipants)
+            .set({ isActive: false })
+            .where(and(
+              eq(processParticipants.processId, processId),
+              eq(processParticipants.departmentId, oldDepartmentId)
+            ));
+            
+          // Registrar a inativação como um evento de log
+          console.log(`Departamento ${oldDepartment.name} perdeu acesso ao processo ${processId}`);
+        }
+      }
       
-      // 4. Adicionar o novo setor como participante
-      await db
-        .insert(processParticipants)
-        .values({
-          processId,
-          userId,
-          departmentId,
-          role: 'editor',
-          isActive: true,
-        });
+      // 4. Adicionar o usuário atual como participante no novo departamento
+      // Verificar se o usuário já é participante
+      const [existingParticipant] = await db
+        .select()
+        .from(processParticipants)
+        .where(and(
+          eq(processParticipants.processId, processId),
+          eq(processParticipants.userId, userId),
+          eq(processParticipants.departmentId, departmentId)
+        ));
+      
+      if (existingParticipant) {
+        // Se já existe, apenas atualizar para ativo
+        await db
+          .update(processParticipants)
+          .set({ isActive: true })
+          .where(and(
+            eq(processParticipants.processId, processId),
+            eq(processParticipants.userId, userId),
+            eq(processParticipants.departmentId, departmentId)
+          ));
+      } else {
+        // Adicionar novo registro
+        await db
+          .insert(processParticipants)
+          .values({
+            processId,
+            userId,
+            departmentId,
+            role: 'editor',
+            isActive: true,
+          });
+      }
       
       // 5. Registrar a transferência como uma etapa do processo
       await this.createProcessStep({
@@ -349,10 +394,8 @@ export class DatabaseStorage implements IStorage {
         stepName: `Transferência para setor ${departmentId}`,
         departmentId,
         isCompleted: true,
-        completedAt: new Date(),
         completedBy: userId,
-        observations: "Processo transferido para novo setor",
-        dueDate: null
+        observations: `Processo transferido do setor ${oldDepartmentId} para ${departmentId}`
       });
       
       console.log(`Processo ${processId} transferido para o setor ${departmentId} pelo usuário ${userId}`);
