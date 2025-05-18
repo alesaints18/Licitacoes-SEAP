@@ -351,13 +351,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/processes', isAuthenticated, async (req, res) => {
     try {
       const { pbdoc, modality, source, responsible, status } = req.query;
+      const userId = (req.user as any).id;
       
       const filters = {
         pbdocNumber: pbdoc as string | undefined,
         modalityId: modality ? parseInt(modality as string) : undefined,
         sourceId: source ? parseInt(source as string) : undefined,
         responsibleId: responsible ? parseInt(responsible as string) : undefined,
-        status: status as string | undefined
+        status: status as string | undefined,
+        userId: userId // Adicionado userId para filtrar processos por participante
       };
       
       const processes = await storage.getProcesses(filters);
@@ -369,9 +371,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/processes/:id', isAuthenticated, async (req, res) => {
     try {
-      const process = await storage.getProcess(parseInt(req.params.id));
+      const processId = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      
+      // Busca o processo verificando se o usuário tem acesso
+      const process = await storage.getProcess(processId, userId);
+      
       if (!process) {
-        return res.status(404).json({ message: "Processo não encontrado" });
+        return res.status(404).json({ message: "Processo não encontrado ou acesso negado" });
       }
       res.json(process);
     } catch (error) {
@@ -383,6 +390,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertProcessSchema.parse(req.body);
       const process = await storage.createProcess(validatedData);
+      
+      // Adicionar o criador como participante do processo (role: owner)
+      const userId = (req.user as any).id;
+      await storage.addProcessParticipant({
+        processId: process.id,
+        userId: userId,
+        role: 'owner'
+      });
+      
+      // Se o responsável pelo processo for diferente do criador, adiciona-o também
+      if (process.responsibleId !== userId) {
+        await storage.addProcessParticipant({
+          processId: process.id,
+          userId: process.responsibleId,
+          role: 'editor'
+        });
+      }
       
       // Notificar todos os clientes sobre o novo processo criado
       broadcast({
@@ -426,6 +450,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Erro ao deletar processo", error });
+    }
+  });
+  
+  // Rotas para gerenciar participantes de um processo
+  app.get('/api/processes/:id/participants', isAuthenticated, async (req, res) => {
+    try {
+      const processId = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      
+      // Verifica se o usuário tem acesso ao processo
+      const process = await storage.getProcess(processId, userId);
+      if (!process) {
+        return res.status(404).json({ message: "Processo não encontrado ou acesso negado" });
+      }
+      
+      const participants = await storage.getProcessParticipants(processId);
+      res.json(participants);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao buscar participantes", error });
+    }
+  });
+  
+  app.post('/api/processes/:id/participants', isAuthenticated, async (req, res) => {
+    try {
+      const processId = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      
+      // Verifica se o usuário tem acesso ao processo e se é admin ou owner
+      const process = await storage.getProcess(processId, userId);
+      if (!process) {
+        return res.status(404).json({ message: "Processo não encontrado ou acesso negado" });
+      }
+      
+      // Verifica se o usuário tem permissão para adicionar participantes
+      const isUserAdmin = (req.user as any).role === 'admin';
+      if (!isUserAdmin) {
+        // Busca o papel do usuário no processo
+        const participants = await storage.getProcessParticipants(processId);
+        const userParticipant = participants.find(p => p.userId === userId);
+        
+        // Apenas donos do processo podem adicionar participantes
+        if (!userParticipant || userParticipant.role !== 'owner') {
+          return res.status(403).json({ message: "Permissão negada para adicionar participantes" });
+        }
+      }
+      
+      // Valida e adiciona o participante
+      const validatedData = insertProcessParticipantSchema.parse({
+        ...req.body,
+        processId
+      });
+      
+      const participant = await storage.addProcessParticipant(validatedData);
+      
+      // Notificar usuário adicionado ao processo
+      broadcast({
+        type: 'process_participant_added',
+        processId,
+        userId: validatedData.userId,
+        message: `Você foi adicionado ao processo ${process.pbdocNumber}`,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.status(201).json(participant);
+    } catch (error) {
+      res.status(400).json({ message: "Dados inválidos", error });
+    }
+  });
+  
+  app.delete('/api/processes/:id/participants/:userId', isAuthenticated, async (req, res) => {
+    try {
+      const processId = parseInt(req.params.id);
+      const participantId = parseInt(req.params.userId);
+      const currentUserId = (req.user as any).id;
+      
+      // Verifica se o usuário tem acesso ao processo e se é admin ou owner
+      const process = await storage.getProcess(processId, currentUserId);
+      if (!process) {
+        return res.status(404).json({ message: "Processo não encontrado ou acesso negado" });
+      }
+      
+      // Verifica se o usuário tem permissão para remover participantes
+      const isUserAdmin = (req.user as any).role === 'admin';
+      if (!isUserAdmin && participantId !== currentUserId) { // Usuários podem remover a si mesmos
+        // Busca o papel do usuário no processo
+        const participants = await storage.getProcessParticipants(processId);
+        const userParticipant = participants.find(p => p.userId === currentUserId);
+        
+        // Apenas donos do processo podem remover participantes
+        if (!userParticipant || userParticipant.role !== 'owner') {
+          return res.status(403).json({ message: "Permissão negada para remover participantes" });
+        }
+      }
+      
+      const success = await storage.removeProcessParticipant(processId, participantId);
+      
+      if (!success) {
+        return res.status(404).json({ message: "Participante não encontrado" });
+      }
+      
+      res.status(204).end();
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao remover participante", error });
     }
   });
 

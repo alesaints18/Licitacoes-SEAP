@@ -243,6 +243,33 @@ export class DatabaseStorage implements IStorage {
     const [newProcess] = await db.insert(processes).values(process).returning();
     return newProcess;
   }
+  
+  // Implementação das funções de participantes do processo
+  async getProcessParticipants(processId: number): Promise<ProcessParticipant[]> {
+    const participants = await db
+      .select()
+      .from(processParticipants)
+      .where(eq(processParticipants.processId, processId));
+    return participants;
+  }
+  
+  async addProcessParticipant(participant: InsertProcessParticipant): Promise<ProcessParticipant> {
+    const [newParticipant] = await db
+      .insert(processParticipants)
+      .values(participant)
+      .returning();
+    return newParticipant;
+  }
+  
+  async removeProcessParticipant(processId: number, userId: number): Promise<boolean> {
+    const result = await db
+      .delete(processParticipants)
+      .where(and(
+        eq(processParticipants.processId, processId),
+        eq(processParticipants.userId, userId)
+      ));
+    return result.rowCount > 0;
+  }
 
   async updateProcess(id: number, processData: Partial<InsertProcess>): Promise<Process | undefined> {
     const [updatedProcess] = await db
