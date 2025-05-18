@@ -283,6 +283,62 @@ export class DatabaseStorage implements IStorage {
       ));
     return result.rowCount > 0;
   }
+  
+  async transferProcessToDepartment(processId: number, departmentId: number, userId: number): Promise<Process | undefined> {
+    try {
+      // 1. Obter o processo atual
+      const process = await this.getProcess(processId);
+      if (!process) {
+        throw new Error("Processo não encontrado");
+      }
+      
+      // 2. Atualizar o setor atual do processo
+      const [updatedProcess] = await db
+        .update(processes)
+        .set({
+          currentDepartmentId: departmentId,
+          updatedAt: new Date(),
+        })
+        .where(eq(processes.id, processId))
+        .returning();
+      
+      // 3. Desativar todos os participantes existentes (inclusive setores)
+      await db
+        .update(processParticipants)
+        .set({ isActive: false })
+        .where(eq(processParticipants.processId, processId));
+      
+      // 4. Adicionar o novo setor como participante
+      await db
+        .insert(processParticipants)
+        .values({
+          processId,
+          userId,
+          departmentId,
+          role: 'editor',
+          isActive: true,
+        });
+      
+      // 5. Registrar a transferência como uma etapa do processo
+      await this.createProcessStep({
+        processId,
+        stepName: `Transferência para setor ${departmentId}`,
+        departmentId,
+        isCompleted: true,
+        completedAt: new Date(),
+        completedBy: userId,
+        observations: "Processo transferido para novo setor",
+        dueDate: null
+      });
+      
+      console.log(`Processo ${processId} transferido para o setor ${departmentId} pelo usuário ${userId}`);
+      
+      return updatedProcess;
+    } catch (error) {
+      console.error("Erro ao transferir processo:", error);
+      return undefined;
+    }
+  }
 
   async updateProcess(id: number, processData: Partial<InsertProcess>): Promise<Process | undefined> {
     const [updatedProcess] = await db
