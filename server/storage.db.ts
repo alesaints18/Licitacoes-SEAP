@@ -168,49 +168,10 @@ export class DatabaseStorage implements IStorage {
     status?: string;
     userId?: number;
   }): Promise<Process[]> {
-    let baseQuery = db.select().from(processes);
     let conditions = [];
     
+    // Montar as condições de filtro primeiro
     if (filters) {
-      // Filtrar por usuário participante (se fornecido)
-      if (filters.userId) {
-        // Verifica se o usuário é admin
-        const [admin] = await db
-          .select()
-          .from(users)
-          .where(and(
-            eq(users.id, filters.userId),
-            eq(users.role, 'admin')
-          ));
-          
-        // Se não for admin, filtra apenas os processos onde é participante
-        if (!admin) {
-          return await db
-            .select({
-              id: processes.id,
-              pbdocNumber: processes.pbdocNumber,
-              description: processes.description,
-              modalityId: processes.modalityId,
-              sourceId: processes.sourceId,
-              responsibleId: processes.responsibleId,
-              priority: processes.priority,
-              status: processes.status,
-              createdAt: processes.createdAt,
-              updatedAt: processes.updatedAt
-            })
-            .from(processes)
-            .innerJoin(
-              processParticipants,
-              and(
-                eq(processes.id, processParticipants.processId),
-                eq(processParticipants.userId, filters.userId)
-              )
-            )
-            .where(conditions.length > 0 ? and(...conditions) : undefined)
-            .orderBy(processes.createdAt);
-        }
-      }
-      
       if (filters.pbdocNumber) {
         conditions.push(sql`${processes.pbdocNumber} ILIKE ${`%${filters.pbdocNumber}%`}`);
       }
@@ -230,13 +191,65 @@ export class DatabaseStorage implements IStorage {
       if (filters.status) {
         conditions.push(eq(processes.status, filters.status as any));
       }
+      
+      // Filtrar por usuário participante (se fornecido)
+      if (filters.userId) {
+        // Verifica se o usuário é admin
+        const [admin] = await db
+          .select()
+          .from(users)
+          .where(and(
+            eq(users.id, filters.userId),
+            eq(users.role, 'admin')
+          ));
+          
+        // Se não for admin, filtra apenas os processos onde é participante
+        if (!admin) {
+          console.log(`Filtrando processos apenas para userId=${filters.userId} (não é admin)`);
+          
+          // Consulta para processos onde o usuário é participante
+          const query = db
+            .select({
+              id: processes.id,
+              pbdocNumber: processes.pbdocNumber,
+              description: processes.description,
+              modalityId: processes.modalityId,
+              sourceId: processes.sourceId,
+              responsibleId: processes.responsibleId,
+              priority: processes.priority,
+              status: processes.status,
+              createdAt: processes.createdAt,
+              updatedAt: processes.updatedAt
+            })
+            .from(processes)
+            .innerJoin(
+              processParticipants,
+              and(
+                eq(processes.id, processParticipants.processId),
+                eq(processParticipants.userId, filters.userId)
+              )
+            );
+          
+          // Adicionar demais condições de filtro se houver
+          if (conditions.length > 0) {
+            return await query.where(and(...conditions)).orderBy(processes.createdAt);
+          }
+          
+          return await query.orderBy(processes.createdAt);
+        } else {
+          console.log(`Filtrando processos para userId=${filters.userId} (admin - vê todos)`);
+        }
+      }
     }
+    
+    // Query padrão (admin ou sem filtro de usuário)
+    const baseQuery = db.select().from(processes);
     
     if (conditions.length > 0) {
-      return await baseQuery.where(and(...conditions));
+      return await baseQuery.where(and(...conditions)).orderBy(processes.createdAt);
     }
     
-    return await baseQuery;
+    return await baseQuery.orderBy(processes.createdAt);
   }
 
   async createProcess(process: InsertProcess): Promise<Process> {

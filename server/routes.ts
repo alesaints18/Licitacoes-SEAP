@@ -354,6 +354,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { pbdoc, modality, source, responsible, status } = req.query;
       const userId = (req.user as any).id;
       
+      // Obter processos com filtro de acesso por participante
+      console.log(`Obtendo processos para usuário: ${userId} (${(req.user as any).username})`);
+      
       const filters = {
         pbdocNumber: pbdoc as string | undefined,
         modalityId: modality ? parseInt(modality as string) : undefined,
@@ -364,8 +367,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const processes = await storage.getProcesses(filters);
+      console.log(`Processos encontrados para usuário ${userId}: ${processes.length}`);
+      
       res.json(processes);
     } catch (error) {
+      console.error("Erro ao buscar processos:", error);
       res.status(500).json({ message: "Erro ao buscar processos", error });
     }
   });
