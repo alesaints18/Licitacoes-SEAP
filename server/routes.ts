@@ -398,12 +398,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertProcessSchema.parse(req.body);
       const process = await storage.createProcess(validatedData);
       
-      // Adicionar o criador como participante do processo (role: owner)
       const userId = (req.user as any).id;
+      const currentDepartmentId = process.currentDepartmentId;
+      
+      console.log(`Criando processo: ${process.id}, departamento: ${currentDepartmentId}`);
+      
+      // Adicionar o criador como participante do processo (role: owner)
       await storage.addProcessParticipant({
         processId: process.id,
         userId: userId,
-        role: 'owner'
+        departmentId: currentDepartmentId,
+        role: 'owner',
+        isActive: true
       });
       
       // Se o responsável pelo processo for diferente do criador, adiciona-o também
@@ -411,7 +417,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.addProcessParticipant({
           processId: process.id,
           userId: process.responsibleId,
-          role: 'editor'
+          departmentId: currentDepartmentId,
+          role: 'editor',
+          isActive: true
         });
       }
       

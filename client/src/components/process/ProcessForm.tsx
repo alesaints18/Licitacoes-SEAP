@@ -269,6 +269,42 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                 />
               </div>
               
+              <div className="grid grid-cols-1 gap-6">
+                <FormField
+                  control={form.control}
+                  name="currentDepartmentId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Setor Responsável</FormLabel>
+                      <Select 
+                        onValueChange={(value) => field.onChange(parseInt(value))}
+                        value={field.value ? field.value.toString() : undefined}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione o setor responsável" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {departments?.map((department) => (
+                            <SelectItem 
+                              key={department.id} 
+                              value={department.id.toString()}
+                            >
+                              {department.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        Selecione o setor que será responsável pelo processo
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
               <FormField
                 control={form.control}
                 name="priority"
