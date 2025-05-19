@@ -9,7 +9,7 @@ import {
   processParticipants, type ProcessParticipant, type InsertProcessParticipant
 } from "@shared/schema";
 import { IStorage } from "./storage";
-import { eq, and, count, sql } from "drizzle-orm";
+import { eq, and, or, count, sql, inArray } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage implements IStorage {
@@ -185,7 +185,6 @@ export class DatabaseStorage implements IStorage {
     userId?: number;
   }): Promise<Process[]> {
     try {
-      // Array para armazenar todas as condições de filtro
       const conditions: any[] = [];
       
       // Aplicar filtros básicos se fornecidos
@@ -209,75 +208,91 @@ export class DatabaseStorage implements IStorage {
         if (filters.status) {
           conditions.push(eq(processes.status, filters.status as any));
         }
-        
-        // Filtro de acesso por usuário
-        if (filters.userId) {
-          // Verificar se é admin primeiro
-          const [adminUser] = await db
+      }
+      
+      // Verificar se precisa filtrar por acesso do usuário
+      if (filters?.userId) {
+        // Verificar se é admin
+        const [adminUser] = await db
+          .select()
+          .from(users)
+          .where(and(
+            eq(users.id, filters.userId),
+            eq(users.role, 'admin')
+          ));
+          
+        if (!adminUser) {
+          console.log(`Usuário ${filters.userId} não é admin - aplicando restrições de acesso`);
+          
+          // Buscar o usuário
+          const [user] = await db
             .select()
             .from(users)
+            .where(eq(users.id, filters.userId));
+            
+          if (!user) {
+            return [];
+          }
+          
+          // Buscar o departamento do usuário
+          const [userDept] = await db
+            .select()
+            .from(departments)
+            .where(eq(departments.name, user.department));
+            
+          if (!userDept) {
+            return [];
+          }
+          
+          const departmentId = userDept.id;
+          console.log(`Usuário ${user.username} (ID: ${user.id}) pertence ao departamento ${user.department} (ID: ${departmentId})`);
+          
+          // Buscar processos onde o usuário é participante ativo
+          const participantProcesses = await db
+            .select()
+            .from(processParticipants)
             .where(and(
-              eq(users.id, filters.userId),
-              eq(users.role, 'admin')
+              eq(processParticipants.userId, user.id),
+              eq(processParticipants.isActive, true)
             ));
             
-          // Se não for admin, aplicar restrições de acesso
-          if (!adminUser) {
-            console.log(`Usuário ${filters.userId} não é admin - restringindo acesso`);
-            
-            // Obter detalhes do usuário
-            const [user] = await db.select().from(users).where(eq(users.id, filters.userId));
-            
-            if (!user) {
-              console.log(`Usuário ${filters.userId} não encontrado`);
-              return [];
-            }
-            
-            // Obter ID do departamento
-            const [departamento] = await db
-              .select()
-              .from(departments)
-              .where(eq(departments.name, user.department));
-              
-            if (!departamento) {
-              console.log(`Departamento '${user.department}' não encontrado`);
-              return [];
-            }
-            
-            // Montar subconsulta para processos onde o usuário é participante ativo
-            const participantSubquery = db
-              .select({ processId: processParticipants.processId })
-              .from(processParticipants)
-              .where(and(
-                eq(processParticipants.userId, filters.userId),
-                eq(processParticipants.isActive, true)
-              ));
-              
-            // Adicionar condição OR: processos do departamento OU onde o usuário é participante
-            conditions.push(
-              or(
-                eq(processes.currentDepartmentId, departamento.id),
-                inArray(processes.id, participantSubquery.map(p => p.processId))
-              )
-            );
+          console.log(`Usuário ${user.username} é participante de ${participantProcesses.length} processos`);
+          
+          // Lista de IDs de processos onde o usuário é participante
+          const participantProcessIds = participantProcesses.map(p => p.processId);
+          
+          // Aplicar condição OR usando SQL literal para máxima compatibilidade:
+          // 1. O processo pertence ao departamento do usuário, OU
+          // 2. O usuário é responsável pelo processo, OU
+          // 3. O usuário é participante ativo do processo
+          if (participantProcessIds.length > 0) {
+            conditions.push(sql`(${processes.currentDepartmentId} = ${departmentId} OR ${processes.responsibleId} = ${user.id} OR ${processes.id} IN (${participantProcessIds.join(',')}))`);
           } else {
-            console.log(`Usuário ${filters.userId} é admin - vendo todos os processos`);
+            conditions.push(sql`(${processes.currentDepartmentId} = ${departmentId} OR ${processes.responsibleId} = ${user.id})`);
           }
+        } else {
+          console.log(`Usuário ${filters.userId} é admin - vendo todos os processos`);
         }
       }
       
-      // Executar consulta com todos os filtros aplicados
+      // Executar a consulta
       if (conditions.length > 0) {
-        return await db
+        const result = await db
           .select()
           .from(processes)
           .where(and(...conditions))
           .orderBy(processes.createdAt);
+          
+        console.log(`Consulta retornou ${result.length} processos`);
+        return result;
       } else {
-        return await db
+        const result = await db
           .select()
           .from(processes)
           .orderBy(processes.createdAt);
+          
+        console.log(`Consulta retornou ${result.length} processos (sem filtros)`);
+        return result;
       }
     } catch (error) {
       console.error("Erro ao buscar processos:", error);
