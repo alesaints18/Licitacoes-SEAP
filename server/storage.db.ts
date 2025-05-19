@@ -258,15 +258,24 @@ export class DatabaseStorage implements IStorage {
         const participantProcessIds = userParticipations.map(p => p.processId);
         console.log(`Usuário ${user.username} é participante de ${participantProcessIds.length} processos`);
         
-        // 3. Filtrar os processos
-        // - Processos onde o usuário é responsável
-        // - Processos onde o usuário é participante ativo
-        // - Processos que estão no departamento atual do usuário
-        allProcesses = allProcesses.filter(p => 
-          p.responsibleId === user.id || 
-          participantProcessIds.includes(p.id) || 
-          p.currentDepartmentId === userDepartment.id
-        );
+        // 3. Filtrar os processos com regras rígidas de acesso
+        // - Um processo só é visível se estiver ATUALMENTE no departamento do usuário
+        // - Exceção apenas se o usuário for o responsável ATUAL do processo
+        // - Ou se o usuário estiver EXPLICITAMENTE como participante ativo
+        allProcesses = allProcesses.filter(p => {
+          // Primeiro, verificar se o processo está no departamento atual do usuário
+          const isInCurrentDepartment = p.currentDepartmentId === userDepartment.id;
+          
+          // Se não estiver no departamento do usuário, verificar se é o responsável
+          const isResponsible = p.responsibleId === user.id;
+          
+          // Ou se é um participante explícito do processo
+          const isParticipant = participantProcessIds.includes(p.id);
+          
+          // REGRA CRÍTICA: Para que um processo seja visível, ele DEVE estar no departamento atual
+          // OU o usuário deve ser o responsável atual, OU o usuário deve ser um participante explícito
+          return isInCurrentDepartment || isResponsible || isParticipant;
+        });
         
         console.log(`Consulta retornou ${allProcesses.length} processos`);
       }
