@@ -9,7 +9,7 @@ import {
   processParticipants, type ProcessParticipant, type InsertProcessParticipant
 } from "@shared/schema";
 import { IStorage } from "./storage";
-import { eq, and, or, count, sql, inArray } from "drizzle-orm";
+import { eq, and, or, count, sql, inArray, desc } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage implements IStorage {
@@ -128,51 +128,45 @@ export class DatabaseStorage implements IStorage {
 
   // Process operations
   async getProcess(id: number, userId?: number): Promise<Process | undefined> {
-    // Se userId for fornecido, verifica se o usuário tem acesso ao processo
-    if (userId) {
-      // Verifica se o usuário é admin
-      const [admin] = await db
+    const [process] = await db.select().from(processes).where(eq(processes.id, id));
+    
+    // Se o userId for fornecido, verificar permissões
+    if (process && userId) {
+      // O usuário tem acesso se:
+      // 1. É o responsável pelo processo
+      if (process.responsibleId === userId) {
+        return process;
+      }
+      
+      // 2. Pertence ao departamento atual do processo
+      const user = await this.getUser(userId);
+      if (user) {
+        const department = await this.getDepartment(process.currentDepartmentId);
+        if (department && user.department === department.name) {
+          return process;
+        }
+      }
+      
+      // 3. É um participante ativo do processo
+      const [participant] = await db
         .select()
-        .from(users)
-        .where(and(
-          eq(users.id, userId),
-          eq(users.role, 'admin')
-        ));
-
-      // Se não for admin, verifica regras de acesso
-      if (!admin) {
-        // Obtém o usuário para verificar seu departamento
-        const [user] = await db.select().from(users).where(eq(users.id, userId));
-        if (!user) return undefined;
-        
-        // Obtém o processo
-        const [process] = await db.select().from(processes).where(eq(processes.id, id));
-        if (!process) return undefined;
-        
-        // Verifica se o usuário é participante ativo do processo
-        const [participant] = await db
-          .select()
-          .from(processParticipants)
-          .where(and(
+        .from(processParticipants)
+        .where(
+          and(
             eq(processParticipants.processId, id),
             eq(processParticipants.userId, userId),
             eq(processParticipants.isActive, true)
-          ));
-        
-        // Verifica se o processo está no departamento do usuário
-        // Aqui precisamos converter a string "department" para número para comparação
-        const userDepartmentId = parseInt(user.department);
-        const isUserDepartment = (process.currentDepartmentId === userDepartmentId);
-        
-        // Se não for participante E o processo não estiver no departamento do usuário, retorna undefined
-        if (!participant && !isUserDepartment) {
-          console.log(`Acesso negado: Usuário ${userId} não tem acesso ao processo ${id}`);
-          return undefined;
-        }
+          )
+        );
+      
+      if (participant) {
+        return process;
       }
+      
+      // Se nenhuma das condições acima for verdadeira, o usuário não tem acesso
+      return undefined;
     }
     
-    const [process] = await db.select().from(processes).where(eq(processes.id, id));
     return process;
   }
 
@@ -182,253 +176,109 @@ export class DatabaseStorage implements IStorage {
     sourceId?: number;
     responsibleId?: number;
     status?: string;
-    userId?: number;
+    userId?: number; // Adicionar userId para filtrar processos do usuário
   }): Promise<Process[]> {
-    try {
-      const conditions: any[] = [];
+    // Obter todos os processos inicialmente
+    let query = db.select().from(processes);
+    
+    // Aplicar filtros se fornecidos
+    const conditions = [];
+    
+    if (filters?.pbdocNumber) {
+      conditions.push(eq(processes.pbdocNumber, filters.pbdocNumber));
+    }
+    
+    if (filters?.modalityId) {
+      conditions.push(eq(processes.modalityId, filters.modalityId));
+    }
+    
+    if (filters?.sourceId) {
+      conditions.push(eq(processes.sourceId, filters.sourceId));
+    }
+    
+    if (filters?.responsibleId) {
+      conditions.push(eq(processes.responsibleId, filters.responsibleId));
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(processes.status, filters.status));
+    }
+    
+    // Se houver condições, aplicá-las à consulta
+    if (conditions.length > 0) {
+      query = query.where(and(...conditions));
+    }
+    
+    // Ordenar por data de atualização decrescente
+    query = query.orderBy(desc(processes.updatedAt));
+    
+    // Executar a consulta
+    let allProcesses = await query;
+    
+    // Se userId for fornecido, filtrar os processos que o usuário tem acesso
+    if (filters?.userId) {
+      // Obter informações do usuário
+      const user = await this.getUser(filters.userId);
+      if (!user) return [];
       
-      // Aplicar filtros básicos se fornecidos
-      if (filters) {
-        if (filters.pbdocNumber) {
-          conditions.push(sql`${processes.pbdocNumber} ILIKE ${`%${filters.pbdocNumber}%`}`);
-        }
-        
-        if (filters.modalityId) {
-          conditions.push(eq(processes.modalityId, filters.modalityId));
-        }
-        
-        if (filters.sourceId) {
-          conditions.push(eq(processes.sourceId, filters.sourceId));
-        }
-        
-        if (filters.responsibleId) {
-          conditions.push(eq(processes.responsibleId, filters.responsibleId));
-        }
-        
-        if (filters.status) {
-          conditions.push(eq(processes.status, filters.status as any));
-        }
-      }
+      // Verificar se o usuário é admin
+      const isAdmin = user.role === 'admin';
       
-      // Verificar se precisa filtrar por acesso do usuário
-      if (filters?.userId) {
-        // Verificar se é admin
-        const [adminUser] = await db
+      // Se não for admin, aplicar restrições de acesso
+      if (!isAdmin) {
+        console.log(`Obtendo processos para usuário: ${filters.userId} (${user.username})`);
+        console.log("Usuário não é admin - aplicando restrições de acesso");
+        
+        // Obter processos onde o usuário é responsável ou participante
+        // ou que estão no departamento atual do usuário
+        
+        // 1. Obter o departamento do usuário
+        console.log(`Usuário ${user.username} (ID: ${user.id}) pertence ao departamento ${user.department}`);
+        const [userDepartment] = await db
           .select()
-          .from(users)
-          .where(and(
-            eq(users.id, filters.userId),
-            eq(users.role, 'admin')
-          ));
-          
-        if (!adminUser) {
-          console.log(`Usuário ${filters.userId} não é admin - aplicando restrições de acesso`);
-          
-          // Buscar o usuário
-          const [user] = await db
-            .select()
-            .from(users)
-            .where(eq(users.id, filters.userId));
-            
-          if (!user) {
-            return [];
-          }
-          
-          // Buscar o departamento do usuário
-          const [userDept] = await db
-            .select()
-            .from(departments)
-            .where(eq(departments.name, user.department));
-            
-          if (!userDept) {
-            return [];
-          }
-          
-          const departmentId = userDept.id;
-          console.log(`Usuário ${user.username} (ID: ${user.id}) pertence ao departamento ${user.department} (ID: ${departmentId})`);
-          
-          // Buscar processos onde o usuário é participante ativo
-          const participantProcesses = await db
-            .select()
-            .from(processParticipants)
-            .where(and(
+          .from(departments)
+          .where(eq(departments.name, user.department));
+        
+        if (!userDepartment) {
+          console.log(`Departamento ${user.department} não encontrado para o usuário ${user.id}`);
+          return [];
+        }
+        
+        // 2. Obter os IDs dos processos onde o usuário é participante
+        const userParticipations = await db
+          .select()
+          .from(processParticipants)
+          .where(
+            and(
               eq(processParticipants.userId, user.id),
               eq(processParticipants.isActive, true)
-            ));
-            
-          console.log(`Usuário ${user.username} é participante de ${participantProcesses.length} processos`);
-          
-          // Lista de IDs de processos onde o usuário é participante
-          const participantProcessIds = participantProcesses.map(p => p.processId);
-          
-          // Aplicar condição OR usando SQL literal para máxima compatibilidade:
-          // 1. O processo pertence ao departamento do usuário, OU
-          // 2. O usuário é responsável pelo processo, OU
-          // 3. O usuário é participante ativo do processo
-          if (participantProcessIds.length > 0) {
-            conditions.push(sql`(${processes.currentDepartmentId} = ${departmentId} OR ${processes.responsibleId} = ${user.id} OR ${processes.id} IN (${participantProcessIds.join(',')}))`);
-          } else {
-            conditions.push(sql`(${processes.currentDepartmentId} = ${departmentId} OR ${processes.responsibleId} = ${user.id})`);
-          }
-        } else {
-          console.log(`Usuário ${filters.userId} é admin - vendo todos os processos`);
-        }
+            )
+          );
+        
+        const participantProcessIds = userParticipations.map(p => p.processId);
+        console.log(`Usuário ${user.username} é participante de ${participantProcessIds.length} processos`);
+        
+        // 3. Filtrar os processos
+        // - Processos onde o usuário é responsável
+        // - Processos onde o usuário é participante ativo
+        // - Processos que estão no departamento atual do usuário
+        allProcesses = allProcesses.filter(p => 
+          p.responsibleId === user.id || 
+          participantProcessIds.includes(p.id) || 
+          p.currentDepartmentId === userDepartment.id
+        );
+        
+        console.log(`Consulta retornou ${allProcesses.length} processos`);
       }
-      
-      // Executar a consulta
-      if (conditions.length > 0) {
-        const result = await db
-          .select()
-          .from(processes)
-          .where(and(...conditions))
-          .orderBy(processes.createdAt);
-          
-        console.log(`Consulta retornou ${result.length} processos`);
-        return result;
-      } else {
-        const result = await db
-          .select()
-          .from(processes)
-          .orderBy(processes.createdAt);
-          
-        console.log(`Consulta retornou ${result.length} processos (sem filtros)`);
-        return result;
-      }
-    } catch (error) {
-      console.error("Erro ao buscar processos:", error);
-      return [];
     }
+    
+    console.log(`Processos encontrados para usuário ${filters?.userId}: ${allProcesses.length}`);
+    return allProcesses;
   }
 
   async createProcess(process: InsertProcess): Promise<Process> {
     const [newProcess] = await db.insert(processes).values(process).returning();
     return newProcess;
-  }
-  
-  // Implementação das funções de participantes do processo
-  async getProcessParticipants(processId: number): Promise<ProcessParticipant[]> {
-    const participants = await db
-      .select()
-      .from(processParticipants)
-      .where(eq(processParticipants.processId, processId));
-    return participants;
-  }
-  
-  async addProcessParticipant(participant: InsertProcessParticipant): Promise<ProcessParticipant> {
-    const [newParticipant] = await db
-      .insert(processParticipants)
-      .values(participant)
-      .returning();
-    return newParticipant;
-  }
-  
-  async removeProcessParticipant(processId: number, userId: number): Promise<boolean> {
-    const result = await db
-      .delete(processParticipants)
-      .where(and(
-        eq(processParticipants.processId, processId),
-        eq(processParticipants.userId, userId)
-      ));
-    return result.rowCount > 0;
-  }
-  
-  async transferProcessToDepartment(processId: number, departmentId: number, userId: number): Promise<Process | undefined> {
-    try {
-      // 1. Obter o processo atual
-      const process = await this.getProcess(processId);
-      if (!process) {
-        throw new Error("Processo não encontrado");
-      }
-
-      // Verificar departamento anterior
-      const oldDepartmentId = process.currentDepartmentId;
-      
-      // 2. Atualizar o setor atual do processo
-      const [updatedProcess] = await db
-        .update(processes)
-        .set({
-          currentDepartmentId: departmentId,
-          updatedAt: new Date(),
-        })
-        .where(eq(processes.id, processId))
-        .returning();
-      
-      // 3. Desativar participantes do departamento antigo
-      if (oldDepartmentId) {
-        console.log(`Desativando participantes do departamento ${oldDepartmentId} no processo ${processId}`);
-        
-        // Buscar usuários que estão no departamento que está perdendo acesso
-        const [oldDepartment] = await db
-          .select()
-          .from(departments)
-          .where(eq(departments.id, oldDepartmentId));
-        
-        if (oldDepartment) {
-          // Desativar participantes associados ao departamento antigo
-          await db
-            .update(processParticipants)
-            .set({ isActive: false })
-            .where(and(
-              eq(processParticipants.processId, processId),
-              eq(processParticipants.departmentId, oldDepartmentId)
-            ));
-            
-          // Registrar a inativação como um evento de log
-          console.log(`Departamento ${oldDepartment.name} perdeu acesso ao processo ${processId}`);
-        }
-      }
-      
-      // 4. Adicionar o usuário atual como participante no novo departamento
-      // Verificar se o usuário já é participante
-      const [existingParticipant] = await db
-        .select()
-        .from(processParticipants)
-        .where(and(
-          eq(processParticipants.processId, processId),
-          eq(processParticipants.userId, userId),
-          eq(processParticipants.departmentId, departmentId)
-        ));
-      
-      if (existingParticipant) {
-        // Se já existe, apenas atualizar para ativo
-        await db
-          .update(processParticipants)
-          .set({ isActive: true })
-          .where(and(
-            eq(processParticipants.processId, processId),
-            eq(processParticipants.userId, userId),
-            eq(processParticipants.departmentId, departmentId)
-          ));
-      } else {
-        // Adicionar novo registro
-        await db
-          .insert(processParticipants)
-          .values({
-            processId,
-            userId,
-            departmentId,
-            role: 'editor',
-            isActive: true,
-          });
-      }
-      
-      // 5. Registrar a transferência como uma etapa do processo
-      await this.createProcessStep({
-        processId,
-        stepName: `Transferência para setor ${departmentId}`,
-        departmentId,
-        isCompleted: true,
-        completedBy: userId,
-        observations: `Processo transferido do setor ${oldDepartmentId} para ${departmentId}`
-      });
-      
-      console.log(`Processo ${processId} transferido para o setor ${departmentId} pelo usuário ${userId}`);
-      
-      return updatedProcess;
-    } catch (error) {
-      console.error("Erro ao transferir processo:", error);
-      return undefined;
-    }
   }
 
   async updateProcess(id: number, processData: Partial<InsertProcess>): Promise<Process | undefined> {
@@ -445,12 +295,99 @@ export class DatabaseStorage implements IStorage {
     return result.rowCount !== null && result.rowCount > 0;
   }
 
-  // Process step operations
+  // Process participants operations
+  async getProcessParticipants(processId: number): Promise<ProcessParticipant[]> {
+    return await db
+      .select()
+      .from(processParticipants)
+      .where(eq(processParticipants.processId, processId));
+  }
+
+  async addProcessParticipant(participant: InsertProcessParticipant): Promise<ProcessParticipant> {
+    const [newParticipant] = await db
+      .insert(processParticipants)
+      .values(participant)
+      .returning();
+    return newParticipant;
+  }
+
+  async removeProcessParticipant(processId: number, userId: number): Promise<boolean> {
+    const result = await db
+      .delete(processParticipants)
+      .where(and(
+        eq(processParticipants.processId, processId),
+        eq(processParticipants.userId, userId)
+      ));
+    return result.rowCount !== null && result.rowCount > 0;
+  }
+  
+  async transferProcessToDepartment(processId: number, departmentId: number, userId: number): Promise<Process | undefined> {
+    try {
+      // 1. Obter o processo atual
+      const process = await this.getProcess(processId);
+      if (!process) {
+        throw new Error("Processo não encontrado");
+      }
+
+      // Verificar departamento anterior
+      const oldDepartmentId = process.currentDepartmentId;
+      
+      console.log(`Transferindo processo ${processId} do departamento ${oldDepartmentId} para ${departmentId}`);
+
+      // 2. Atualizar o setor atual do processo
+      const [updatedProcess] = await db
+        .update(processes)
+        .set({
+          currentDepartmentId: departmentId,
+          updatedAt: new Date(),
+        })
+        .where(eq(processes.id, processId))
+        .returning();
+      
+      // 3. Remover TODOS os participantes atuais do processo para garantir visibilidade correta
+      console.log(`Removendo todos os participantes atuais do processo ${processId}`);
+      await db
+        .delete(processParticipants)
+        .where(eq(processParticipants.processId, processId));
+      
+      // 4. Adicionar o usuário que está fazendo a transferência como participante (se não for o responsável)
+      if (process.responsibleId !== userId) {
+        console.log(`Adicionando usuário ${userId} como participante do processo ${processId}`);
+        await db
+          .insert(processParticipants)
+          .values({
+            processId,
+            userId,
+            isActive: true,
+            notifications: true
+          });
+      }
+      
+      // 5. Registrar a transferência no histórico do processo
+      console.log(`Registrando transferência do processo ${processId} para o departamento ${departmentId}`);
+      await db
+        .insert(processSteps)
+        .values({
+          processId,
+          action: `Transferido para o departamento ${departmentId}`,
+          userId,
+          createdAt: new Date()
+        });
+        
+      return updatedProcess;
+    } catch (error) {
+      console.error("Erro ao transferir processo:", error);
+      throw error;
+    }
+  }
+
+  // Process steps operations
   async getProcessSteps(processId: number): Promise<ProcessStep[]> {
     return await db
       .select()
       .from(processSteps)
-      .where(eq(processSteps.processId, processId));
+      .where(eq(processSteps.processId, processId))
+      .orderBy(desc(processSteps.createdAt));
   }
 
   async createProcessStep(step: InsertProcessStep): Promise<ProcessStep> {
@@ -467,7 +404,7 @@ export class DatabaseStorage implements IStorage {
     return updatedStep;
   }
 
-  // Dashboard analytics
+  // Analytics functions
   async getProcessesStatistics(filters?: {
     pbdocNumber?: string;
     modalityId?: number;
@@ -480,13 +417,14 @@ export class DatabaseStorage implements IStorage {
     inProgress: number;
     canceled: number;
   }> {
-    console.log("getProcessesStatistics - Filtrando com:", filters);
+    // Filtrar processos de acordo com os parâmetros
+    const baseQuery = db.select().from(processes);
     
-    // Construir condições de filtro
-    let conditions = [];
+    // Construir condições
+    const conditions = [];
     
     if (filters?.pbdocNumber) {
-      conditions.push(sql`${processes.pbdocNumber} LIKE ${`%${filters.pbdocNumber}%`}`);
+      conditions.push(eq(processes.pbdocNumber, filters.pbdocNumber));
     }
     
     if (filters?.modalityId) {
@@ -501,60 +439,26 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(processes.responsibleId, filters.responsibleId));
     }
     
-    if (filters?.status) {
-      conditions.push(eq(processes.status, filters.status));
+    // Aplicar condições
+    let filteredProcesses: Process[];
+    if (conditions.length > 0) {
+      filteredProcesses = await baseQuery.where(and(...conditions));
+    } else {
+      filteredProcesses = await baseQuery;
     }
     
-    // Combine as condições com 'AND' ou use uma condição padrão 'true'
-    const whereClause = conditions.length > 0
-      ? and(...conditions)
-      : undefined; // Se não houver condições, não aplique filtro
+    // Contar os status
+    const total = filteredProcesses.length;
+    const completed = filteredProcesses.filter(p => p.status === 'completed').length;
+    const inProgress = filteredProcesses.filter(p => p.status === 'in_progress').length;
+    const canceled = filteredProcesses.filter(p => p.status === 'canceled').length;
     
-    // Consulta total com filtros
-    const totalQuery = whereClause 
-      ? db.select({ value: count() }).from(processes).where(whereClause)
-      : db.select({ value: count() }).from(processes);
-    
-    const totalResult = await totalQuery;
-    const total = totalResult[0]?.value || 0;
-    
-    // Consulta completados com filtros + status 'completed'
-    const completedConditions = [...(conditions || []), eq(processes.status, 'completed')];
-    const completedWhereClause = completedConditions.length > 0 
-      ? and(...completedConditions)
-      : eq(processes.status, 'completed');
-    
-    const completedResult = await db
-      .select({ value: count() })
-      .from(processes)
-      .where(completedWhereClause);
-    const completed = completedResult[0]?.value || 0;
-    
-    // Consulta em andamento com filtros + status 'in_progress'
-    const inProgressConditions = [...(conditions || []), eq(processes.status, 'in_progress')];
-    const inProgressWhereClause = inProgressConditions.length > 0 
-      ? and(...inProgressConditions)
-      : eq(processes.status, 'in_progress');
-    
-    const inProgressResult = await db
-      .select({ value: count() })
-      .from(processes)
-      .where(inProgressWhereClause);
-    const inProgress = inProgressResult[0]?.value || 0;
-    
-    // Consulta cancelados com filtros + status 'canceled'
-    const canceledConditions = [...(conditions || []), eq(processes.status, 'canceled')];
-    const canceledWhereClause = canceledConditions.length > 0 
-      ? and(...canceledConditions)
-      : eq(processes.status, 'canceled');
-    
-    const canceledResult = await db
-      .select({ value: count() })
-      .from(processes)
-      .where(canceledWhereClause);
-    const canceled = canceledResult[0]?.value || 0;
-    
-    return { total, completed, inProgress, canceled };
+    return {
+      total,
+      completed,
+      inProgress,
+      canceled
+    };
   }
 
   async getProcessesByMonth(filters?: {
@@ -564,13 +468,14 @@ export class DatabaseStorage implements IStorage {
     responsibleId?: number;
     status?: string;
   }): Promise<{month: number; count: number}[]> {
-    console.log("getProcessesByMonth - Filtrando com:", filters);
+    // Obter todos os processos
+    const baseQuery = db.select().from(processes);
     
-    // Construir condições de filtro
-    let conditions = [];
+    // Construir condições
+    const conditions = [];
     
     if (filters?.pbdocNumber) {
-      conditions.push(sql`${processes.pbdocNumber} LIKE ${`%${filters.pbdocNumber}%`}`);
+      conditions.push(eq(processes.pbdocNumber, filters.pbdocNumber));
     }
     
     if (filters?.modalityId) {
@@ -589,41 +494,29 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(processes.status, filters.status));
     }
     
-    // Adicionar condição de ano atual
-    const currentYear = new Date().getFullYear();
-    conditions.push(sql`EXTRACT(YEAR FROM ${processes.createdAt}) = ${currentYear}`);
-    
-    // Combine as condições com 'AND'
-    const whereClause = conditions.length > 0
-      ? and(...conditions)
-      : sql`EXTRACT(YEAR FROM ${processes.createdAt}) = ${currentYear}`;
-    
-    const result = await db
-      .select({
-        month: sql`EXTRACT(MONTH FROM ${processes.createdAt})::integer`,
-        count: count()
-      })
-      .from(processes)
-      .where(whereClause)
-      .groupBy(sql`EXTRACT(MONTH FROM ${processes.createdAt})::integer`);
-
-    // Fill in missing months
-    const resultMap = new Map<number, number>();
-    result.forEach(r => {
-      // Ensure month is treated as a number
-      const month = typeof r.month === 'number' ? r.month : parseInt(String(r.month), 10);
-      resultMap.set(month, r.count);
-    });
-    
-    const filledResults: {month: number; count: number}[] = [];
-    for (let i = 1; i <= 12; i++) {
-      filledResults.push({
-        month: i,
-        count: resultMap.get(i) || 0
-      });
+    // Aplicar condições
+    let allProcesses: Process[];
+    if (conditions.length > 0) {
+      allProcesses = await baseQuery.where(and(...conditions));
+    } else {
+      allProcesses = await baseQuery;
     }
     
-    return filledResults;
+    // Agrupar por mês
+    const processesByMonth = new Map<number, number>();
+    for (let i = 1; i <= 12; i++) {
+      processesByMonth.set(i, 0);
+    }
+    
+    allProcesses.forEach(process => {
+      const createdAt = new Date(process.createdAt);
+      const month = createdAt.getMonth() + 1; // Janeiro é 0, então adicionar 1
+      const currentCount = processesByMonth.get(month) || 0;
+      processesByMonth.set(month, currentCount + 1);
+    });
+    
+    // Converter para array de objetos
+    return Array.from(processesByMonth.entries()).map(([month, count]) => ({ month, count }));
   }
 
   async getProcessesBySource(filters?: {
@@ -633,13 +526,14 @@ export class DatabaseStorage implements IStorage {
     responsibleId?: number;
     status?: string;
   }): Promise<{sourceId: number; count: number}[]> {
-    console.log("getProcessesBySource - Filtrando com:", filters);
+    // Obter todos os processos
+    const baseQuery = db.select().from(processes);
     
-    // Construir condições de filtro
-    let conditions = [];
+    // Construir condições
+    const conditions = [];
     
     if (filters?.pbdocNumber) {
-      conditions.push(sql`${processes.pbdocNumber} LIKE ${`%${filters.pbdocNumber}%`}`);
+      conditions.push(eq(processes.pbdocNumber, filters.pbdocNumber));
     }
     
     if (filters?.modalityId) {
@@ -655,28 +549,35 @@ export class DatabaseStorage implements IStorage {
     }
     
     if (filters?.status) {
-      conditions.push(eq(processes.status, filters.status as any));
+      conditions.push(eq(processes.status, filters.status));
     }
     
-    // Combine as condições com 'AND' ou não aplique filtro
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    // Aplicar condições
+    let allProcesses: Process[];
+    if (conditions.length > 0) {
+      allProcesses = await baseQuery.where(and(...conditions));
+    } else {
+      allProcesses = await baseQuery;
+    }
     
-    const query = whereClause 
-      ? db.select({
-          sourceId: processes.sourceId,
-          count: count()
-        })
-        .from(processes)
-        .where(whereClause)
-        .groupBy(processes.sourceId)
-      : db.select({
-          sourceId: processes.sourceId,
-          count: count()
-        })
-        .from(processes)
-        .groupBy(processes.sourceId);
+    // Agrupar por fonte de recursos
+    const processesBySource = new Map<number, number>();
     
-    return await query;
+    // Inicializar com todas as fontes de recursos
+    const sources = await this.getResourceSources();
+    sources.forEach(source => {
+      processesBySource.set(source.id, 0);
+    });
+    
+    // Contar processos por fonte
+    allProcesses.forEach(process => {
+      const sourceId = process.sourceId;
+      const currentCount = processesBySource.get(sourceId) || 0;
+      processesBySource.set(sourceId, currentCount + 1);
+    });
+    
+    // Converter para array de objetos
+    return Array.from(processesBySource.entries()).map(([sourceId, count]) => ({ sourceId, count }));
   }
 
   async getProcessesByResponsible(filters?: {
@@ -688,11 +589,17 @@ export class DatabaseStorage implements IStorage {
   }): Promise<{responsibleId: number; total: number; completed: number}[]> {
     console.log("getProcessesByResponsible - Filtrando com:", filters);
     
-    // Construir condições de filtro
-    let conditions = [];
+    // Obter todos os usuários
+    const allUsers = await this.getUsers();
+    
+    // Obter todos os processos (total)
+    const baseQuery = db.select().from(processes);
+    
+    // Construir condições
+    const conditions = [];
     
     if (filters?.pbdocNumber) {
-      conditions.push(sql`${processes.pbdocNumber} LIKE ${`%${filters.pbdocNumber}%`}`);
+      conditions.push(eq(processes.pbdocNumber, filters.pbdocNumber));
     }
     
     if (filters?.modalityId) {
@@ -703,61 +610,65 @@ export class DatabaseStorage implements IStorage {
       conditions.push(eq(processes.sourceId, filters.sourceId));
     }
     
-    if (filters?.responsibleId) {
-      conditions.push(eq(processes.responsibleId, filters.responsibleId));
-    }
-    
     if (filters?.status) {
-      conditions.push(sql`${processes.status}::text = ${filters.status}`);
+      conditions.push(eq(processes.status, filters.status));
     }
     
-    // Combine as condições com 'AND' ou não aplique filtro
-    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+    // Aplicar condições para total
+    let allProcesses: Process[];
+    if (conditions.length > 0) {
+      allProcesses = await baseQuery.where(and(...conditions));
+    } else {
+      allProcesses = await baseQuery;
+    }
     
-    // Consulta total com filtros
-    const totalQuery = whereClause 
-      ? db.select({
-          responsibleId: processes.responsibleId,
-          total: count()
-        })
-        .from(processes)
-        .where(whereClause)
-        .groupBy(processes.responsibleId)
-      : db.select({
-          responsibleId: processes.responsibleId,
-          total: count()
-        })
-        .from(processes)
-        .groupBy(processes.responsibleId);
+    // Contar total por responsável
+    const processesByResponsible = new Map<number, number>();
     
-    const totalByResponsible = await totalQuery;
-      
-    // Consulta completados com filtros + status 'completed'
-    const completedConditions = [...conditions];
-    completedConditions.push(sql`${processes.status}::text = 'completed'`);
+    // Inicializar com todos os usuários
+    allUsers.forEach(user => {
+      processesByResponsible.set(user.id, 0);
+    });
     
-    const completedWhereClause = completedConditions.length > 0 
-      ? and(...completedConditions)
-      : sql`${processes.status}::text = 'completed'`;
+    // Contar processos por responsável
+    allProcesses.forEach(process => {
+      const responsibleId = process.responsibleId;
+      const currentCount = processesByResponsible.get(responsibleId) || 0;
+      processesByResponsible.set(responsibleId, currentCount + 1);
+    });
     
-    const completedByResponsible = await db
-      .select({
-        responsibleId: processes.responsibleId,
-        completed: count()
-      })
-      .from(processes)
-      .where(completedWhereClause)
-      .groupBy(processes.responsibleId);
+    // Filtrar processos concluídos
+    const completedConditions = [...conditions, eq(processes.status, 'completed')];
     
-    const responsibleCompletedMap = new Map<number, number>();
-    completedByResponsible.forEach(r => 
-      responsibleCompletedMap.set(r.responsibleId, r.completed)
-    );
+    let completedProcesses: Process[];
+    if (completedConditions.length > 0) {
+      completedProcesses = await baseQuery.where(and(...completedConditions));
+    } else {
+      completedProcesses = await baseQuery.where(eq(processes.status, 'completed'));
+    }
     
-    return totalByResponsible.map(r => ({
-      responsibleId: r.responsibleId,
-      total: r.total,
-      completed: responsibleCompletedMap.get(r.responsibleId) || 0
-    }));
+    // Contar concluídos por responsável
+    const completedByResponsible = new Map<number, number>();
+    
+    // Inicializar com todos os usuários
+    allUsers.forEach(user => {
+      completedByResponsible.set(user.id, 0);
+    });
+    
+    // Contar processos concluídos por responsável
+    completedProcesses.forEach(process => {
+      const responsibleId = process.responsibleId;
+      const currentCount = completedByResponsible.get(responsibleId) || 0;
+      completedByResponsible.set(responsibleId, currentCount + 1);
+    });
+    
+    // Combinar totais e concluídos
+    return Array.from(processesByResponsible.entries())
+      .filter(([_, total]) => total > 0) // Apenas responsáveis com processos
+      .map(([responsibleId, total]) => ({
+        responsibleId,
+        total,
+        completed: completedByResponsible.get(responsibleId) || 0
+      }));
   }
 }
