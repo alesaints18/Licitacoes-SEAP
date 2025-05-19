@@ -242,8 +242,14 @@ export class DatabaseStorage implements IStorage {
                 )
               );
             
-            // Converter departamento do usuário para número para comparação
-            const userDepartmentId = parseInt(user.department);
+            // Buscar o departamento do usuário pelo nome
+            const [userDept] = await db
+              .select()
+              .from(departments)
+              .where(eq(departments.name, user.department));
+            
+            const userDepartmentId = userDept?.id || 0;
+            console.log(`Departamento do usuário: ${user.department}, ID: ${userDepartmentId}`);
             
             // Criar query com todos os campos completos do processo
             const query = db
