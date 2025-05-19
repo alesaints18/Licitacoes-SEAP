@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { Process, BiddingModality, ResourceSource, User } from "@shared/schema";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { Process, BiddingModality, ResourceSource, User, Department } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DataTable } from "@/components/ui/data-table";
@@ -13,9 +13,116 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle, FileText, Search } from "lucide-react";
+import { 
+  PlusCircle, 
+  FileText, 
+  Search, 
+  SendHorizonal, 
+  Loader2 
+} from "lucide-react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
 import { getProcessStatusLabel } from "@/lib/utils/process";
 import { ColumnDef } from "@tanstack/react-table";
+import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
+import { toast } from "@/hooks/use-toast";
+
+// Interface para o diálogo de transferência
+interface TransferDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  processId: number;
+  processName: string;
+  onTransfer: (departmentId: number) => void;
+  isPending: boolean;
+}
+
+// Componente do diálogo de transferência
+const TransferDialog = ({ 
+  isOpen, 
+  onOpenChange, 
+  processId, 
+  processName,
+  onTransfer,
+  isPending
+}: TransferDialogProps) => {
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
+  
+  // Buscar departamentos disponíveis
+  const { data: departments } = useQuery<Department[]>({
+    queryKey: ['/api/departments'],
+    queryFn: getQueryFn({ on401: "throw" }),
+  });
+  
+  const handleTransfer = () => {
+    if (!selectedDepartment) {
+      toast({
+        title: "Erro",
+        description: "Selecione um departamento para transferir o processo",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    onTransfer(parseInt(selectedDepartment));
+  };
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Transferir Processo</DialogTitle>
+          <DialogDescription>
+            Selecione o departamento para o qual deseja transferir o processo <strong>{processName}</strong>.
+            <br /><br />
+            <span className="text-yellow-600 font-medium">
+              Atenção: Após a transferência, o processo não estará mais visível para você.
+            </span>
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Select onValueChange={setSelectedDepartment} value={selectedDepartment}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o departamento destino" />
+              </SelectTrigger>
+              <SelectContent>
+                {departments?.map((dept) => (
+                  <SelectItem key={dept.id} value={dept.id.toString()}>
+                    {dept.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+            Cancelar
+          </Button>
+          <Button onClick={handleTransfer} disabled={!selectedDepartment || isPending}>
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Transferindo...
+              </>
+            ) : (
+              <>Transferir Processo</>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const Processes = () => {
   const [, setLocation] = useLocation();
@@ -24,6 +131,10 @@ const Processes = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
   const [responsibleFilter, setResponsibleFilter] = useState("");
+  
+  // Estado para controlar o diálogo de transferência
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
   
   // Get all processes
   const { data: processes, isLoading: processesLoading } = useQuery<Process[]>({
@@ -44,6 +155,60 @@ const Processes = () => {
   const { data: users } = useQuery<User[]>({
     queryKey: ['/api/users'],
   });
+  
+  // Mutação para transferir processo
+  const transferMutation = useMutation({
+    mutationFn: async ({ processId, departmentId }: { processId: number; departmentId: number }) => {
+      const response = await apiRequest(
+        "POST", 
+        `/api/processes/${processId}/transfer`, 
+        { departmentId }
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erro ao transferir processo");
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      setTransferDialogOpen(false);
+      
+      // Exibe mensagem de sucesso
+      toast({
+        title: "Processo transferido com sucesso",
+        description: "O processo foi transferido para outro departamento e não estará mais visível.",
+        variant: "default",
+      });
+      
+      // Invalida cache para recarregar processos
+      queryClient.invalidateQueries({ queryKey: ['/api/processes'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao transferir processo",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Função para abrir diálogo de transferência
+  const handleTransferClick = (process: Process) => {
+    setSelectedProcess(process);
+    setTransferDialogOpen(true);
+  };
+  
+  // Função para realizar transferência
+  const handleTransfer = (departmentId: number) => {
+    if (!selectedProcess) return;
+    
+    transferMutation.mutate({
+      processId: selectedProcess.id,
+      departmentId
+    });
+  };
   
   // Filter processes based on selected filters
   const filteredProcesses = processes?.filter(process => {
@@ -148,14 +313,24 @@ const Processes = () => {
       cell: ({ row }) => {
         const process = row.original;
         return (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleViewProcess(process.id)}
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Visualizar
-          </Button>
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleViewProcess(process.id)}
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Visualizar
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleTransferClick(process)}
+            >
+              <SendHorizonal className="h-4 w-4 mr-2" />
+              Transferir
+            </Button>
+          </div>
         );
       },
     },
@@ -287,6 +462,18 @@ const Processes = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Diálogo de Transferência */}
+      {selectedProcess && (
+        <TransferDialog
+          isOpen={transferDialogOpen}
+          onOpenChange={setTransferDialogOpen}
+          processId={selectedProcess.id}
+          processName={selectedProcess.pbdocNumber}
+          onTransfer={handleTransfer}
+          isPending={transferMutation.isPending}
+        />
+      )}
     </div>
   );
 };
