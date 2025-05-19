@@ -258,23 +258,18 @@ export class DatabaseStorage implements IStorage {
         const participantProcessIds = userParticipations.map(p => p.processId);
         console.log(`Usuário ${user.username} é participante de ${participantProcessIds.length} processos`);
         
-        // 3. Filtrar os processos com regras rígidas de acesso
-        // - Um processo só é visível se estiver ATUALMENTE no departamento do usuário
-        // - Exceção apenas se o usuário for o responsável ATUAL do processo
-        // - Ou se o usuário estiver EXPLICITAMENTE como participante ativo
+        // 3. Filtrar os processos com regras ESTRITAS de acesso
+        // A ÚNICA condição que determina a visibilidade do processo é:
+        // - O departamento atual do processo é exatamente o mesmo do usuário
+        // NÃO MOSTRAR processos em que o usuário é apenas responsável ou participante
+        // CRITÉRIO EXCLUSIVO: Pertencer ao departamento atual
         allProcesses = allProcesses.filter(p => {
-          // Primeiro, verificar se o processo está no departamento atual do usuário
+          // Verificar SOMENTE se o processo está no departamento atual do usuário
           const isInCurrentDepartment = p.currentDepartmentId === userDepartment.id;
           
-          // Se não estiver no departamento do usuário, verificar se é o responsável
-          const isResponsible = p.responsibleId === user.id;
-          
-          // Ou se é um participante explícito do processo
-          const isParticipant = participantProcessIds.includes(p.id);
-          
-          // REGRA CRÍTICA: Para que um processo seja visível, ele DEVE estar no departamento atual
-          // OU o usuário deve ser o responsável atual, OU o usuário deve ser um participante explícito
-          return isInCurrentDepartment || isResponsible || isParticipant;
+          // REGRA DEFINITIVA: O processo SÓ é visível se estiver no departamento atual do usuário
+          // Nenhuma outra condição é aceita
+          return isInCurrentDepartment;
         });
         
         console.log(`Consulta retornou ${allProcesses.length} processos`);
