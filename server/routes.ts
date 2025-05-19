@@ -574,10 +574,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Rota para transferir processo entre departamentos/setores
-  app.post('/api/processes/:id/transfer/:departmentId', isAuthenticated, async (req, res) => {
+  app.post('/api/processes/:id/transfer', isAuthenticated, async (req, res) => {
     try {
       const processId = parseInt(req.params.id);
-      const departmentId = parseInt(req.params.departmentId);
+      const departmentId = parseInt(req.body.departmentId);
       const userId = (req.user as any).id;
       
       console.log(`INICIANDO TRANSFERÊNCIA: Processo ${processId} para departamento ${departmentId} pelo usuário ${userId}`);
