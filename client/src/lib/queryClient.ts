@@ -24,13 +24,18 @@ export async function apiRequest(
     ? `${url}&_t=${Date.now()}` 
     : `${url}?_t=${Date.now()}`;
   
-  console.log(`Requisição ${method} para ${cacheBusterUrl}`);
+  console.log(`Requisição ${method} para ${cacheBusterUrl}`, data);
   
   const res = await fetch(cacheBusterUrl, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers: {
+      "Content-Type": "application/json",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      "Pragma": "no-cache"
+    },
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
+    cache: "no-store",
   });
 
   console.log(`Resposta ${method} ${url}: status=${res.status}`);

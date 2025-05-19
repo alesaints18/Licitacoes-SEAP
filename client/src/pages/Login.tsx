@@ -92,16 +92,28 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Adiciona um timestamp para evitar caching
       console.log("Iniciando login para:", data.username);
 
-      // Call login API
-      const response = await apiRequest("POST", "/api/auth/login", data);
+      // Fazer a requisição diretamente sem usar o helper apiRequest
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          "Pragma": "no-cache"
+        },
+        body: JSON.stringify(data),
+        credentials: "include",
+        cache: "no-store",
+      });
 
-      // Verificar resposta explicitamente
       console.log("Resposta do login:", response.status);
+      
+      if (!response.ok) {
+        throw new Error(`Erro no login: ${response.status}`);
+      }
 
-      // Validar resposta e obter dados do usuário
+      // Obter dados do usuário
       const user = await response.json();
       console.log("Login bem-sucedido:", user);
 
@@ -111,67 +123,16 @@ const Login = () => {
         description: "Você será redirecionado para o dashboard",
       });
 
-      // Verificar o status da autenticação após o login
-      const checkAuth = async () => {
-        try {
-          const statusResponse = await fetch(
-            "/api/auth/status?_t=" + Date.now(),
-            { credentials: "include" },
-          );
-          console.log(
-            "Status da autenticação após login:",
-            statusResponse.status,
-          );
-          if (statusResponse.ok) {
-            return true;
-          }
-          return false;
-        } catch (e) {
-          console.error("Erro ao verificar autenticação:", e);
-          return false;
-        }
-      };
-
-      // Verificar se estamos autenticados
-      const isAuthenticated = await checkAuth();
-      console.log(
-        "Estado de autenticação:",
-        isAuthenticated ? "Autenticado" : "Não autenticado",
-      );
-
-      // Redirecionamento aprimorado
-      try {
-        // Tentativa 1: Usar a API de navegação do wouter
-        console.log("Tentando redirecionamento via wouter");
-        setLocation("/");
-
-        // Tentativa 2: Verifica se ainda estamos na página de login após um curto delay
-        setTimeout(() => {
-          if (
-            window.location.pathname.includes("/auth") ||
-            window.location.pathname === "/login"
-          ) {
-            console.log("Tentando redirecionamento via location.href");
-            window.location.href = "/";
-
-            // Tentativa 3: Se ainda não redirecionou, tenta recarregar a página
-            setTimeout(() => {
-              if (
-                window.location.pathname.includes("/auth") ||
-                window.location.pathname === "/login"
-              ) {
-                console.log("Tentando redirecionamento com reload");
-                window.location.reload();
-              }
-            }, 200);
-          }
-        }, 300);
-      } catch (navigationError) {
-        console.error("Erro durante navegação:", navigationError);
-        // Fallback final: forçar redirecionamento com reload
+      // Forçar atualização da página e redirecionamento
+      console.log("Redirecionando para dashboard");
+      
+      // Primeiro tenta usar wouter
+      setLocation("/");
+      
+      // Depois de um breve atraso, como fallback, força redirecionamento direto
+      setTimeout(() => {
         window.location.href = "/";
-        setTimeout(() => window.location.reload(), 200);
-      }
+      }, 100);
     } catch (error) {
       console.error("Erro no login:", error);
 
