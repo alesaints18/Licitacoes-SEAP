@@ -5,7 +5,9 @@ import path from "path";
 import { WebSocketServer, WebSocket } from "ws";
 import { insertUserSchema, insertDepartmentSchema, insertBiddingModalitySchema, 
          insertResourceSourceSchema, insertProcessSchema, insertProcessStepSchema,
-         insertProcessParticipantSchema } from "@shared/schema";
+         insertProcessParticipantSchema, processParticipants } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -578,6 +580,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const departmentId = parseInt(req.params.departmentId);
       const userId = (req.user as any).id;
       
+      console.log(`INICIANDO TRANSFERÊNCIA: Processo ${processId} para departamento ${departmentId} pelo usuário ${userId}`);
+      
       // Verificar se o processo existe e se o usuário tem acesso
       const process = await storage.getProcess(processId, userId);
       if (!process) {
@@ -590,26 +594,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Departamento/setor não encontrado" });
       }
       
-      // Transferir o processo para o novo departamento/setor
-      const updatedProcess = await storage.transferProcessToDepartment(processId, departmentId, userId);
-      
-      if (updatedProcess) {
-        // Notificar via WebSocket sobre a transferência
-        broadcast({
-          type: 'process_transferred',
-          processId,
-          departmentId,
-          message: `Processo ${process.pbdocNumber} transferido para ${department.name}`,
-          timestamp: new Date().toISOString()
-        });
-        
-        res.status(200).json(updatedProcess);
-      } else {
-        res.status(500).json({ message: "Erro ao transferir processo" });
+      // Obter informações do usuário e departamento atual
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "Usuário não encontrado" });
       }
+      
+      console.log(`Usuário transferindo: ${user.username}, Departamento: ${user.department}`);
+      
+      const oldDepartmentId = process.currentDepartmentId;
+      
+      // 1. Atualizar departamento do processo
+      const updatedProcess = await storage.updateProcess(processId, {
+        currentDepartmentId: departmentId,
+        updatedAt: new Date()
+      });
+      
+      if (!updatedProcess) {
+        return res.status(500).json({ message: "Erro ao atualizar o departamento do processo" });
+      }
+      
+      // 2. IMPORTANTE: Remover TODOS os participantes do processo
+      console.log(`Removendo todos os participantes do processo ${processId} para forçar exclusão de visibilidade`);
+      
+      // Obter os participantes atuais para log
+      const currentParticipants = await storage.getProcessParticipants(processId);
+      console.log(`Participantes atuais: ${currentParticipants.length}`);
+      
+      // Excluir todos os participantes - não usar removeProcessParticipant pois ele remove um por um
+      await db.delete(processParticipants).where(eq(processParticipants.processId, processId));
+      
+      // 3. Adicionar usuário do departamento destino como participante (se não for o responsável)
+      if (updatedProcess.responsibleId !== userId) {
+        console.log(`Adicionando usuário ${userId} como novo participante do processo ${processId}`);
+        await storage.addProcessParticipant({
+          processId,
+          userId,
+          role: 'participant',
+          isActive: true,
+          departmentId,
+          notifications: true
+        });
+      }
+      
+      // 4. Registrar a transferência no histórico
+      await storage.createProcessStep({
+        processId,
+        departmentId,
+        userId,
+        action: `Transferido do departamento ${oldDepartmentId} para ${departmentId}`,
+        stepName: "Transferência de Setor",
+        createdAt: new Date()
+      });
+      
+      // Notificar via WebSocket sobre a transferência
+      broadcast({
+        type: 'process_transferred',
+        processId,
+        oldDepartmentId,
+        departmentId,
+        message: `Processo ${process.pbdocNumber} transferido de ${oldDepartmentId} para ${department.name}`,
+        timestamp: new Date().toISOString()
+      });
+      
+      console.log(`Transferência concluída: Processo ${processId} transferido para departamento ${departmentId}`);
+      
+      res.status(200).json(updatedProcess);
     } catch (error) {
       console.error("Erro ao transferir processo:", error);
-      res.status(500).json({ message: "Erro ao transferir processo", error });
+      res.status(500).json({ message: "Erro ao transferir processo", error: String(error) });
     }
   });
 
