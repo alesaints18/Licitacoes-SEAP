@@ -145,369 +145,224 @@ function drawDonut(doc: jsPDF, centerX: number, centerY: number, innerRadius: nu
 }
 
 /**
- * Gera um relatório PDF com gráficos e tabelas
- * Versão melhorada com maior legibilidade dos gráficos e textos
+ * Gera um relatório PDF em formato de linha do tempo (timeline)
+ * Inspirado no modelo de infográfico moderno
  */
 export function generatePdfReport(data: ReportData): void {
   try {
-    // Criar novo documento PDF - formato paisagem para melhor visualização dos gráficos
-    const doc = new jsPDF({ orientation: 'landscape' });
+    // Criar novo documento PDF com fundo escuro como na imagem de referência
+    const doc = new jsPDF({ 
+      orientation: 'landscape',
+      unit: 'mm'
+    });
+    
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
-    const usableWidth = pageWidth - (2 * margin);
+    const margin = 10;
+    
+    // Adicionar fundo escuro em toda a página
+    doc.setFillColor(60, 64, 75); // Cor de fundo cinza escuro similar à imagem
+    doc.rect(0, 0, pageWidth, pageHeight, 'F');
     
     // Filtrar processos baseado nos critérios
     const filteredProcesses = filterReportData(data);
     const total = filteredProcesses.length || 1;
     
-    // CABEÇALHO DO RELATÓRIO - Mais proeminente
-    doc.setFontSize(18);
-    doc.setTextColor(0, 51, 102);
-    doc.text('SISTEMA DE CONTROLE DE PROCESSOS DE LICITAÇÃO - SEAP/PB', pageWidth / 2, 20, { align: 'center' });
+    // == TÍTULO COM EFEITO DE SOMBRA ==
+    doc.setFontSize(28);
     
-    doc.setFontSize(14);
-    doc.text('RELATÓRIO DE PROCESSOS', pageWidth / 2, 30, { align: 'center' });
+    // Texto com efeito de sombra (título principal)
+    doc.setTextColor(255, 255, 255);
+    doc.text('Linha do Tempo - Processos Licitatórios', pageWidth / 2, 25, { align: 'center' });
     
-    // Data de geração do relatório
-    doc.setFontSize(10);
-    doc.setTextColor(80, 80, 80);
-    const today = new Date().toLocaleDateString('pt-BR', { 
-      day: '2-digit', 
-      month: '2-digit', 
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-    doc.text(`Gerado em: ${today}`, pageWidth - margin, 30, { align: 'right' });
+    // TIMELINE PRINCIPAL
+    const timelineY = 70;
+    const timelineStartX = margin + 20;
+    const timelineEndX = pageWidth - margin - 20;
+    const timelineWidth = timelineEndX - timelineStartX;
     
-    // Desenhar separador
-    doc.setDrawColor(0, 102, 204);
-    doc.setLineWidth(0.5);
-    doc.line(margin, 35, pageWidth - margin, 35);
-    
-    // Layout do relatório - Organização por seções
-    const startY = 45;
-    
-    // ===== PRIMEIRA LINHA - ESTATÍSTICAS GERAIS ===== 
-    
-    // Desenhar as caixas de estatísticas no topo
-    doc.setFillColor(245, 245, 245);
-    doc.setDrawColor(220, 220, 220);
-    
-    // Total de processos
-    const boxWidth = (usableWidth - 30) / 4;
-    const boxHeight = 25;
-    const boxY = startY;
-    
-    // Box 1: Total de processos
-    doc.roundedRect(margin, boxY, boxWidth, boxHeight, 3, 3, 'FD');
-    doc.setFontSize(12);
-    doc.setTextColor(0, 51, 102);
-    doc.text('Total de Processos', margin + boxWidth/2, boxY + 10, { align: 'center' });
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`${filteredProcesses.length}`, margin + boxWidth/2, boxY + 20, { align: 'center' });
-    
-    // Box 2: Concluídos
-    const completedCount = filteredProcesses.filter(p => p.status === 'completed').length;
-    doc.roundedRect(margin + boxWidth + 10, boxY, boxWidth, boxHeight, 3, 3, 'FD');
-    doc.setFontSize(12);
-    doc.setTextColor(0, 102, 0);
-    doc.text('Concluídos', margin + boxWidth + 10 + boxWidth/2, boxY + 10, { align: 'center' });
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`${completedCount}`, margin + boxWidth + 10 + boxWidth/2, boxY + 20, { align: 'center' });
-    
-    // Box 3: Em andamento
-    const inProgressCount = filteredProcesses.filter(p => p.status === 'in_progress').length;
-    doc.roundedRect(margin + 2*(boxWidth + 10), boxY, boxWidth, boxHeight, 3, 3, 'FD');
-    doc.setFontSize(12);
-    doc.setTextColor(0, 102, 204);
-    doc.text('Em Andamento', margin + 2*(boxWidth + 10) + boxWidth/2, boxY + 10, { align: 'center' });
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`${inProgressCount}`, margin + 2*(boxWidth + 10) + boxWidth/2, boxY + 20, { align: 'center' });
-    
-    // Box 4: Prioridade Alta
-    const highPriorityCount = filteredProcesses.filter(p => p.priority === 'high').length;
-    doc.roundedRect(margin + 3*(boxWidth + 10), boxY, boxWidth, boxHeight, 3, 3, 'FD');
-    doc.setFontSize(12);
-    doc.setTextColor(204, 0, 0);
-    doc.text('Prioridade Alta', margin + 3*(boxWidth + 10) + boxWidth/2, boxY + 10, { align: 'center' });
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`${highPriorityCount}`, margin + 3*(boxWidth + 10) + boxWidth/2, boxY + 20, { align: 'center' });
-    
-    // ===== SEGUNDA LINHA - GRÁFICOS PRINCIPAIS =====
-    const chartStartY = startY + boxHeight + 15;
-    const chartWidth = usableWidth / 2 - 10;
-    const chartHeight = 100;
-    
-    // SEÇÃO 1: GRÁFICO DE PRIORIDADE
-    // Título da seção
-    doc.setDrawColor(0, 102, 204);
-    doc.setFillColor(240, 240, 250);
-    doc.roundedRect(margin, chartStartY, chartWidth, 20, 2, 2, 'FD');
-    doc.setFontSize(12);
-    doc.setTextColor(0, 51, 102);
-    doc.text('DISTRIBUIÇÃO POR PRIORIDADE', margin + 10, chartStartY + 13);
-    
-    // Dados de prioridade
-    const priorityCounts = {
-      low: 0,
-      medium: 0,
-      high: 0
-    };
-    
-    filteredProcesses.forEach(process => {
-      if (process.priority) {
-        priorityCounts[process.priority]++;
+    // Períodos para a timeline (adaptar para os períodos relevantes ao seu sistema)
+    const periods = [
+      { 
+        label: 'Planejamento', 
+        year: '2022', 
+        color: [41, 121, 255],
+        stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2022).length,
+        description: 'Fase inicial de planejamento e preparação dos processos licitatórios',
+        icon: 'clipboard',
+        chartData: [10, 15, 12, 18, 14]
+      },
+      { 
+        label: 'Execução', 
+        year: '2023', 
+        color: [76, 217, 100],
+        stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2023).length,
+        description: 'Período de execução e implementação dos processos',
+        icon: 'cogs',
+        chartData: [15, 22, 18, 25, 20]
+      },
+      { 
+        label: 'Avaliação', 
+        year: '2024', 
+        color: [255, 204, 0],
+        stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2024).length,
+        description: 'Etapa de avaliação e revisão dos resultados obtidos',
+        icon: 'check',
+        chartData: [22, 28, 25, 32, 30]
+      },
+      { 
+        label: 'Consolidação', 
+        year: '2025', 
+        color: [255, 149, 0],
+        stats: 0, // Ano futuro, sem dados ainda
+        description: 'Previsão para consolidação dos processos implementados',
+        icon: 'star',
+        chartData: [25, 30, 35, 40, 38]
       }
-    });
-    
-    // Área do gráfico
-    const priorityChartY = chartStartY + 30;
-    
-    // Tamanho maior para o gráfico
-    const centerX1 = margin + chartWidth/2;
-    const centerY1 = priorityChartY + 40;
-    const outerRadius = 35;
-    const innerRadius = 15;
-    
-    // Desenhar gráfico de rosca com prioridades
-    drawDonut(doc, centerX1, centerY1, innerRadius, outerRadius, [
-      { value: priorityCounts.high, color: [220, 53, 69] },    // Alta - Vermelho
-      { value: priorityCounts.medium, color: [255, 193, 7] },  // Média - Amarelo
-      { value: priorityCounts.low, color: [40, 167, 69] }      // Baixa - Verde
-    ]);
-    
-    // Legendas melhoradas
-    doc.setFontSize(10);
-    
-    // Legenda Alta
-    const legendY = centerY1 + outerRadius + 15;
-    doc.setFillColor(220, 53, 69);
-    doc.rect(centerX1 - 60, legendY, 10, 10, 'F');
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Alta: ${priorityCounts.high} (${Math.round(priorityCounts.high/total*100)}%)`, centerX1 - 45, legendY + 8);
-    
-    // Legenda Média
-    doc.setFillColor(255, 193, 7);
-    doc.rect(centerX1 - 60, legendY + 15, 10, 10, 'F');
-    doc.text(`Média: ${priorityCounts.medium} (${Math.round(priorityCounts.medium/total*100)}%)`, centerX1 - 45, legendY + 23);
-    
-    // Legenda Baixa
-    doc.setFillColor(40, 167, 69);
-    doc.rect(centerX1 - 60, legendY + 30, 10, 10, 'F');
-    doc.text(`Baixa: ${priorityCounts.low} (${Math.round(priorityCounts.low/total*100)}%)`, centerX1 - 45, legendY + 38);
-    
-    // SEÇÃO 2: GRÁFICO DE STATUS
-    // Título da seção
-    doc.setDrawColor(0, 102, 204);
-    doc.setFillColor(240, 240, 250);
-    doc.roundedRect(margin + chartWidth + 20, chartStartY, chartWidth, 20, 2, 2, 'FD');
-    doc.setFontSize(12);
-    doc.setTextColor(0, 51, 102);
-    doc.text('DISTRIBUIÇÃO POR STATUS', margin + chartWidth + 30, chartStartY + 13);
-    
-    // Dados de status
-    const statusCounts = {
-      draft: 0,
-      in_progress: 0,
-      completed: 0,
-      canceled: 0
-    };
-    
-    filteredProcesses.forEach(process => {
-      if (process.status) {
-        statusCounts[process.status]++;
-      }
-    });
-    
-    // Centro do gráfico de status
-    const centerX2 = margin + chartWidth + 20 + chartWidth/2;
-    const centerY2 = centerY1;
-    
-    // Desenhar gráfico de rosca de status - mais legível
-    drawDonut(doc, centerX2, centerY2, innerRadius, outerRadius, [
-      { value: statusCounts.completed, color: [40, 167, 69] },     // Concluído - Verde
-      { value: statusCounts.in_progress, color: [0, 123, 255] },   // Em andamento - Azul
-      { value: statusCounts.draft, color: [108, 117, 125] },       // Rascunho - Cinza
-      { value: statusCounts.canceled, color: [220, 53, 69] }       // Cancelado - Vermelho
-    ]);
-    
-    // Legendas melhoradas para status
-    // Legenda Concluído
-    doc.setFillColor(40, 167, 69);
-    doc.rect(centerX2 - 60, legendY, 10, 10, 'F');
-    doc.setTextColor(0, 0, 0);
-    doc.text(`Concluído: ${statusCounts.completed} (${Math.round(statusCounts.completed/total*100)}%)`, centerX2 - 45, legendY + 8);
-    
-    // Legenda Em andamento
-    doc.setFillColor(0, 123, 255);
-    doc.rect(centerX2 - 60, legendY + 15, 10, 10, 'F');
-    doc.text(`Em andamento: ${statusCounts.in_progress} (${Math.round(statusCounts.in_progress/total*100)}%)`, centerX2 - 45, legendY + 23);
-    
-    // Legenda Rascunho
-    doc.setFillColor(108, 117, 125);
-    doc.rect(centerX2 - 60, legendY + 30, 10, 10, 'F');
-    doc.text(`Rascunho: ${statusCounts.draft} (${Math.round(statusCounts.draft/total*100)}%)`, centerX2 - 45, legendY + 38);
-    
-    // Legenda Cancelado
-    doc.setFillColor(220, 53, 69);
-    doc.rect(centerX2 - 60, legendY + 45, 10, 10, 'F');
-    doc.text(`Cancelado: ${statusCounts.canceled} (${Math.round(statusCounts.canceled/total*100)}%)`, centerX2 - 45, legendY + 53);
-    
-    // ===== TERCEIRA LINHA - FONTE E GRÁFICO DE LINHA =====
-    const thirdSectionY = chartStartY + chartHeight + 50;
-    
-    // SEÇÃO 3: PROCESSOS POR FONTE (BARRAS HORIZONTAIS)
-    // Título da seção
-    doc.setDrawColor(0, 102, 204);
-    doc.setFillColor(240, 240, 250);
-    doc.roundedRect(margin, thirdSectionY, chartWidth, 20, 2, 2, 'FD');
-    doc.setFontSize(12);
-    doc.setTextColor(0, 51, 102);
-    doc.text('PROCESSOS POR FONTE DE RECURSOS', margin + 10, thirdSectionY + 13);
-    
-    // Processos por fonte
-    const sourceCounts = new Map<number, number>();
-    filteredProcesses.forEach(process => {
-      const count = sourceCounts.get(process.sourceId) || 0;
-      sourceCounts.set(process.sourceId, count + 1);
-    });
-    
-    // Ordenar fontes por quantidade
-    const sortedSources = Array.from(sourceCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-    
-    // Configurações para barras horizontais
-    const barAreaHeight = 120;
-    const barStartX = margin + 70;
-    const barStartY = thirdSectionY + 35;
-    const barMaxWidth = chartWidth - 100;
-    const barHeight = 15;
-    const barGap = 20;
-    
-    // Desenhar barras para cada fonte - versão mais legível
-    sortedSources.forEach((sourceEntry, index) => {
-      const [sourceId, count] = sourceEntry;
-      const source = data.sources.find(s => s.id === sourceId);
-      const maxCount = Math.max(...sortedSources.map(s => s[1]));
-      const barWidth = (count / maxCount) * barMaxWidth;
-      
-      // Desenhar barra com borda
-      doc.setFillColor(0, 123, 255);
-      doc.setDrawColor(0, 80, 187);
-      doc.roundedRect(barStartX, barStartY + index * barGap, barWidth, barHeight, 1, 1, 'FD');
-      
-      // Adicionar label e valor
-      doc.setFontSize(10);
-      doc.setTextColor(0, 0, 0);
-      const sourceLabel = source ? `${source.code} - ${source.description}` : `Fonte ${sourceId}`;
-      // Limite o tamanho do texto da fonte
-      const truncatedLabel = sourceLabel.length > 25 ? sourceLabel.substring(0, 22) + '...' : sourceLabel;
-      doc.text(truncatedLabel, barStartX - 5, barStartY + index * barGap + barHeight/2 + 4, { align: 'right' });
-      
-      // Valor dentro da barra se for larga o suficiente, ou depois da barra
-      if (barWidth > 40) {
-        doc.setTextColor(255, 255, 255);
-        doc.text(`${count}`, barStartX + barWidth - 10, barStartY + index * barGap + barHeight/2 + 4, { align: 'right' });
-      } else {
-        doc.setTextColor(0, 0, 0);
-        doc.text(`${count}`, barStartX + barWidth + 10, barStartY + index * barGap + barHeight/2 + 4);
-      }
-    });
-    
-    // SEÇÃO 4: CONCLUSÃO DE PROCESSOS POR MÊS (GRÁFICO DE LINHA)
-    // Título da seção
-    doc.setDrawColor(0, 102, 204);
-    doc.setFillColor(240, 240, 250);
-    doc.roundedRect(margin + chartWidth + 20, thirdSectionY, chartWidth, 20, 2, 2, 'FD');
-    doc.setFontSize(12);
-    doc.setTextColor(0, 51, 102);
-    doc.text('CONCLUSÃO DE PROCESSOS POR MÊS', margin + chartWidth + 30, thirdSectionY + 13);
-    
-    // Configuração do gráfico de linha melhorado
-    const lineStartX = margin + chartWidth + 50;
-    const lineEndX = pageWidth - margin - 30;
-    const lineWidth = lineEndX - lineStartX;
-    const lineY = thirdSectionY + 110;
-    
-    // Desenhar linha base e eixo Y
-    doc.setDrawColor(180, 180, 180);
-    doc.setLineWidth(0.5);
-    doc.line(lineStartX, lineY, lineEndX, lineY); // Eixo X
-    doc.line(lineStartX, lineY, lineStartX, thirdSectionY + 40); // Eixo Y
-    
-    // Dados para o gráfico de linha (dados reais ou dados fictícios melhorados)
-    const monthlyValues = [
-      { month: "Jan", value: 15 },
-      { month: "Fev", value: 25 },
-      { month: "Mar", value: 20 },
-      { month: "Abr", value: 30 },
-      { month: "Mai", value: 18 },
-      { month: "Jun", value: 28 },
-      { month: "Jul", value: 22 },
-      { month: "Ago", value: 32 }
     ];
     
-    // Valor máximo para escala
-    const maxValue = Math.max(...monthlyValues.map(mv => mv.value));
-    const valueScale = 60 / maxValue; // Aumento na altura do gráfico
+    // Desenhar linha do tempo principal
+    doc.setLineWidth(3);
+    doc.setDrawColor(200, 200, 200);
+    doc.line(timelineStartX, timelineY, timelineEndX, timelineY);
     
-    // Marcas no eixo Y
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    const scaleSteps = 4;
-    for (let i = 0; i <= scaleSteps; i++) {
-      const yPos = lineY - (i * (60 / scaleSteps));
-      const value = Math.round((i * maxValue) / scaleSteps);
-      doc.setDrawColor(220, 220, 220);
-      doc.line(lineStartX - 3, yPos, lineEndX, yPos); // Linha de grade
-      doc.setTextColor(100, 100, 100);
-      doc.text(`${value}`, lineStartX - 5, yPos + 3, { align: 'right' });
-    }
+    // Calcular a largura de cada segmento
+    const segmentWidth = timelineWidth / (periods.length);
     
-    // Desenhar o gráfico de linha
-    const linePoints: {x: number, y: number}[] = [];
-    const segmentWidth = lineWidth / (monthlyValues.length - 1);
-    
-    monthlyValues.forEach((mv, index) => {
-      const x = lineStartX + (index * segmentWidth);
-      const y = lineY - (mv.value * valueScale);
-      linePoints.push({ x, y });
+    // Desenhar cada período da timeline
+    periods.forEach((period, index) => {
+      const x = timelineStartX + (segmentWidth * index) + (segmentWidth / 2);
       
-      // Desenhar ponto maior e mais visível
-      doc.setFillColor(0, 102, 204);
-      doc.circle(x, y, 3, 'F');
+      // Desenhar círculo marcador do período
+      const circleX = x;
+      const circleY = timelineY;
+      const circleRadius = 5;
       
-      // Adicionar label do mês - mais legível
-      doc.setFontSize(9);
-      doc.setTextColor(0, 0, 0);
-      doc.text(mv.month, x, lineY + 10, { align: 'center' });
+      // Cor do segmento da timeline
+      doc.setFillColor(period.color[0], period.color[1], period.color[2]);
       
-      // Adicionar valor acima do ponto
+      // Segmento da timeline
+      const segmentStartX = timelineStartX + (segmentWidth * index);
+      const segmentEndX = segmentStartX + segmentWidth;
+      doc.setDrawColor(period.color[0], period.color[1], period.color[2]);
+      doc.setLineWidth(6);
+      doc.line(segmentStartX, timelineY, segmentEndX, timelineY);
+      
+      // Círculo marcador 
+      doc.circle(circleX, circleY, circleRadius, 'F');
+      
+      // Ano (grande)
+      doc.setFontSize(24);
+      doc.setTextColor(period.color[0], period.color[1], period.color[2]);
+      doc.text(period.year, circleX, timelineY + 25, { align: 'center' });
+      
+      // Título do período (em cima da timeline)
+      doc.setFontSize(14);
+      doc.setTextColor(250, 250, 250);
+      doc.text(period.label, circleX, timelineY - 15, { align: 'center' });
+      
+      // Estatísticas acima
+      const isEvenPeriod = index % 2 === 0;
+      let statsY = isEvenPeriod ? timelineY - 40 : timelineY + 40;
+      let chartDirection = isEvenPeriod ? 'up' : 'down';
+      
+      // Gráfico de barras acima/abaixo (alternando)
+      const chartX = circleX - 20;
+      const chartY = isEvenPeriod ? statsY - 20 : statsY + 10;
+      const barWidth = 6;
+      const barGap = 2;
+      const maxBarHeight = 30;
+      
+      // Determinar altura máxima das barras
+      const maxDataValue = Math.max(...period.chartData);
+      
+      // Desenhar barras do gráfico
+      period.chartData.forEach((value, i) => {
+        const barHeight = (value / maxDataValue) * maxBarHeight;
+        const barX = chartX + (i * (barWidth + barGap));
+        
+        // Desenhar barra - cores alternadas da mesma família
+        const intensity = 100 + (i * 30);
+        doc.setFillColor(
+          Math.min(255, period.color[0] + intensity/2), 
+          Math.min(255, period.color[1] + intensity/2), 
+          Math.min(255, period.color[2] + intensity/2)
+        );
+        
+        if (chartDirection === 'up') {
+          // Barras para cima
+          doc.rect(barX, chartY - barHeight, barWidth, barHeight, 'F');
+        } else {
+          // Barras para baixo
+          doc.rect(barX, chartY, barWidth, barHeight, 'F');
+        }
+      });
+      
+      // Descrição do período (abaixo ou acima, alternando)
+      const descriptionY = isEvenPeriod ? timelineY + 70 : timelineY - 60;
+      doc.setFontSize(10);
+      doc.setTextColor(220, 220, 220);
+      doc.text(period.description, circleX, descriptionY, { 
+        align: 'center',
+        maxWidth: segmentWidth - 10
+      });
+      
+      // Círculo com estatísticas
+      const statCircleX = circleX;
+      const statCircleY = isEvenPeriod ? timelineY + 90 : timelineY - 80;
+      const statCircleRadius = 25;
+      
+      // Desenhar círculo de estatísticas com segmentos de cores
+      doc.setFillColor(period.color[0], period.color[1], period.color[2]);
+      doc.circle(statCircleX, statCircleY, statCircleRadius, 'F');
+      
+      // Adicionar texto ao centro do círculo
+      doc.setFontSize(18);
+      doc.setTextColor(255, 255, 255);
+      doc.text(`${period.stats}`, statCircleX, statCircleY, { align: 'center' });
+      
+      // Adicionar label abaixo do número
       doc.setFontSize(8);
-      doc.text(`${mv.value}`, x, y - 7, { align: 'center' });
+      doc.text("processos", statCircleX, statCircleY + 8, { align: 'center' });
+      
+      // Desenhar segmentos decorativos no círculo
+      // Segmento 1
+      doc.setFillColor(
+        Math.min(255, period.color[0] + 40),
+        Math.min(255, period.color[1] + 40),
+        Math.min(255, period.color[2] + 40)
+      );
+      doc.circle(statCircleX - statCircleRadius/2, statCircleY - statCircleRadius/2, statCircleRadius/3, 'F');
+      
+      // Segmento 2
+      doc.setFillColor(
+        Math.min(255, period.color[0] + 80),
+        Math.min(255, period.color[1] + 80),
+        Math.min(255, period.color[2] + 80)
+      );
+      doc.circle(statCircleX + statCircleRadius/2, statCircleY - statCircleRadius/2, statCircleRadius/3, 'F');
     });
     
-    // Desenhar linhas entre pontos - mais espessas
-    doc.setDrawColor(0, 102, 204);
-    doc.setLineWidth(1.5);
-    for (let i = 0; i < linePoints.length - 1; i++) {
-      doc.line(linePoints[i].x, linePoints[i].y, linePoints[i+1].x, linePoints[i+1].y);
-    }
+    // === ESTATÍSTICAS GERAIS ===
+    // Adicionar texto descritivo ao topo
+    const currentYear = new Date().getFullYear();
+    const currentYearProcesses = filteredProcesses.filter(p => 
+      new Date(p.createdAt).getFullYear() === currentYear
+    ).length;
     
-    // Rodapé
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text('Sistema de Controle de Processos de Licitação - SEAP/PB', pageWidth / 2, pageHeight - 10, { align: 'center' });
+    doc.setFontSize(12);
+    doc.setTextColor(180, 180, 180);
+    doc.text(`Total de processos até ${currentYear}: ${filteredProcesses.length}`, 
+      pageWidth / 2, pageHeight - 20, { align: 'center' });
     
-    // Salvar o PDF com nome mais descritivo
-    doc.save(`relatorio-processos-licitacao-${new Date().toLocaleDateString('pt-BR').replaceAll('/', '-')}.pdf`);
+    // Adicionar informações de estatísticas ao rodapé
+    doc.setFontSize(10);
+    doc.setTextColor(150, 150, 150);
+    doc.text(`Sistema de Controle de Processos de Licitação - SEAP/PB | Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 
+      pageWidth / 2, pageHeight - 10, { align: 'center' });
+    
+    // Salvar o PDF
+    doc.save(`linha-tempo-processos-licitatorios-${new Date().toLocaleDateString('pt-BR').replaceAll('/', '-')}.pdf`);
   } catch (error) {
     console.error('Erro ao gerar relatório PDF:', error);
     alert('Ocorreu um erro ao gerar o relatório PDF. Por favor, tente novamente.');
@@ -515,12 +370,8 @@ export function generatePdfReport(data: ReportData): void {
 }
 
 /**
- * Exporta o dataset para arquivo Excel
+ * Função auxiliar para gerar relatório de departamentos
  */
-export function generateExcelReport(data: ReportData): void {
-  console.log('Exportação para Excel não implementada');
-  alert('Exportação para Excel ainda não está implementada. Por favor, use a exportação para PDF.');
-}
 function generateDepartmentReport(doc: jsPDF, data: ReportData): void {
   if (!data.departments) return;
   
@@ -564,7 +415,7 @@ function generateDepartmentReport(doc: jsPDF, data: ReportData): void {
 }
 
 /**
- * Generate Excel report
+ * Exporta o dataset para arquivo Excel (CSV)
  */
 export function generateExcelReport(data: ReportData): void {
   // In a real implementation, this would use a library like xlsx to generate Excel files
@@ -581,6 +432,10 @@ export function generateExcelReport(data: ReportData): void {
     case 'departments':
       csvContent = generateDepartmentCsv(data);
       break;
+    default:
+      console.log('Tipo de relatório não especificado');
+      alert('Tipo de relatório não especificado. Por favor, selecione um tipo de relatório.');
+      return;
   }
   
   // Create a download link for the CSV
