@@ -146,12 +146,12 @@ function drawDonut(doc: jsPDF, centerX: number, centerY: number, innerRadius: nu
 
 /**
  * Gera um relatório PDF com gráficos e tabelas
- * Formato baseado no exemplo fornecido na imagem
+ * Versão melhorada com maior legibilidade dos gráficos e textos
  */
 export function generatePdfReport(data: ReportData): void {
   try {
-    // Criar novo documento PDF
-    const doc = new jsPDF();
+    // Criar novo documento PDF - formato paisagem para melhor visualização dos gráficos
+    const doc = new jsPDF({ orientation: 'landscape' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
@@ -161,26 +161,97 @@ export function generatePdfReport(data: ReportData): void {
     const filteredProcesses = filterReportData(data);
     const total = filteredProcesses.length || 1;
     
-    // CABEÇALHO DO RELATÓRIO
-    doc.setFontSize(14);
+    // CABEÇALHO DO RELATÓRIO - Mais proeminente
+    doc.setFontSize(18);
     doc.setTextColor(0, 51, 102);
-    doc.text('QUANTIDADE DE PROCESSOS', margin, 25);
+    doc.text('SISTEMA DE CONTROLE DE PROCESSOS DE LICITAÇÃO - SEAP/PB', pageWidth / 2, 20, { align: 'center' });
     
-    // Botão de filtros
-    doc.setFillColor(30, 144, 255);
-    doc.roundedRect(pageWidth - margin - 30, 18, 30, 10, 1, 1, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.text('Filtros', pageWidth - margin - 15, 25, { align: 'center' });
+    doc.setFontSize(14);
+    doc.text('RELATÓRIO DE PROCESSOS', pageWidth / 2, 30, { align: 'center' });
+    
+    // Data de geração do relatório
+    doc.setFontSize(10);
+    doc.setTextColor(80, 80, 80);
+    const today = new Date().toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    doc.text(`Gerado em: ${today}`, pageWidth - margin, 30, { align: 'right' });
+    
+    // Desenhar separador
+    doc.setDrawColor(0, 102, 204);
+    doc.setLineWidth(0.5);
+    doc.line(margin, 35, pageWidth - margin, 35);
+    
+    // Layout do relatório - Organização por seções
+    const startY = 45;
+    
+    // ===== PRIMEIRA LINHA - ESTATÍSTICAS GERAIS ===== 
+    
+    // Desenhar as caixas de estatísticas no topo
+    doc.setFillColor(245, 245, 245);
+    doc.setDrawColor(220, 220, 220);
+    
+    // Total de processos
+    const boxWidth = (usableWidth - 30) / 4;
+    const boxHeight = 25;
+    const boxY = startY;
+    
+    // Box 1: Total de processos
+    doc.roundedRect(margin, boxY, boxWidth, boxHeight, 3, 3, 'FD');
+    doc.setFontSize(12);
+    doc.setTextColor(0, 51, 102);
+    doc.text('Total de Processos', margin + boxWidth/2, boxY + 10, { align: 'center' });
+    doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
+    doc.text(`${filteredProcesses.length}`, margin + boxWidth/2, boxY + 20, { align: 'center' });
     
-    // Layout do relatório
-    const startY = 40;
-    const chartHeight = 80;
-    const chartWidth = (usableWidth - 20) / 3;
+    // Box 2: Concluídos
+    const completedCount = filteredProcesses.filter(p => p.status === 'completed').length;
+    doc.roundedRect(margin + boxWidth + 10, boxY, boxWidth, boxHeight, 3, 3, 'FD');
+    doc.setFontSize(12);
+    doc.setTextColor(0, 102, 0);
+    doc.text('Concluídos', margin + boxWidth + 10 + boxWidth/2, boxY + 10, { align: 'center' });
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`${completedCount}`, margin + boxWidth + 10 + boxWidth/2, boxY + 20, { align: 'center' });
+    
+    // Box 3: Em andamento
+    const inProgressCount = filteredProcesses.filter(p => p.status === 'in_progress').length;
+    doc.roundedRect(margin + 2*(boxWidth + 10), boxY, boxWidth, boxHeight, 3, 3, 'FD');
+    doc.setFontSize(12);
+    doc.setTextColor(0, 102, 204);
+    doc.text('Em Andamento', margin + 2*(boxWidth + 10) + boxWidth/2, boxY + 10, { align: 'center' });
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`${inProgressCount}`, margin + 2*(boxWidth + 10) + boxWidth/2, boxY + 20, { align: 'center' });
+    
+    // Box 4: Prioridade Alta
+    const highPriorityCount = filteredProcesses.filter(p => p.priority === 'high').length;
+    doc.roundedRect(margin + 3*(boxWidth + 10), boxY, boxWidth, boxHeight, 3, 3, 'FD');
+    doc.setFontSize(12);
+    doc.setTextColor(204, 0, 0);
+    doc.text('Prioridade Alta', margin + 3*(boxWidth + 10) + boxWidth/2, boxY + 10, { align: 'center' });
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text(`${highPriorityCount}`, margin + 3*(boxWidth + 10) + boxWidth/2, boxY + 20, { align: 'center' });
+    
+    // ===== SEGUNDA LINHA - GRÁFICOS PRINCIPAIS =====
+    const chartStartY = startY + boxHeight + 15;
+    const chartWidth = usableWidth / 2 - 10;
+    const chartHeight = 100;
     
     // SEÇÃO 1: GRÁFICO DE PRIORIDADE
-    doc.setFontSize(10);
-    doc.text('Grau de Prioridade', margin + chartWidth/2, startY, { align: 'center' });
+    // Título da seção
+    doc.setDrawColor(0, 102, 204);
+    doc.setFillColor(240, 240, 250);
+    doc.roundedRect(margin, chartStartY, chartWidth, 20, 2, 2, 'FD');
+    doc.setFontSize(12);
+    doc.setTextColor(0, 51, 102);
+    doc.text('DISTRIBUIÇÃO POR PRIORIDADE', margin + 10, chartStartY + 13);
     
     // Dados de prioridade
     const priorityCounts = {
@@ -195,33 +266,50 @@ export function generatePdfReport(data: ReportData): void {
       }
     });
     
-    // Calcular percentuais
-    const highPct = priorityCounts.high / total;
-    const mediumPct = priorityCounts.medium / total;
-    const lowPct = priorityCounts.low / total;
+    // Área do gráfico
+    const priorityChartY = chartStartY + 30;
     
-    // Desenhar gráfico de rosca
+    // Tamanho maior para o gráfico
     const centerX1 = margin + chartWidth/2;
-    const centerY1 = startY + 40;
-    const outerRadius = 25;
-    const innerRadius = 12;
+    const centerY1 = priorityChartY + 40;
+    const outerRadius = 35;
+    const innerRadius = 15;
     
-    // Desenhar gráfico de rosca de prioridades
+    // Desenhar gráfico de rosca com prioridades
     drawDonut(doc, centerX1, centerY1, innerRadius, outerRadius, [
-      { value: priorityCounts.high, color: [67, 160, 71] },  // Alta - Verde
-      { value: priorityCounts.medium, color: [255, 193, 7] }, // Média - Amarelo
-      { value: priorityCounts.low, color: [66, 165, 245] }   // Baixa - Azul
+      { value: priorityCounts.high, color: [220, 53, 69] },    // Alta - Vermelho
+      { value: priorityCounts.medium, color: [255, 193, 7] },  // Média - Amarelo
+      { value: priorityCounts.low, color: [40, 167, 69] }      // Baixa - Verde
     ]);
     
-    // Adicionar percentuais
-    doc.setFontSize(8);
-    doc.text(`${Math.round(highPct * 100)}%`, centerX1 - 20, centerY1 + 50);
-    doc.text(`${Math.round(mediumPct * 100)}%`, centerX1, centerY1 + 50);
-    doc.text(`${Math.round(lowPct * 100)}%`, centerX1 + 20, centerY1 + 50);
+    // Legendas melhoradas
+    doc.setFontSize(10);
+    
+    // Legenda Alta
+    const legendY = centerY1 + outerRadius + 15;
+    doc.setFillColor(220, 53, 69);
+    doc.rect(centerX1 - 60, legendY, 10, 10, 'F');
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Alta: ${priorityCounts.high} (${Math.round(priorityCounts.high/total*100)}%)`, centerX1 - 45, legendY + 8);
+    
+    // Legenda Média
+    doc.setFillColor(255, 193, 7);
+    doc.rect(centerX1 - 60, legendY + 15, 10, 10, 'F');
+    doc.text(`Média: ${priorityCounts.medium} (${Math.round(priorityCounts.medium/total*100)}%)`, centerX1 - 45, legendY + 23);
+    
+    // Legenda Baixa
+    doc.setFillColor(40, 167, 69);
+    doc.rect(centerX1 - 60, legendY + 30, 10, 10, 'F');
+    doc.text(`Baixa: ${priorityCounts.low} (${Math.round(priorityCounts.low/total*100)}%)`, centerX1 - 45, legendY + 38);
     
     // SEÇÃO 2: GRÁFICO DE STATUS
-    doc.setFontSize(10);
-    doc.text('Status', margin + chartWidth + 10 + chartWidth/2, startY, { align: 'center' });
+    // Título da seção
+    doc.setDrawColor(0, 102, 204);
+    doc.setFillColor(240, 240, 250);
+    doc.roundedRect(margin + chartWidth + 20, chartStartY, chartWidth, 20, 2, 2, 'FD');
+    doc.setFontSize(12);
+    doc.setTextColor(0, 51, 102);
+    doc.text('DISTRIBUIÇÃO POR STATUS', margin + chartWidth + 30, chartStartY + 13);
     
     // Dados de status
     const statusCounts = {
@@ -237,33 +325,51 @@ export function generatePdfReport(data: ReportData): void {
       }
     });
     
-    // Calcular percentuais
-    const completedPct = statusCounts.completed / total;
-    const inProgressPct = statusCounts.in_progress / total;
-    
     // Centro do gráfico de status
-    const centerX2 = margin + chartWidth + 10 + chartWidth/2;
+    const centerX2 = margin + chartWidth + 20 + chartWidth/2;
     const centerY2 = centerY1;
     
-    // Desenhar gráfico de rosca de status
+    // Desenhar gráfico de rosca de status - mais legível
     drawDonut(doc, centerX2, centerY2, innerRadius, outerRadius, [
-      { value: statusCounts.completed, color: [67, 160, 71] },   // Concluído - Verde
-      { value: statusCounts.in_progress, color: [66, 165, 245] } // Em andamento - Azul
+      { value: statusCounts.completed, color: [40, 167, 69] },     // Concluído - Verde
+      { value: statusCounts.in_progress, color: [0, 123, 255] },   // Em andamento - Azul
+      { value: statusCounts.draft, color: [108, 117, 125] },       // Rascunho - Cinza
+      { value: statusCounts.canceled, color: [220, 53, 69] }       // Cancelado - Vermelho
     ]);
     
-    // Adicionar legendas de status
-    doc.setFontSize(6);
-    doc.text("CONCLUÍDOS", centerX2 - 35, centerY2 - 20);
-    doc.text("EM ANDAMENTO", centerX2 + 15, centerY2 - 20);
+    // Legendas melhoradas para status
+    // Legenda Concluído
+    doc.setFillColor(40, 167, 69);
+    doc.rect(centerX2 - 60, legendY, 10, 10, 'F');
+    doc.setTextColor(0, 0, 0);
+    doc.text(`Concluído: ${statusCounts.completed} (${Math.round(statusCounts.completed/total*100)}%)`, centerX2 - 45, legendY + 8);
     
-    // Adicionar percentuais
-    doc.setFontSize(8);
-    doc.text(`${Math.round(completedPct * 100)}%`, centerX2 - 15, centerY2 + 50);
-    doc.text(`${Math.round(inProgressPct * 100)}%`, centerX2 + 15, centerY2 + 50);
+    // Legenda Em andamento
+    doc.setFillColor(0, 123, 255);
+    doc.rect(centerX2 - 60, legendY + 15, 10, 10, 'F');
+    doc.text(`Em andamento: ${statusCounts.in_progress} (${Math.round(statusCounts.in_progress/total*100)}%)`, centerX2 - 45, legendY + 23);
     
-    // SEÇÃO 3: GRÁFICO DE FONTES (BARRAS HORIZONTAIS)
-    doc.setFontSize(10);
-    doc.text('Fonte', margin + 2*chartWidth + 20 + chartWidth/2, startY, { align: 'center' });
+    // Legenda Rascunho
+    doc.setFillColor(108, 117, 125);
+    doc.rect(centerX2 - 60, legendY + 30, 10, 10, 'F');
+    doc.text(`Rascunho: ${statusCounts.draft} (${Math.round(statusCounts.draft/total*100)}%)`, centerX2 - 45, legendY + 38);
+    
+    // Legenda Cancelado
+    doc.setFillColor(220, 53, 69);
+    doc.rect(centerX2 - 60, legendY + 45, 10, 10, 'F');
+    doc.text(`Cancelado: ${statusCounts.canceled} (${Math.round(statusCounts.canceled/total*100)}%)`, centerX2 - 45, legendY + 53);
+    
+    // ===== TERCEIRA LINHA - FONTE E GRÁFICO DE LINHA =====
+    const thirdSectionY = chartStartY + chartHeight + 50;
+    
+    // SEÇÃO 3: PROCESSOS POR FONTE (BARRAS HORIZONTAIS)
+    // Título da seção
+    doc.setDrawColor(0, 102, 204);
+    doc.setFillColor(240, 240, 250);
+    doc.roundedRect(margin, thirdSectionY, chartWidth, 20, 2, 2, 'FD');
+    doc.setFontSize(12);
+    doc.setTextColor(0, 51, 102);
+    doc.text('PROCESSOS POR FONTE DE RECURSOS', margin + 10, thirdSectionY + 13);
     
     // Processos por fonte
     const sourceCounts = new Map<number, number>();
@@ -278,65 +384,92 @@ export function generatePdfReport(data: ReportData): void {
       .slice(0, 5);
     
     // Configurações para barras horizontais
-    const barStartX = margin + 2*chartWidth + 35;
-    const barStartY = startY + 10;
-    const barMaxWidth = chartWidth - 40;
-    const barHeight = 8;
-    const barGap = 15;
+    const barAreaHeight = 120;
+    const barStartX = margin + 70;
+    const barStartY = thirdSectionY + 35;
+    const barMaxWidth = chartWidth - 100;
+    const barHeight = 15;
+    const barGap = 20;
     
-    // Desenhar barras para cada fonte
+    // Desenhar barras para cada fonte - versão mais legível
     sortedSources.forEach((sourceEntry, index) => {
       const [sourceId, count] = sourceEntry;
       const source = data.sources.find(s => s.id === sourceId);
       const maxCount = Math.max(...sortedSources.map(s => s[1]));
       const barWidth = (count / maxCount) * barMaxWidth;
       
-      // Desenhar barra
-      doc.setFillColor(44, 123, 182);
-      doc.rect(barStartX, barStartY + index * barGap, barWidth, barHeight, 'F');
+      // Desenhar barra com borda
+      doc.setFillColor(0, 123, 255);
+      doc.setDrawColor(0, 80, 187);
+      doc.roundedRect(barStartX, barStartY + index * barGap, barWidth, barHeight, 1, 1, 'FD');
       
       // Adicionar label e valor
-      doc.setFontSize(7);
-      const sourceLabel = source?.code || `ID ${sourceId}`;
-      doc.text(sourceLabel, barStartX - 5, barStartY + index * barGap + barHeight/2 + 2, { align: 'right' });
-      doc.text(`${count}`, barStartX + barWidth + 3, barStartY + index * barGap + barHeight/2 + 2);
+      doc.setFontSize(10);
+      doc.setTextColor(0, 0, 0);
+      const sourceLabel = source ? `${source.code} - ${source.description}` : `Fonte ${sourceId}`;
+      // Limite o tamanho do texto da fonte
+      const truncatedLabel = sourceLabel.length > 25 ? sourceLabel.substring(0, 22) + '...' : sourceLabel;
+      doc.text(truncatedLabel, barStartX - 5, barStartY + index * barGap + barHeight/2 + 4, { align: 'right' });
+      
+      // Valor dentro da barra se for larga o suficiente, ou depois da barra
+      if (barWidth > 40) {
+        doc.setTextColor(255, 255, 255);
+        doc.text(`${count}`, barStartX + barWidth - 10, barStartY + index * barGap + barHeight/2 + 4, { align: 'right' });
+      } else {
+        doc.setTextColor(0, 0, 0);
+        doc.text(`${count}`, barStartX + barWidth + 10, barStartY + index * barGap + barHeight/2 + 4);
+      }
     });
     
-    // Adicionar título "Responsável (Qtde)"
-    doc.setFontSize(9);
-    doc.text('Responsável (Qtde)', barStartX + barMaxWidth/2, barStartY + 5*barGap + 10, { align: 'center' });
+    // SEÇÃO 4: CONCLUSÃO DE PROCESSOS POR MÊS (GRÁFICO DE LINHA)
+    // Título da seção
+    doc.setDrawColor(0, 102, 204);
+    doc.setFillColor(240, 240, 250);
+    doc.roundedRect(margin + chartWidth + 20, thirdSectionY, chartWidth, 20, 2, 2, 'FD');
+    doc.setFontSize(12);
+    doc.setTextColor(0, 51, 102);
+    doc.text('CONCLUSÃO DE PROCESSOS POR MÊS', margin + chartWidth + 30, thirdSectionY + 13);
     
-    // SEÇÃO 4: GRÁFICO DE LINHA (CONCLUSÃO POR MÊS)
-    const lineChartY = startY + chartHeight + 20;
-    doc.setFontSize(10);
-    doc.text('Conclusão de Processos / Mês', margin + usableWidth/2, lineChartY, { align: 'center' });
-    
-    // Configuração do gráfico de linha
-    const lineStartX = margin + 10;
-    const lineEndX = pageWidth - margin - 10;
-    const lineY = lineChartY + 40;
+    // Configuração do gráfico de linha melhorado
+    const lineStartX = margin + chartWidth + 50;
+    const lineEndX = pageWidth - margin - 30;
     const lineWidth = lineEndX - lineStartX;
+    const lineY = thirdSectionY + 110;
     
-    // Desenhar linha base
-    doc.setDrawColor(200, 200, 200);
+    // Desenhar linha base e eixo Y
+    doc.setDrawColor(180, 180, 180);
     doc.setLineWidth(0.5);
-    doc.line(lineStartX, lineY, lineEndX, lineY);
+    doc.line(lineStartX, lineY, lineEndX, lineY); // Eixo X
+    doc.line(lineStartX, lineY, lineStartX, thirdSectionY + 40); // Eixo Y
     
-    // Dados fictícios para o gráfico de linha
+    // Dados para o gráfico de linha (dados reais ou dados fictícios melhorados)
     const monthlyValues = [
-      { month: "Out 2023", value: 15 },
-      { month: "Nov 2023", value: 25 },
-      { month: "Dez 2023", value: 20 },
-      { month: "Jan 2024", value: 30 },
-      { month: "Fev 2024", value: 18 },
-      { month: "Mar 2024", value: 28 },
-      { month: "Abr 2024", value: 22 },
-      { month: "Mai 2024", value: 32 }
+      { month: "Jan", value: 15 },
+      { month: "Fev", value: 25 },
+      { month: "Mar", value: 20 },
+      { month: "Abr", value: 30 },
+      { month: "Mai", value: 18 },
+      { month: "Jun", value: 28 },
+      { month: "Jul", value: 22 },
+      { month: "Ago", value: 32 }
     ];
     
     // Valor máximo para escala
     const maxValue = Math.max(...monthlyValues.map(mv => mv.value));
-    const valueScale = 30 / maxValue;
+    const valueScale = 60 / maxValue; // Aumento na altura do gráfico
+    
+    // Marcas no eixo Y
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    const scaleSteps = 4;
+    for (let i = 0; i <= scaleSteps; i++) {
+      const yPos = lineY - (i * (60 / scaleSteps));
+      const value = Math.round((i * maxValue) / scaleSteps);
+      doc.setDrawColor(220, 220, 220);
+      doc.line(lineStartX - 3, yPos, lineEndX, yPos); // Linha de grade
+      doc.setTextColor(100, 100, 100);
+      doc.text(`${value}`, lineStartX - 5, yPos + 3, { align: 'right' });
+    }
     
     // Desenhar o gráfico de linha
     const linePoints: {x: number, y: number}[] = [];
@@ -347,24 +480,34 @@ export function generatePdfReport(data: ReportData): void {
       const y = lineY - (mv.value * valueScale);
       linePoints.push({ x, y });
       
-      // Desenhar ponto
-      doc.setFillColor(54, 162, 235);
-      doc.circle(x, y, 1.5, 'F');
+      // Desenhar ponto maior e mais visível
+      doc.setFillColor(0, 102, 204);
+      doc.circle(x, y, 3, 'F');
       
-      // Adicionar label do mês
-      doc.setFontSize(6);
-      doc.text(mv.month, x, lineY + 7, { align: 'center' });
+      // Adicionar label do mês - mais legível
+      doc.setFontSize(9);
+      doc.setTextColor(0, 0, 0);
+      doc.text(mv.month, x, lineY + 10, { align: 'center' });
+      
+      // Adicionar valor acima do ponto
+      doc.setFontSize(8);
+      doc.text(`${mv.value}`, x, y - 7, { align: 'center' });
     });
     
-    // Desenhar linhas entre pontos
-    doc.setDrawColor(54, 162, 235);
-    doc.setLineWidth(0.8);
+    // Desenhar linhas entre pontos - mais espessas
+    doc.setDrawColor(0, 102, 204);
+    doc.setLineWidth(1.5);
     for (let i = 0; i < linePoints.length - 1; i++) {
       doc.line(linePoints[i].x, linePoints[i].y, linePoints[i+1].x, linePoints[i+1].y);
     }
     
-    // Salvar o PDF
-    doc.save(`relatorio_processos_${new Date().toISOString().slice(0, 10)}.pdf`);
+    // Rodapé
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    doc.text('Sistema de Controle de Processos de Licitação - SEAP/PB', pageWidth / 2, pageHeight - 10, { align: 'center' });
+    
+    // Salvar o PDF com nome mais descritivo
+    doc.save(`relatorio-processos-licitacao-${new Date().toLocaleDateString('pt-BR').replaceAll('/', '-')}.pdf`);
   } catch (error) {
     console.error('Erro ao gerar relatório PDF:', error);
     alert('Ocorreu um erro ao gerar o relatório PDF. Por favor, tente novamente.');
