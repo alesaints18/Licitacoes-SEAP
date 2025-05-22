@@ -23,7 +23,7 @@ import {
   generatePdfReport,
 } from "@/lib/utils/exactReportExport";
 import { generateTimelinePdfReport } from "@/lib/utils/timelineExport";
-import { generateWidescreenPdfReport } from "@/lib/utils/htmlToPdfExport";
+import { generateModernPdf } from "@/lib/utils/modernPdfGenerator";
 import {
   BarChart,
   Bar,
@@ -294,21 +294,13 @@ const Reports = () => {
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               Exportar Excel
             </Button>
-            <Button variant="outline" onClick={() => {
-              const data = prepareReportData();
-              if (!data) return;
-              generateTimelinePdfReport(data);
-            }}>
-              <FileText className="h-4 w-4 mr-2" />
-              Exportar Timeline
-            </Button>
             <Button onClick={() => {
               const data = prepareReportData();
               if (!data) return;
-              generateWidescreenPdfReport(data);
+              generateModernReport(data);
             }}>
               <FileText className="h-4 w-4 mr-2" />
-              Exportar PDF Moderno
+              Exportar PDF
             </Button>
           </div>
         </CardContent>

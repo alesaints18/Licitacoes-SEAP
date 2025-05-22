@@ -87,10 +87,8 @@ export function generateWidescreenPdfReport(data: ReportData): void {
     
     // --- CABEÇALHO MODERNO ---
     
-    // Fundo do cabeçalho degradê
-    const grd = doc.internal.pages[1].getContext('2d').createLinearGradient(0, 0, pageWidth, 0);
-    grd.addColorStop(0, '#1e40af');
-    grd.addColorStop(1, '#3b82f6');
+    // Não é possível criar degradês diretamente no jsPDF
+    // Então vamos usar uma cor sólida para o cabeçalho
     
     // Desenhar retângulo com gradiente
     doc.setFillColor(30, 64, 175); // Cor de fallback 
