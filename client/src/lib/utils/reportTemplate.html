@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Relatório SEAP-PB</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Poppins:wght@400;500;600;700&display=swap');
+    
+    :root {
+      --primary: #1e40af;
+      --primary-light: #3b82f6;
+      --secondary: #10b981;
+      --accent: #f59e0b;
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --success: #10b981;
+      --dark: #1f2937;
+      --dark-blue: #0f172a;
+      --light: #f3f4f6;
+      --white: #ffffff;
+      --gray: #9ca3af;
+    }
+
+    /* RESET & BASE STYLES */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: var(--light);
+      color: var(--dark);
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    /* LAYOUT */
+    .container {
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--dark-blue), var(--primary));
+      color: white;
+      padding: 2rem;
+      border-bottom: 4px solid var(--primary-light);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 40%;
+      height: 100%;
+      background: radial-gradient(circle at top right, rgba(255,255,255,0.1), transparent 70%);
+      pointer-events: none;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      margin-top: 0;
+      display: flex;
+      align-items: center;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 70%;
+    }
+
+    .header-meta {
+      font-size: 0.9rem;
+      margin-top: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      opacity: 0.8;
+    }
+
+    .logo {
+      position: absolute;
+      top: 2rem;
+      right: 2rem;
+      max-width: 120px;
+      opacity: 0.8;
+    }
+
+    /* DASHBOARD GRID */
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.5rem;
+      padding: 2rem;
+    }
+
+    .card {
+      background-color: var(--white);
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+      padding: 1.5rem;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      padding-bottom: 0.75rem;
+    }
+
+    .card-header h2 {
+      font-size: 1.25rem;
+      color: var(--dark);
+      margin: 0;
+    }
+
+    .card-accent {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+    }
+
+    /* CARD SIZES */
+    .col-span-4 {
+      grid-column: span 4;
+    }
+
+    .col-span-6 {
+      grid-column: span 6;
+    }
+
+    .col-span-8 {
+      grid-column: span 8;
+    }
+
+    .col-span-12 {
+      grid-column: span 12;
+    }
+
+    /* CARD STATUS STYLES */
+    .status-card {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 180px;
+    }
+
+    .status-number {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+
+    .status-label {
+      font-size: 1rem;
+      color: var(--gray);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* CHART STYLES */
+    .chart-container {
+      min-height: 300px;
+      position: relative;
+    }
+
+    /* TABLE STYLES */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .data-table th {
+      background-color: rgba(0,0,0,0.03);
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .data-table td {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .data-table tr:hover td {
+      background-color: rgba(0,0,0,0.02);
+    }
+
+    /* STATUS BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.35rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+
+    .badge-draft {
+      background-color: var(--gray);
+      color: white;
+    }
+
+    .badge-in-progress {
+      background-color: var(--primary-light);
+      color: white;
+    }
+
+    .badge-completed {
+      background-color: var(--success);
+      color: white;
+    }
+
+    .badge-canceled {
+      background-color: var(--danger);
+      color: white;
+    }
+
+    /* FOOTER */
+    .footer {
+      border-top: 1px solid rgba(0,0,0,0.1);
+      padding: 1.5rem 2rem;
+      text-align: center;
+      color: var(--gray);
+      font-size: 0.875rem;
+    }
+
+    /* TIMELINE SECTION */
+    .timeline-section {
+      background-color: var(--dark-blue);
+      color: white;
+      padding: 3rem 2rem;
+      margin: 2rem 0;
+      border-radius: 0.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .timeline-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, rgba(59, 130, 246, 0.2), transparent 70%);
+      pointer-events: none;
+    }
+
+    .timeline-title {
+      text-align: center;
+      margin-bottom: 3rem;
+      font-size: 1.75rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .timeline {
+      position: relative;
+      max-width: 1200px;
+      margin: 0 auto;
+      z-index: 1;
+    }
+
+    .timeline::after {
+      content: '';
+      position: absolute;
+      width: 6px;
+      background-color: rgba(255, 255, 255, 0.2);
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      margin-left: -3px;
+      border-radius: 3px;
+    }
+
+    .timeline-container {
+      padding: 10px 40px;
+      position: relative;
+      background-color: inherit;
+      width: 50%;
+    }
+
+    .timeline-container::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      right: -10px;
+      background-color: var(--white);
+      border: 4px solid var(--primary);
+      top: 15px;
+      border-radius: 50%;
+      z-index: 1;
+    }
+
+    .timeline-left {
+      left: 0;
+    }
+
+    .timeline-right {
+      left: 50%;
+    }
+
+    .timeline-right::after {
+      left: -10px;
+    }
+
+    .timeline-content {
+      padding: 20px 25px;
+      background-color: rgba(255, 255, 255, 0.05);
+      position: relative;
+      border-radius: 6px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .timeline-date {
+      font-weight: bold;
+      color: var(--primary-light);
+      margin-bottom: 0.5rem;
+    }
+
+    /* PIE CHART SIMULATION */
+    .pie-chart {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--success) 0% 25%,
+        var(--primary-light) 25% 65%,
+        var(--accent) 65% 85%,
+        var(--danger) 85% 100%
+      );
+      margin: 1rem auto;
+      position: relative;
+    }
+
+    .pie-chart::before {
+      content: '';
+      position: absolute;
+      width: 70%;
+      height: 70%;
+      background-color: var(--white);
+      border-radius: 50%;
+      top: 15%;
+      left: 15%;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      margin-right: 6px;
+    }
+
+    /* Cores para os gráficos */
+    .color-primary { background-color: var(--primary); }
+    .color-primary-light { background-color: var(--primary-light); }
+    .color-secondary { background-color: var(--secondary); }
+    .color-success { background-color: var(--success); }
+    .color-warning { background-color: var(--warning); }
+    .color-danger { background-color: var(--danger); }
+    
+    /* CHARTS - VISUAL SIMULATIONS */
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      height: 200px;
+      gap: 15px;
+      margin: 1rem 0;
+    }
+    
+    .bar {
+      flex-grow: 1;
+      background-color: var(--primary-light);
+      border-radius: 6px 6px 0 0;
+      position: relative;
+      transition: height 1s ease;
+      min-width: 30px;
+    }
+    
+    .bar-label {
+      position: absolute;
+      bottom: -25px;
+      width: 100%;
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--dark);
+    }
+    
+    .bar-value {
+      position: absolute;
+      top: -25px;
+      width: 100%;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    
+    /* RESPONSIVE */
+    @media (max-width: 800px) {
+      .timeline::after {
+        left: 31px;
+      }
+      .timeline-container {
+        width: 100%;
+        padding-left: 70px;
+        padding-right: 25px;
+      }
+      .timeline-right {
+        left: 0%;
+      }
+      .timeline-left::after, .timeline-right::after {
+        left: 15px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>Relatório Infográfico SEAP-PB</h1>
+      <p>Sistema de Controle de Processos de Licitação</p>
+      <div class="header-meta">
+        <span id="date">Data: {{date}}</span>
+        <span id="department">Departamento: {{department}}</span>
+        <span id="user">Usuário: {{user}}</span>
+      </div>
+      <img src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png" alt="Logo Governo da Paraíba" class="logo">
+    </header>
+
+    <div class="dashboard">
+      <!-- STATUS CARDS -->
+      <div class="card col-span-3">
+        <div class="card-accent" style="background-color: var(--primary-light);"></div>
+        <div class="status-card">
+          <div class="status-number" style="color: var(--primary-light);">{{totalProcesses}}</div>
+          <div class="status-label">Total de Processos</div>
+        </div>
+      </div>
+      
+      <div class="card col-span-3">
+        <div class="card-accent" style="background-color: var(--success);"></div>
+        <div class="status-card">
+          <div class="status-number" style="color: var(--success);">{{completedProcesses}}</div>
+          <div class="status-label">Processos Concluídos</div>
+        </div>
+      </div>
+      
+      <div class="card col-span-3">
+        <div class="card-accent" style="background-color: var(--primary);"></div>
+        <div class="status-card">
+          <div class="status-number" style="color: var(--primary);">{{inProgressProcesses}}</div>
+          <div class="status-label">Em Andamento</div>
+        </div>
+      </div>
+      
+      <div class="card col-span-3">
+        <div class="card-accent" style="background-color: var(--danger);"></div>
+        <div class="status-card">
+          <div class="status-number" style="color: var(--danger);">{{canceledProcesses}}</div>
+          <div class="status-label">Processos Cancelados</div>
+        </div>
+      </div>
+
+      <!-- CHART 1: STATUS PIE CHART -->
+      <div class="card col-span-6">
+        <div class="card-header">
+          <h2>Processos por Status</h2>
+        </div>
+        <div class="chart-container">
+          <div class="pie-chart"></div>
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-color color-success"></div>
+              <span>Concluídos ({{completedProcesses}})</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color color-primary-light"></div>
+              <span>Em Andamento ({{inProgressProcesses}})</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color color-warning"></div>
+              <span>Rascunho ({{draftProcesses}})</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-color color-danger"></div>
+              <span>Cancelados ({{canceledProcesses}})</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHART 2: MODALITIES -->
+      <div class="card col-span-6">
+        <div class="card-header">
+          <h2>Processos por Modalidade</h2>
+        </div>
+        <div class="chart-container">
+          <div class="bar-chart" id="modalityChart">
+            {{#each modalityData}}
+            <div class="bar" style="height: {{this.height}}%; background-color: {{this.color}}">
+              <div class="bar-value">{{this.count}}</div>
+              <div class="bar-label">{{this.name}}</div>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+      </div>
+
+      <!-- TIMELINE SECTION -->
+      <div class="col-span-12">
+        <div class="timeline-section">
+          <h2 class="timeline-title">Linha do Tempo de Processos</h2>
+          <div class="timeline">
+            {{#each timelineItems}}
+            <div class="timeline-container {{this.position}}">
+              <div class="timeline-content">
+                <div class="timeline-date">{{this.date}}</div>
+                <h3>{{this.title}}</h3>
+                <p>{{this.description}}</p>
+                {{#if this.stats}}
+                <div class="timeline-stats">
+                  <strong>{{this.stats}}</strong>
+                </div>
+                {{/if}}
+              </div>
+            </div>
+            {{/each}}
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE: RECENT PROCESSES -->
+      <div class="card col-span-12">
+        <div class="card-header">
+          <h2>Processos Recentes</h2>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>PBDOC</th>
+              <th>Descrição</th>
+              <th>Modalidade</th>
+              <th>Responsável</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each processes}}
+            <tr>
+              <td>{{this.pbdocNumber}}</td>
+              <td>{{this.description}}</td>
+              <td>{{this.modality}}</td>
+              <td>{{this.responsible}}</td>
+              <td>
+                <span class="badge badge-{{this.statusClass}}">{{this.statusLabel}}</span>
+              </td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p>SEAP-PB - Secretaria de Estado da Administração Penitenciária | Relatório gerado em {{date}}</p>
+    </footer>
+  </div>
+</body>
+</html>
