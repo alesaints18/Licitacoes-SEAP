@@ -5,6 +5,7 @@ import { MONTHS } from '../constants';
 import { getProcessStatusLabel, getProcessPriorityLabel } from './process';
 import autoTable from 'jspdf-autotable';
 
+// Tipos para os relatórios
 interface ReportData {
   processes: Process[];
   users: User[];
@@ -160,209 +161,231 @@ export function generatePdfReport(data: ReportData): void {
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 10;
     
-    // Adicionar fundo escuro em toda a página
-    doc.setFillColor(60, 64, 75); // Cor de fundo cinza escuro similar à imagem
+    // Adicionar fundo escuro em toda a página - similar à imagem referência
+    doc.setFillColor(60, 64, 75); // Cor de fundo cinza escuro
     doc.rect(0, 0, pageWidth, pageHeight, 'F');
     
     // Filtrar processos baseado nos critérios
     const filteredProcesses = filterReportData(data);
     const total = filteredProcesses.length || 1;
     
-    // == TÍTULO COM EFEITO DE SOMBRA ==
+    // == TÍTULO COM SOMBRA SUAVE ==
     doc.setFontSize(28);
     
-    // Texto com efeito de sombra (título principal)
-    doc.setTextColor(255, 255, 255);
-    doc.text('Linha do Tempo - Processos Licitatórios', pageWidth / 2, 25, { align: 'center' });
+    // Efeito de sombra (título principal) - texto ligeiramente translúcido em offset
+    doc.setTextColor(220, 220, 220, 0.5);
+    doc.text('Timeline Infográfico', pageWidth / 2 + 1, 26, { align: 'center' });
     
-    // TIMELINE PRINCIPAL
+    // Texto principal (título)
+    doc.setTextColor(255, 255, 255);
+    doc.text('Timeline Infográfico', pageWidth / 2, 25, { align: 'center' });
+    
+    // TIMELINE PRINCIPAL - linha do tempo horizontal
     const timelineY = 70;
     const timelineStartX = margin + 20;
     const timelineEndX = pageWidth - margin - 20;
     const timelineWidth = timelineEndX - timelineStartX;
     
-    // Períodos para a timeline (adaptar para os períodos relevantes ao seu sistema)
+    // Períodos para a timeline - configurados para representar anos
     const periods = [
       { 
-        label: 'Planejamento', 
-        year: '2022', 
-        color: [41, 121, 255],
+        label: 'Inicialização', 
+        year: '1980', 
+        color: [41, 121, 255],  // Azul
+        stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2021).length,
+        description: 'Aenean sodales congue\nnisi sed imperdiet. Donec\ndapibus egent sem ac ornare.',
+        chartData: [10, 15, 12, 18, 14, 20]
+      },
+      { 
+        label: 'Progresso', 
+        year: '1990', 
+        color: [255, 99, 132],  // Rosa/Vermelho
         stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2022).length,
-        description: 'Fase inicial de planejamento e preparação dos processos licitatórios',
-        icon: 'clipboard',
-        chartData: [10, 15, 12, 18, 14]
+        description: 'Cras est tortor est. Ut\nvehicula vel placerat,\nvestibulum eget, placerat\nligula mauris.',
+        chartData: [15, 22, 18, 25, 20, 28]
       },
       { 
-        label: 'Execução', 
-        year: '2023', 
-        color: [76, 217, 100],
+        label: 'Expansão', 
+        year: '2000', 
+        color: [132, 255, 99],  // Verde
         stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2023).length,
-        description: 'Período de execução e implementação dos processos',
-        icon: 'cogs',
-        chartData: [15, 22, 18, 25, 20]
+        description: 'In eunisus magna, faucibus\negest erat nunc, tempus\nrhoncus diam. Phasellus\nac, este felis.',
+        chartData: [22, 28, 25, 32, 30, 35]
       },
       { 
-        label: 'Avaliação', 
-        year: '2024', 
-        color: [255, 204, 0],
+        label: 'Inovação', 
+        year: '2010', 
+        color: [255, 205, 0],  // Amarelo
         stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2024).length,
-        description: 'Etapa de avaliação e revisão dos resultados obtidos',
-        icon: 'check',
-        chartData: [22, 28, 25, 32, 30]
+        description: 'Fusce egestus, nisl at\nlobortis vulputate, velit erat\nconque lactur, et amet\nluctus risus enim\nid nulla.',
+        chartData: [25, 30, 35, 40, 38, 42]
       },
       { 
-        label: 'Consolidação', 
-        year: '2025', 
-        color: [255, 149, 0],
-        stats: 0, // Ano futuro, sem dados ainda
-        description: 'Previsão para consolidação dos processos implementados',
-        icon: 'star',
-        chartData: [25, 30, 35, 40, 38]
+        label: 'Excelência', 
+        year: '2020', 
+        color: [255, 149, 0],  // Laranja
+        stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2025).length,
+        description: 'Cras et allocicitude nulla,\nsapien dolor, semper lac,\nsapien eu tincidunt felis.',
+        chartData: [30, 35, 42, 48, 45, 52]
       }
     ];
     
-    // Desenhar linha do tempo principal
-    doc.setLineWidth(3);
-    doc.setDrawColor(200, 200, 200);
+    // === LINHA DO TEMPO CENTRAL ===
+    const segmentColors = [
+      [41, 121, 255],  // Azul
+      [255, 99, 132],  // Rosa/Vermelho 
+      [132, 255, 99],  // Verde
+      [255, 205, 0],   // Amarelo
+      [255, 149, 0]    // Laranja
+    ];
+    
+    // Linha base cinza para a linha do tempo completa
+    doc.setDrawColor(150, 150, 150);
+    doc.setLineWidth(8);
     doc.line(timelineStartX, timelineY, timelineEndX, timelineY);
     
-    // Calcular a largura de cada segmento
-    const segmentWidth = timelineWidth / (periods.length);
+    // Calcular largura de cada segmento
+    const segmentWidth = timelineWidth / periods.length;
     
-    // Desenhar cada período da timeline
+    // Desenhar os segmentos coloridos da linha do tempo
     periods.forEach((period, index) => {
-      const x = timelineStartX + (segmentWidth * index) + (segmentWidth / 2);
-      
-      // Desenhar círculo marcador do período
-      const circleX = x;
-      const circleY = timelineY;
-      const circleRadius = 5;
-      
-      // Cor do segmento da timeline
-      doc.setFillColor(period.color[0], period.color[1], period.color[2]);
-      
-      // Segmento da timeline
       const segmentStartX = timelineStartX + (segmentWidth * index);
       const segmentEndX = segmentStartX + segmentWidth;
+      
+      // Desenhar segmento colorido
       doc.setDrawColor(period.color[0], period.color[1], period.color[2]);
-      doc.setLineWidth(6);
+      doc.setLineWidth(8);
       doc.line(segmentStartX, timelineY, segmentEndX, timelineY);
       
-      // Círculo marcador 
-      doc.circle(circleX, circleY, circleRadius, 'F');
+      // Adicionar círculo no início do segmento
+      doc.setFillColor(255, 255, 255);
+      doc.circle(segmentStartX, timelineY, 6, 'F');
+      doc.setDrawColor(period.color[0], period.color[1], period.color[2]);
+      doc.setLineWidth(2);
+      doc.circle(segmentStartX, timelineY, 6, 'S');
       
-      // Ano (grande)
+      // Se for o último, adicionar círculo no final
+      if (index === periods.length - 1) {
+        doc.setFillColor(255, 255, 255);
+        doc.circle(segmentEndX, timelineY, 6, 'F');
+        doc.setDrawColor(period.color[0], period.color[1], period.color[2]);
+        doc.setLineWidth(2);
+        doc.circle(segmentEndX, timelineY, 6, 'S');
+      }
+    });
+    
+    // === ADICIONAR CONTEÚDO ACIMA E ABAIXO DA TIMELINE ===
+    
+    periods.forEach((period, index) => {
+      const x = timelineStartX + (segmentWidth * index) + (segmentWidth / 2);
+      const isEvenPeriod = index % 2 === 0;
+      
+      // Ano em grande destaque
       doc.setFontSize(24);
       doc.setTextColor(period.color[0], period.color[1], period.color[2]);
-      doc.text(period.year, circleX, timelineY + 25, { align: 'center' });
+      doc.setFontStyle('bold');
+      doc.text(period.year, x, timelineY + (isEvenPeriod ? 50 : -35), { align: 'center' });
       
-      // Título do período (em cima da timeline)
-      doc.setFontSize(14);
-      doc.setTextColor(250, 250, 250);
-      doc.text(period.label, circleX, timelineY - 15, { align: 'center' });
+      // Definir onde desenhar o gráfico de barras e o texto descritivo
+      let chartY, descriptionY, circleY;
       
-      // Estatísticas acima
-      const isEvenPeriod = index % 2 === 0;
-      let statsY = isEvenPeriod ? timelineY - 40 : timelineY + 40;
-      let chartDirection = isEvenPeriod ? 'up' : 'down';
+      if (isEvenPeriod) {
+        // Conteúdo abaixo da timeline
+        chartY = timelineY + 25;
+        descriptionY = timelineY + 75;
+        circleY = timelineY + 115;
+      } else {
+        // Conteúdo acima da timeline
+        chartY = timelineY - 65;
+        descriptionY = timelineY - 25;
+        circleY = timelineY - 115;
+      }
       
-      // Gráfico de barras acima/abaixo (alternando)
-      const chartX = circleX - 20;
-      const chartY = isEvenPeriod ? statsY - 20 : statsY + 10;
-      const barWidth = 6;
-      const barGap = 2;
-      const maxBarHeight = 30;
+      // Desenhar gráfico de barras
+      let barWidth = 7;
+      let barGap = 2;
+      let chartStartX = x - ((barWidth + barGap) * period.chartData.length / 2);
       
-      // Determinar altura máxima das barras
-      const maxDataValue = Math.max(...period.chartData);
+      // Encontrar valor máximo para escala do gráfico
+      const maxValue = Math.max(...period.chartData);
       
-      // Desenhar barras do gráfico
+      // Desenhar barras do gráfico de período
       period.chartData.forEach((value, i) => {
-        const barHeight = (value / maxDataValue) * maxBarHeight;
-        const barX = chartX + (i * (barWidth + barGap));
+        const barHeight = (value / maxValue) * 40; // altura máxima de 40mm
+        const barX = chartStartX + (i * (barWidth + barGap));
         
-        // Desenhar barra - cores alternadas da mesma família
-        const intensity = 100 + (i * 30);
-        doc.setFillColor(
-          Math.min(255, period.color[0] + intensity/2), 
-          Math.min(255, period.color[1] + intensity/2), 
-          Math.min(255, period.color[2] + intensity/2)
-        );
-        
-        if (chartDirection === 'up') {
-          // Barras para cima
-          doc.rect(barX, chartY - barHeight, barWidth, barHeight, 'F');
+        // Cores alternadas da mesma família de cores
+        if (i % 2 === 0) {
+          doc.setFillColor(period.color[0], period.color[1], period.color[2]);
         } else {
-          // Barras para baixo
+          doc.setFillColor(
+            Math.min(255, period.color[0] + 40),
+            Math.min(255, period.color[1] + 40),
+            Math.min(255, period.color[2] + 40)
+          );
+        }
+        
+        if (isEvenPeriod) {
+          // Barras crescendo para baixo
           doc.rect(barX, chartY, barWidth, barHeight, 'F');
+        } else {
+          // Barras crescendo para cima
+          doc.rect(barX, chartY, barWidth, -barHeight, 'F');
         }
       });
       
-      // Descrição do período (abaixo ou acima, alternando)
-      const descriptionY = isEvenPeriod ? timelineY + 70 : timelineY - 60;
-      doc.setFontSize(10);
+      // Texto descritivo
+      doc.setFontSize(9);
       doc.setTextColor(220, 220, 220);
-      doc.text(period.description, circleX, descriptionY, { 
+      doc.setFontStyle('normal');
+      doc.text(period.description, x, descriptionY, { 
         align: 'center',
-        maxWidth: segmentWidth - 10
+        maxWidth: segmentWidth - 20
       });
       
-      // Círculo com estatísticas
-      const statCircleX = circleX;
-      const statCircleY = isEvenPeriod ? timelineY + 90 : timelineY - 80;
-      const statCircleRadius = 25;
+      // Círculo com gráfico de pizza/donut
+      const circleRadius = 20;
       
-      // Desenhar círculo de estatísticas com segmentos de cores
+      // Desenhar círculo principal
       doc.setFillColor(period.color[0], period.color[1], period.color[2]);
-      doc.circle(statCircleX, statCircleY, statCircleRadius, 'F');
+      doc.circle(x, circleY, circleRadius, 'F');
       
-      // Adicionar texto ao centro do círculo
-      doc.setFontSize(18);
+      // Segmentos decorativos no círculo
+      const numSegments = 3;
+      for(let i = 0; i < numSegments; i++) {
+        const segAngle = (2 * Math.PI / numSegments) * i;
+        const segX = x + (circleRadius * 0.6) * Math.cos(segAngle);
+        const segY = circleY + (circleRadius * 0.6) * Math.sin(segAngle);
+        
+        // Cores alternadas
+        doc.setFillColor(
+          Math.min(255, period.color[0] + 60 + (i * 20)),
+          Math.min(255, period.color[1] + 60 + (i * 20)),
+          Math.min(255, period.color[2] + 60 + (i * 20))
+        );
+        doc.circle(segX, segY, circleRadius * 0.4, 'F');
+      }
+      
+      // Círculo branco no centro
+      doc.setFillColor(60, 64, 75); // Mesma cor do fundo
+      doc.circle(x, circleY, circleRadius * 0.5, 'F');
+      
+      // Texto com estatísticas
+      doc.setFontSize(14);
       doc.setTextColor(255, 255, 255);
-      doc.text(`${period.stats}`, statCircleX, statCircleY, { align: 'center' });
-      
-      // Adicionar label abaixo do número
-      doc.setFontSize(8);
-      doc.text("processos", statCircleX, statCircleY + 8, { align: 'center' });
-      
-      // Desenhar segmentos decorativos no círculo
-      // Segmento 1
-      doc.setFillColor(
-        Math.min(255, period.color[0] + 40),
-        Math.min(255, period.color[1] + 40),
-        Math.min(255, period.color[2] + 40)
-      );
-      doc.circle(statCircleX - statCircleRadius/2, statCircleY - statCircleRadius/2, statCircleRadius/3, 'F');
-      
-      // Segmento 2
-      doc.setFillColor(
-        Math.min(255, period.color[0] + 80),
-        Math.min(255, period.color[1] + 80),
-        Math.min(255, period.color[2] + 80)
-      );
-      doc.circle(statCircleX + statCircleRadius/2, statCircleY - statCircleRadius/2, statCircleRadius/3, 'F');
+      doc.setFontStyle('bold');
+      doc.text(`${period.stats || 0}`, x, circleY + 4, { align: 'center' });
     });
     
-    // === ESTATÍSTICAS GERAIS ===
-    // Adicionar texto descritivo ao topo
-    const currentYear = new Date().getFullYear();
-    const currentYearProcesses = filteredProcesses.filter(p => 
-      new Date(p.createdAt).getFullYear() === currentYear
-    ).length;
-    
-    doc.setFontSize(12);
+    // Rodapé com informações de geração
+    doc.setFontSize(9);
     doc.setTextColor(180, 180, 180);
-    doc.text(`Total de processos até ${currentYear}: ${filteredProcesses.length}`, 
-      pageWidth / 2, pageHeight - 20, { align: 'center' });
-    
-    // Adicionar informações de estatísticas ao rodapé
-    doc.setFontSize(10);
-    doc.setTextColor(150, 150, 150);
-    doc.text(`Sistema de Controle de Processos de Licitação - SEAP/PB | Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 
+    doc.setFontStyle('normal');
+    doc.text(`SEAP-PB | Sistema de Controle de Processos Licitatórios | Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 
       pageWidth / 2, pageHeight - 10, { align: 'center' });
     
     // Salvar o PDF
-    doc.save(`linha-tempo-processos-licitatorios-${new Date().toLocaleDateString('pt-BR').replaceAll('/', '-')}.pdf`);
+    doc.save(`timeline-processos-${new Date().toLocaleDateString('pt-BR').replaceAll('/', '-')}.pdf`);
   } catch (error) {
     console.error('Erro ao gerar relatório PDF:', error);
     alert('Ocorreu um erro ao gerar o relatório PDF. Por favor, tente novamente.');
