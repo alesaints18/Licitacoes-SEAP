@@ -22,6 +22,7 @@ import {
   generateExcelReport,
   generatePdfReport,
 } from "@/lib/utils/exactReportExport";
+import { generateTimelinePdfReport } from "@/lib/utils/timelineExport";
 import {
   BarChart,
   Bar,
@@ -167,10 +168,10 @@ const Reports = () => {
       .sort((a, b) => b.percentage - a.percentage);
   };
 
-  const generateReport = (format: "pdf" | "excel") => {
-    if (!processes || !users || !modalities || !sources) return;
-
-    const reportData = {
+  const prepareReportData = () => {
+    if (!processes || !users || !modalities || !sources) return null;
+    
+    return {
       processes,
       users,
       modalities,
@@ -183,9 +184,14 @@ const Reports = () => {
       },
       reportType,
     };
+  };
+
+  const generateReport = (format: "pdf" | "excel") => {
+    const reportData = prepareReportData();
+    if (!reportData) return;
 
     if (format === "pdf") {
-      generatePdfReport(reportData);
+      generateTimelinePdfReport(reportData);
     } else {
       generateExcelReport(reportData);
     }
@@ -287,9 +293,21 @@ const Reports = () => {
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               Exportar Excel
             </Button>
-            <Button onClick={() => generateReport("pdf")}>
+            <Button variant="outline" onClick={() => {
+              const data = prepareReportData();
+              if (!data) return;
+              generatePdfReport(data);
+            }}>
               <File className="h-4 w-4 mr-2" />
-              Exportar PDF
+              Exportar PDF Padrão
+            </Button>
+            <Button onClick={() => {
+              const data = prepareReportData();
+              if (!data) return;
+              generateTimelinePdfReport(data);
+            }}>
+              <FileText className="h-4 w-4 mr-2" />
+              Exportar Timeline
             </Button>
           </div>
         </CardContent>
