@@ -82,11 +82,11 @@ export function generateTimelinePdfReport(data: ReportData): void {
     
     // Efeito de sombra (título principal) - texto ligeiramente translúcido em offset
     doc.setTextColor(220, 220, 220, 0.5);
-    doc.text('Timeline Infográfico', pageWidth / 2 + 1, 26, { align: 'center' });
+    doc.text('Relatório Infográfico SEAP-PB', pageWidth / 2 + 1, 26, { align: 'center' });
     
     // Texto principal (título)
     doc.setTextColor(255, 255, 255);
-    doc.text('Timeline Infográfico', pageWidth / 2, 25, { align: 'center' });
+    doc.text('Relatório Infográfico SEAP-PB', pageWidth / 2, 25, { align: 'center' });
     
     // === LINHA DO TEMPO CENTRAL ===
     const timelineY = 70;
@@ -103,47 +103,103 @@ export function generateTimelinePdfReport(data: ReportData): void {
       [255, 149, 0]    // Laranja
     ];
     
-    // Períodos da timeline (como na imagem de referência)
+    // Dados para as estatísticas
+    const statusCounts = {
+      draft: filteredProcesses.filter(p => p.status === 'draft').length,
+      in_progress: filteredProcesses.filter(p => p.status === 'in_progress').length,
+      completed: filteredProcesses.filter(p => p.status === 'completed').length,
+      canceled: filteredProcesses.filter(p => p.status === 'canceled').length,
+    };
+    
+    // Estatísticas por modalidade
+    const modalityStats = new Map<number, number>();
+    filteredProcesses.forEach(p => {
+      const count = modalityStats.get(p.modalityId) || 0;
+      modalityStats.set(p.modalityId, count + 1);
+    });
+    const modalitiesData = Array.from(modalityStats.entries())
+      .map(([id, count]) => {
+        const modality = data.modalities.find(m => m.id === id);
+        return { name: modality?.name || `Modalidade ${id}`, count };
+      })
+      .sort((a, b) => b.count - a.count);
+    
+    // Estatísticas por fonte
+    const sourceStats = new Map<number, number>();
+    filteredProcesses.forEach(p => {
+      const count = sourceStats.get(p.sourceId) || 0;
+      sourceStats.set(p.sourceId, count + 1);
+    });
+    const sourcesData = Array.from(sourceStats.entries())
+      .map(([id, count]) => {
+        const source = data.sources.find(s => s.id === id);
+        return { name: source?.code || `Fonte ${id}`, count };
+      })
+      .sort((a, b) => b.count - a.count);
+    
+    // Estatísticas por responsável
+    const responsibleStats = new Map<number, {total: number, completed: number}>();
+    filteredProcesses.forEach(p => {
+      const stats = responsibleStats.get(p.responsibleId) || {total: 0, completed: 0};
+      stats.total++;
+      if (p.status === 'completed') {
+        stats.completed++;
+      }
+      responsibleStats.set(p.responsibleId, stats);
+    });
+    const responsiblesData = Array.from(responsibleStats.entries())
+      .map(([id, stats]) => {
+        const user = data.users.find(u => u.id === id);
+        return { 
+          name: user?.fullName || `Usuário ${id}`, 
+          total: stats.total, 
+          completed: stats.completed 
+        };
+      })
+      .sort((a, b) => b.total - a.total);
+    
+    // Períodos da timeline com dados reais
     const periods = [
       { 
-        label: 'Inicialização', 
-        year: '1980', 
+        label: 'Status', 
+        year: 'Status', 
         color: timelineColors[0],
-        stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2021).length,
-        description: 'Aenean sodales congue\nnisi sed imperdiet. Donec\ndapibus egent sem ac ornare.',
-        chartData: [10, 15, 12, 18, 14]
+        stats: filteredProcesses.length,
+        description: `Em Andamento: ${statusCounts.in_progress}\nConcluídos: ${statusCounts.completed}\nRascunho: ${statusCounts.draft}\nCancelados: ${statusCounts.canceled}`,
+        chartData: [statusCounts.draft, statusCounts.in_progress, statusCounts.completed, statusCounts.canceled, 0]
       },
       { 
-        label: 'Progresso', 
-        year: '1990', 
+        label: 'Modalidades', 
+        year: 'Modalidades', 
         color: timelineColors[1],
-        stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2022).length,
-        description: 'Cras est tortor est. Ut\nvehicula vel placerat,\nvestibulum eget, placerat\nligula mauris.',
-        chartData: [15, 22, 18, 25, 20]
+        stats: modalitiesData.reduce((sum, m) => sum + m.count, 0),
+        description: modalitiesData.slice(0, 3).map(m => `${m.name}: ${m.count}`).join('\n'),
+        chartData: modalitiesData.slice(0, 5).map(m => m.count)
       },
       { 
-        label: 'Expansão', 
-        year: '2000', 
+        label: 'Fontes', 
+        year: 'Fontes', 
         color: timelineColors[2],
-        stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2023).length,
-        description: 'In eunisus magna, faucibus\negest erat nunc, tempus\nrhoncus diam. Phasellus\nac, este felis.',
-        chartData: [22, 28, 25, 32, 30]
+        stats: sourcesData.reduce((sum, s) => sum + s.count, 0),
+        description: sourcesData.slice(0, 3).map(s => `${s.name}: ${s.count}`).join('\n'),
+        chartData: sourcesData.slice(0, 5).map(s => s.count)
       },
       { 
-        label: 'Inovação', 
-        year: '2010', 
+        label: 'Responsáveis', 
+        year: 'Resp.', 
         color: timelineColors[3],
-        stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2024).length,
-        description: 'Fusce egestus, nisl at\nlobortis vulputate, velit erat\nconque lactur, et amet\nluctus risus enim.',
-        chartData: [25, 30, 35, 40, 38]
+        stats: responsiblesData.reduce((sum, r) => sum + r.total, 0),
+        description: responsiblesData.slice(0, 3).map(r => `${r.name.split(' ')[0]}: ${r.total}`).join('\n'),
+        chartData: responsiblesData.slice(0, 5).map(r => r.total)
       },
       { 
-        label: 'Excelência', 
-        year: '2020', 
+        label: 'Eficiência', 
+        year: 'Desempenho', 
         color: timelineColors[4],
-        stats: filteredProcesses.filter(p => new Date(p.createdAt).getFullYear() === 2025).length,
-        description: 'Cras et allocicitude nulla,\nsapien dolor, semper lac,\nsapien eu tincidunt felis.',
-        chartData: [30, 35, 42, 48, 45]
+        stats: Math.round(responsiblesData.reduce((sum, r) => sum + r.completed, 0) / 
+                Math.max(1, responsiblesData.reduce((sum, r) => sum + r.total, 0)) * 100),
+        description: 'Porcentagem de processos\nconcluídos em relação\nao total de processos',
+        chartData: [statusCounts.draft, statusCounts.in_progress, statusCounts.completed, statusCounts.canceled, filteredProcesses.length]
       }
     ];
     

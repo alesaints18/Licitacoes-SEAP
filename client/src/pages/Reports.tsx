@@ -293,21 +293,13 @@ const Reports = () => {
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               Exportar Excel
             </Button>
-            <Button variant="outline" onClick={() => {
-              const data = prepareReportData();
-              if (!data) return;
-              generatePdfReport(data);
-            }}>
-              <File className="h-4 w-4 mr-2" />
-              Exportar PDF Padrão
-            </Button>
             <Button onClick={() => {
               const data = prepareReportData();
               if (!data) return;
               generateTimelinePdfReport(data);
             }}>
               <FileText className="h-4 w-4 mr-2" />
-              Exportar Timeline
+              Exportar PDF
             </Button>
           </div>
         </CardContent>
