@@ -1,80 +1,89 @@
-import React from "react";
-import { Link } from "wouter";
+import { useParams } from "wouter";
+import { FileDown, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download as DownloadIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
 const Download = () => {
-  // Função para lidar com o download
+  const { token } = useParams();
+  const [downloaded, setDownloaded] = useState(false);
+  
+  // Status de download
+  const [downloadStatus, setDownloadStatus] = useState<'idle' | 'downloading' | 'completed'>('idle');
+  
+  // Função para iniciar o download
   const handleDownload = () => {
-    // URL do arquivo para download
-    const fileUrl = "/downloads/SEAP-PB-win-x64.rar";
+    // Configurar status de download
+    setDownloadStatus('downloading');
     
-    // Criando um elemento de link para iniciar o download
-    const link = document.createElement("a");
-    link.href = fileUrl;
-    link.setAttribute("download", "SEAP-PB-win-x64.rar");
-    
-    // Adicionar ao corpo do documento, clicar e remover
-    document.body.appendChild(link);
-    
-    // Mostrar feedback ao usuário antes de iniciar o download
+    // Simular progresso de download
     setTimeout(() => {
+      setDownloadStatus('completed');
+      setDownloaded(true);
+      
+      // Criar link de download para o arquivo
+      const link = document.createElement('a');
+      link.href = '/downloads/SEAP-PB-v1.0.0.zip';
+      link.setAttribute('download', 'SEAP-PB-v1.0.0.zip');
+      document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-    }, 100);
+    }, 2000);
   };
-
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+      <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-primary">
-            Sistema de Controle de Processos de Licitação
-          </CardTitle>
+          <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center">
+            <FileDown className="h-10 w-10 text-blue-600" />
+          </div>
+          <CardTitle className="text-2xl font-bold">Sistema SEAP-PB</CardTitle>
           <CardDescription>
-            Secretaria de Estado da Administração Penitenciária
+            Sistema de Controle de Processos de Licitação
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="text-center mb-6">
-            <div className="flex justify-center">
-              <div className="bg-primary/10 p-4 rounded-full">
-                <DownloadIcon className="h-12 w-12 text-primary" />
-              </div>
-            </div>
-            <h3 className="mt-4 text-lg font-medium">Download do Aplicativo</h3>
-            <p className="text-sm text-muted-foreground mt-2">
-              Versão para Windows 64 bits. Clique no botão abaixo para baixar.
+          <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4">
+            <h3 className="font-medium mb-2">Informações do Download</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Versão: 1.0.0<br />
+              Tamanho: 12.5 MB<br />
+              Data de lançamento: 23/05/2025
             </p>
           </div>
           
-          <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
-            <h4 className="text-amber-800 dark:text-amber-300 font-medium">Requisitos do Sistema</h4>
-            <ul className="text-sm text-amber-700 dark:text-amber-400 mt-2 list-disc list-inside space-y-1">
-              <li>Windows 10 ou posterior (64 bits)</li>
-              <li>4GB de RAM mínimo</li>
-              <li>500MB de espaço em disco</li>
-              <li>Conexão com internet</li>
+          <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
+            <h3 className="font-medium mb-2">Conteúdo</h3>
+            <ul className="text-sm text-gray-500 dark:text-gray-400 list-disc pl-5 space-y-1">
+              <li>Aplicativo completo do Sistema SEAP-PB</li>
+              <li>Guia de instalação</li>
+              <li>Documentação de usuário</li>
+              <li>Requisitos de sistema</li>
             </ul>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-3">
-          <Button 
-            onClick={handleDownload} 
-            className="w-full" 
-            size="lg"
-          >
-            <DownloadIcon className="h-4 w-4 mr-2" />
-            Baixar Aplicativo (64MB)
-          </Button>
-          <p className="text-xs text-center text-muted-foreground">
-            Ao baixar, você concorda com os{" "}
-            <Link href="/termos" className="text-primary hover:underline">
-              termos de uso
-            </Link>{" "}
-            do software.
-          </p>
+        <CardFooter className="flex justify-center pb-6">
+          {downloadStatus === 'idle' && (
+            <Button onClick={handleDownload} className="w-3/4">
+              <FileDown className="mr-2 h-4 w-4" />
+              Baixar agora
+            </Button>
+          )}
+          
+          {downloadStatus === 'downloading' && (
+            <Button disabled className="w-3/4">
+              <Clock className="mr-2 h-4 w-4 animate-spin" />
+              Baixando...
+            </Button>
+          )}
+          
+          {downloadStatus === 'completed' && (
+            <Button variant="outline" className="w-3/4 bg-green-50 text-green-700 border-green-200">
+              <CheckCircle className="mr-2 h-4 w-4" />
+              Download concluído
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </div>
