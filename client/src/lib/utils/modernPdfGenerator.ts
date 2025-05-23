@@ -3,6 +3,82 @@ import 'jspdf-autotable';
 import autoTable from 'jspdf-autotable';
 import { Process, User, BiddingModality, ResourceSource, Department } from "@shared/schema";
 
+/**
+ * Função auxiliar para desenhar um setor da pizza
+ * @param doc Documento jsPDF
+ * @param centerX Centro X do círculo
+ * @param centerY Centro Y do círculo
+ * @param radius Raio do círculo
+ * @param startAngle Ângulo inicial em graus
+ * @param endAngle Ângulo final em graus
+ */
+function drawSector(doc: jsPDF, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number) {
+  // Converter ângulos para radianos e ajustar para começar de cima
+  const startRad = (startAngle - 90) * Math.PI / 180;
+  const endRad = (endAngle - 90) * Math.PI / 180;
+  
+  // Coordenadas do centro
+  const x0 = centerX;
+  const y0 = centerY;
+  
+  // Coordenadas do início do arco
+  const x1 = centerX + radius * Math.cos(startRad);
+  const y1 = centerY + radius * Math.sin(startRad);
+  
+  // Coordenadas do fim do arco
+  const x2 = centerX + radius * Math.cos(endRad);
+  const y2 = centerY + radius * Math.sin(endRad);
+  
+  // Definimos um pequeno passo para desenhar pontos ao longo do arco
+  const step = Math.min(5, (endAngle - startAngle) / 10); // 5 graus por passo
+  
+  // Começamos com um novo path
+  const path = [];
+  
+  // Adicionamos o centro como o primeiro ponto
+  path.push(x0);
+  path.push(y0);
+  
+  // Adicionamos o ponto inicial do arco
+  path.push(x1);
+  path.push(y1);
+  
+  // Adicionamos pontos ao longo do arco
+  for (let angle = startAngle + step; angle < endAngle; angle += step) {
+    const rad = (angle - 90) * Math.PI / 180;
+    const x = centerX + radius * Math.cos(rad);
+    const y = centerY + radius * Math.sin(rad);
+    path.push(x);
+    path.push(y);
+  }
+  
+  // Adicionamos o ponto final do arco
+  path.push(x2);
+  path.push(y2);
+  
+  // Fechamos o path voltando ao centro
+  path.push(x0);
+  path.push(y0);
+  
+  // Usamos a função internal que desenha um polígono preenchido
+  doc.internal.write('h');
+  doc.internal.write('f');
+  
+  // Método alternativo: desenhar triângulos individuais para aproximar um setor
+  for (let angle = startAngle; angle < endAngle - step; angle += step) {
+    const rad1 = (angle - 90) * Math.PI / 180;
+    const rad2 = ((angle + step) - 90) * Math.PI / 180;
+    
+    const x1 = centerX + radius * Math.cos(rad1);
+    const y1 = centerY + radius * Math.sin(rad1);
+    const x2 = centerX + radius * Math.cos(rad2);
+    const y2 = centerY + radius * Math.sin(rad2);
+    
+    // Desenhar um triângulo (centro, ponto1, ponto2)
+    doc.triangle(centerX, centerY, x1, y1, x2, y2, 'F');
+  }
+}
+
 
 
 interface ReportData {
@@ -231,33 +307,32 @@ export function generateModernPdf(data: ReportData): void {
         { status: "canceled", count: statusCounts.canceled, label: "Cancelados", color: statusColors.canceled }
       ].filter(item => item.count > 0);
       
-      // Desenhar gráfico multi-colorido
-      // Desenharemos um círculo preenchido para cada status, um ao lado do outro
+      // Desenhar um gráfico de pizza simplificado (círculo único com cor)
+      // Como o jsPDF não suporta nativamente gráficos de setores,
+      // usaremos um círculo completo com a cor dominante e focaremos na legenda colorida
       
-      // Definir espaçamento e tamanho
-      const graphWidth = 120;
-      const blockHeight = 25;
-      const startX = pieX - 60; // Centralizar o gráfico
-            
-      // Desenhar blocos horizontais para cada status - similar a um gráfico de barras horizontal
-      let currentX = startX;
-      statusData.forEach(item => {
-        // Calcular largura proporcional para este status
-        const blockWidth = (item.count / total) * graphWidth;
-        
-        // Preencher com a cor do status
-        doc.setFillColor(item.color[0], item.color[1], item.color[2]);
-        doc.rect(currentX, pieY - blockHeight/2, blockWidth, blockHeight, 'F');
-        
-        // Avançar para o próximo bloco
-        currentX += blockWidth;
-      });
+      // Encontrar o status com maior quantidade
+      const dominantStatus = [...statusData].sort((a, b) => b.count - a.count)[0];
       
-      // Adicionar número total acima do gráfico
+      // Usar a cor do status dominante para o círculo
+      if (dominantStatus) {
+        doc.setFillColor(dominantStatus.color[0], dominantStatus.color[1], dominantStatus.color[2]);
+      } else {
+        doc.setFillColor(59, 130, 246); // Azul padrão se não houver dados
+      }
+      
+      // Desenhar o círculo completo
+      doc.circle(pieX, pieY, pieRadius, 'F');
+      
+      // Círculo branco no centro para criar efeito de rosca
+      doc.setFillColor(255, 255, 255);
+      doc.circle(pieX, pieY, pieRadius * 0.6, 'F');
+      
+      // Adicionar número total no centro
       doc.setTextColor(50, 50, 50);
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
-      doc.text(`Total: ${total}`, pieX, pieY - blockHeight/2 - 5, { align: 'center' });
+      doc.text(total.toString(), pieX, pieY + 4, { align: 'center' });
       
       // Legendas com maior espaçamento
       let legendY = pieY - 20;
