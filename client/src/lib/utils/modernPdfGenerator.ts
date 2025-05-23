@@ -249,21 +249,21 @@ export function generateModernPdf(data: ReportData): void {
       doc.setFont("helvetica", "bold");
       doc.text(total.toString(), pieX, pieY + 4, { align: 'center' });
       
-      // Legendas
+      // Legendas com maior espaçamento
       let legendY = pieY - 20;
       statusData.forEach((item, index) => {
-        const color = statusColors[item.status as keyof typeof statusColors];
+        const color = item.color;
         const percentage = Math.round((item.count / total) * 100);
         
         // Quadrado colorido
         doc.setFillColor(color[0], color[1], color[2]);
-        doc.rect(pieX + 40, legendY + (index * 10), 5, 5, 'F');
+        doc.rect(pieX + 40, legendY + (index * 15), 5, 5, 'F');
         
         // Texto da legenda
         doc.setTextColor(50, 50, 50);
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
-        doc.text(`${item.label}: ${item.count} (${percentage}%)`, pieX + 48, legendY + (index * 10) + 4);
+        doc.text(`${item.label}: ${item.count} (${percentage}%)`, pieX + 48, legendY + (index * 15) + 4);
       });
     } else {
       // Mensagem caso não haja dados
@@ -290,6 +290,18 @@ export function generateModernPdf(data: ReportData): void {
     const sortedModalityData = [...modalityData].sort((a, b) => b.count - a.count);
     const maxCount = Math.max(...sortedModalityData.map(m => m.count), 1);
     
+    // Cores para as barras - array de cores diferentes
+    const barColors = [
+      [59, 130, 246],  // Azul
+      [16, 185, 129],  // Verde
+      [245, 158, 11],  // Amarelo
+      [239, 68, 68],   // Vermelho
+      [168, 85, 247],  // Roxo
+      [14, 165, 233],  // Azul claro
+      [34, 197, 94],   // Verde escuro
+      [249, 115, 22]   // Laranja
+    ];
+    
     // Desenhar barras
     const barWidth = Math.min(20, barChartWidth / (sortedModalityData.length * 2));
     const barGap = barWidth / 2;
@@ -298,8 +310,12 @@ export function generateModernPdf(data: ReportData): void {
       const barHeight = (modality.count / maxCount) * barChartHeight;
       const barX = barChartX + (index * (barWidth + barGap));
       
-      // Barra
-      doc.setFillColor(59, 130, 246); // Azul
+      // Escolher cor para esta barra
+      const colorIndex = index % barColors.length;
+      const barColor = barColors[colorIndex];
+      
+      // Barra com cor diferente para cada modalidade
+      doc.setFillColor(barColor[0], barColor[1], barColor[2]);
       doc.rect(barX, barChartY - barHeight, barWidth, barHeight, 'F');
       
       // Valor acima da barra
@@ -313,27 +329,58 @@ export function generateModernPdf(data: ReportData): void {
       doc.text(displayName, barX + barWidth / 2, barChartY + 5, { align: 'center' });
     });
     
+    // ----- ADICIONAR RODAPÉ NA PRIMEIRA PÁGINA -----
+    const footerY = pageHeight - 10;
+    
+    // Linha separadora
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
+    
+    // Texto do rodapé
+    doc.setFontSize(8);
+    doc.setTextColor(150, 150, 150);
+    doc.setFont("helvetica", "normal");
+    doc.text('SEAP-PB - Secretaria de Estado da Administração Penitenciária', pageWidth / 2, footerY, { align: 'center' });
+    
+    // ----- ADICIONAR NOVA PÁGINA PARA TABELA DE PROCESSOS -----
+    doc.addPage();
+    
+    // ----- CABEÇALHO DA SEGUNDA PÁGINA -----
+    doc.setFillColor(30, 64, 175); // Azul escuro
+    doc.rect(0, 0, pageWidth, 20, 'F');
+    
+    // Título
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Relatório SEAP-PB - Processos Recentes", margin, 14);
+    
+    // Data
+    doc.setFontSize(8);
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, pageWidth - margin, 14, { align: 'right' });
+    
     // ----- TABELA DE PROCESSOS RECENTES -----
     
     // Título da seção
     doc.setFontSize(14);
     doc.setTextColor(30, 64, 175);
     doc.setFont("helvetica", "bold");
-    doc.text("Processos Recentes", margin, 175);
+    doc.text("Processos Recentes", margin, 30);
     
     // Linha separadora
     doc.setDrawColor(220, 220, 220);
     doc.setLineWidth(0.5);
-    doc.line(margin, 179, pageWidth - margin, 179);
+    doc.line(margin, 34, pageWidth - margin, 34);
     
     // Preparar dados para a tabela
     const tableData = filteredProcesses
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 8)
+      .slice(0, 20) // Aumentamos o número de processos exibidos na tabela
       .map(p => {
         const modality = data.modalities.find(m => m.id === p.modalityId);
         const responsible = data.users.find(u => u.id === p.responsibleId);
-        const description = p.description.length > 40 ? p.description.substring(0, 40) + '...' : p.description;
+        const description = p.description.length > 50 ? p.description.substring(0, 50) + '...' : p.description;
         
         let statusText = '';
         switch(p.status) {
@@ -367,7 +414,7 @@ export function generateModernPdf(data: ReportData): void {
     autoTable(doc, {
       head: [headers],
       body: tableData,
-      startY: 185,
+      startY: 40,
       margin: { left: margin, right: margin },
       headStyles: {
         fillColor: [59, 130, 246],
@@ -379,17 +426,24 @@ export function generateModernPdf(data: ReportData): void {
       },
       styles: {
         font: 'helvetica',
-        fontSize: 8
+        fontSize: 9 // Aumentei o tamanho da fonte para melhor legibilidade
+      },
+      columnStyles: {
+        0: { cellWidth: 25 }, // PBDOC
+        1: { cellWidth: 'auto' }, // Descrição - Largura automática
+        2: { cellWidth: 45 }, // Modalidade
+        3: { cellWidth: 45 }, // Responsável
+        4: { cellWidth: 30 }, // Status
+        5: { cellWidth: 30 }  // Data de Criação
       }
     });
     
-    // ----- RODAPÉ -----
-    const footerY = pageHeight - 10;
+    // ----- RODAPÉ DA SEGUNDA PÁGINA -----
     
     // Linha separadora
     doc.setDrawColor(200, 200, 200);
     doc.setLineWidth(0.5);
-    doc.line(margin, footerY - 5, pageWidth - margin, footerY - 5);
+    doc.line(margin, pageHeight - 15, pageWidth - margin, pageHeight - 15);
     
     // Texto do rodapé
     doc.setFontSize(8);
