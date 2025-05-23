@@ -224,11 +224,20 @@ export function generateModernPdf(data: ReportData): void {
     // Desenhar gráfico de pizza se houver processos
     if (filteredProcesses.length > 0) {
       // Preparar dados para o gráfico e legenda
+      // Mapear diretamente as cores do COLORS para os dados de status
+      const COLORS_MAP = {
+        "completed": [0, 196, 159],  // Verde
+        "in_progress": [0, 136, 254], // Azul
+        "draft": [156, 163, 175],     // Cinza
+        "canceled": [255, 128, 66]    // Laranja
+      };
+      
+      // Preparar os dados para o gráfico com cores consistentes
       const statusData = [
-        { status: "completed", count: statusCounts.completed, label: "Concluídos", color: statusColors.completed },
-        { status: "in_progress", count: statusCounts.in_progress, label: "Em Andamento", color: statusColors.in_progress },
-        { status: "draft", count: statusCounts.draft, label: "Rascunho", color: statusColors.draft },
-        { status: "canceled", count: statusCounts.canceled, label: "Cancelados", color: statusColors.canceled }
+        { status: "completed", count: statusCounts.completed, label: "Concluídos", color: COLORS_MAP.completed },
+        { status: "in_progress", count: statusCounts.in_progress, label: "Em Andamento", color: COLORS_MAP.in_progress },
+        { status: "draft", count: statusCounts.draft, label: "Rascunho", color: COLORS_MAP.draft },
+        { status: "canceled", count: statusCounts.canceled, label: "Cancelados", color: COLORS_MAP.canceled }
       ].filter(item => item.count > 0);
       
       // Usaremos o mesmo esquema de cores da página de relatórios
@@ -241,11 +250,18 @@ export function generateModernPdf(data: ReportData): void {
       ];
       
       // Para desenhar os setores da pizza, vamos criar múltiplos mini-gráficos
-      // em formato de fatias
+      // em formato de fatias com tamanho proporcional à quantidade
       let startAngle = 0;
       
-      statusData.forEach((item, index) => {
+      // Garantir que os dados estejam ordenados corretamente pela quantidade (maior para menor)
+      // para garantir que a visualização represente corretamente os dados
+      const sortedStatusData = [...statusData].sort((a, b) => b.count - a.count);
+      
+      sortedStatusData.forEach((item, index) => {
         const colorIndex = index % COLORS.length;
+        
+        // Calcular o tamanho do ângulo baseado na proporção dos dados
+        // Para garantir que o ângulo seja proporcional à quantidade
         const angleSize = (item.count / total) * 360;
         
         // Desenhar setores como triângulos com diferentes ângulos
