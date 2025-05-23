@@ -3,82 +3,6 @@ import 'jspdf-autotable';
 import autoTable from 'jspdf-autotable';
 import { Process, User, BiddingModality, ResourceSource, Department } from "@shared/schema";
 
-/**
- * Função auxiliar para desenhar um setor da pizza
- * @param doc Documento jsPDF
- * @param centerX Centro X do círculo
- * @param centerY Centro Y do círculo
- * @param radius Raio do círculo
- * @param startAngle Ângulo inicial em graus
- * @param endAngle Ângulo final em graus
- */
-function drawSector(doc: jsPDF, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number) {
-  // Converter ângulos para radianos e ajustar para começar de cima
-  const startRad = (startAngle - 90) * Math.PI / 180;
-  const endRad = (endAngle - 90) * Math.PI / 180;
-  
-  // Coordenadas do centro
-  const x0 = centerX;
-  const y0 = centerY;
-  
-  // Coordenadas do início do arco
-  const x1 = centerX + radius * Math.cos(startRad);
-  const y1 = centerY + radius * Math.sin(startRad);
-  
-  // Coordenadas do fim do arco
-  const x2 = centerX + radius * Math.cos(endRad);
-  const y2 = centerY + radius * Math.sin(endRad);
-  
-  // Definimos um pequeno passo para desenhar pontos ao longo do arco
-  const step = Math.min(5, (endAngle - startAngle) / 10); // 5 graus por passo
-  
-  // Começamos com um novo path
-  const path = [];
-  
-  // Adicionamos o centro como o primeiro ponto
-  path.push(x0);
-  path.push(y0);
-  
-  // Adicionamos o ponto inicial do arco
-  path.push(x1);
-  path.push(y1);
-  
-  // Adicionamos pontos ao longo do arco
-  for (let angle = startAngle + step; angle < endAngle; angle += step) {
-    const rad = (angle - 90) * Math.PI / 180;
-    const x = centerX + radius * Math.cos(rad);
-    const y = centerY + radius * Math.sin(rad);
-    path.push(x);
-    path.push(y);
-  }
-  
-  // Adicionamos o ponto final do arco
-  path.push(x2);
-  path.push(y2);
-  
-  // Fechamos o path voltando ao centro
-  path.push(x0);
-  path.push(y0);
-  
-  // Usamos a função internal que desenha um polígono preenchido
-  doc.internal.write('h');
-  doc.internal.write('f');
-  
-  // Método alternativo: desenhar triângulos individuais para aproximar um setor
-  for (let angle = startAngle; angle < endAngle - step; angle += step) {
-    const rad1 = (angle - 90) * Math.PI / 180;
-    const rad2 = ((angle + step) - 90) * Math.PI / 180;
-    
-    const x1 = centerX + radius * Math.cos(rad1);
-    const y1 = centerY + radius * Math.sin(rad1);
-    const x2 = centerX + radius * Math.cos(rad2);
-    const y2 = centerY + radius * Math.sin(rad2);
-    
-    // Desenhar um triângulo (centro, ponto1, ponto2)
-    doc.triangle(centerX, centerY, x1, y1, x2, y2, 'F');
-  }
-}
-
 
 
 interface ReportData {
@@ -307,22 +231,49 @@ export function generateModernPdf(data: ReportData): void {
         { status: "canceled", count: statusCounts.canceled, label: "Cancelados", color: statusColors.canceled }
       ].filter(item => item.count > 0);
       
-      // Desenhar um gráfico de pizza simplificado (círculo único com cor)
-      // Como o jsPDF não suporta nativamente gráficos de setores,
-      // usaremos um círculo completo com a cor dominante e focaremos na legenda colorida
+      // Usaremos o mesmo esquema de cores da página de relatórios
+      const COLORS = [
+        [0, 136, 254],    // "#0088FE" - Azul
+        [0, 196, 159],    // "#00C49F" - Verde
+        [255, 187, 40],   // "#FFBB28" - Amarelo
+        [255, 128, 66],   // "#FF8042" - Laranja
+        [136, 132, 216]   // "#8884d8" - Roxo
+      ];
       
-      // Encontrar o status com maior quantidade
-      const dominantStatus = [...statusData].sort((a, b) => b.count - a.count)[0];
+      // Para desenhar os setores da pizza, vamos criar múltiplos mini-gráficos
+      // em formato de fatias
+      let startAngle = 0;
       
-      // Usar a cor do status dominante para o círculo
-      if (dominantStatus) {
-        doc.setFillColor(dominantStatus.color[0], dominantStatus.color[1], dominantStatus.color[2]);
-      } else {
-        doc.setFillColor(59, 130, 246); // Azul padrão se não houver dados
-      }
-      
-      // Desenhar o círculo completo
-      doc.circle(pieX, pieY, pieRadius, 'F');
+      statusData.forEach((item, index) => {
+        const colorIndex = index % COLORS.length;
+        const angleSize = (item.count / total) * 360;
+        
+        // Desenhar setores como triângulos com diferentes ângulos
+        const steps = Math.max(1, Math.floor(angleSize / 5));
+        const angleStep = angleSize / steps;
+        
+        // Definir cor do setor
+        doc.setFillColor(COLORS[colorIndex][0], COLORS[colorIndex][1], COLORS[colorIndex][2]);
+        
+        for (let i = 0; i < steps; i++) {
+          const start = startAngle + (i * angleStep);
+          const end = startAngle + ((i+1) * angleStep);
+          
+          // Calcular pontos
+          const startRad = (start - 90) * Math.PI / 180;
+          const endRad = (end - 90) * Math.PI / 180;
+          
+          const x1 = pieX + pieRadius * Math.cos(startRad);
+          const y1 = pieY + pieRadius * Math.sin(startRad);
+          const x2 = pieX + pieRadius * Math.cos(endRad);
+          const y2 = pieY + pieRadius * Math.sin(endRad);
+          
+          // Desenhar triângulo do setor
+          doc.triangle(pieX, pieY, x1, y1, x2, y2, 'F');
+        }
+        
+        startAngle += angleSize;
+      });
       
       // Círculo branco no centro para criar efeito de rosca
       doc.setFillColor(255, 255, 255);
