@@ -240,50 +240,69 @@ export function generateModernPdf(data: ReportData): void {
         { status: "canceled", count: statusCounts.canceled, label: "Cancelados", color: COLORS_MAP.canceled }
       ].filter(item => item.count > 0);
       
-      // Em vez de tentar desenhar um gráfico de pizza complexo com jsPDF,
-      // vamos usar uma abordagem simples de mostrar os blocos coloridos lado a lado
-      // que representam claramente as proporções
-
-      // Garantir que os dados estejam ordenados por status para manter consistência visual
+      // Desenhar um gráfico de pizza colorido com as fatias corretas
+      // Primeiro, vamos manter os dados ordenados para garantir consistência
       const sortedStatusData = [...statusData];
       
-      // Configuração do layout dos blocos
-      const blockTotalWidth = 120;  // Largura total disponível
-      const blockHeight = 20;       // Altura de cada bloco
-      const blockY = pieY - 30;     // Posição Y dos blocos
-      const blockStartX = pieX - blockTotalWidth/2; // Centralizar os blocos
+      // Desenhar primeiro o círculo base completo
+      doc.setFillColor(240, 240, 240); // Cor de fundo cinza claro
+      doc.circle(pieX, pieY, pieRadius, 'F');
       
-      // Texto explicativo acima dos blocos
-      doc.setFontSize(10);
-      doc.setTextColor(50, 50, 50);
-      doc.setFont("helvetica", "bold");
-      doc.text("Distribuição de Processos por Status", pieX, blockY - 15, { align: 'center' });
+      // Parâmetros para desenhar a pizza em camadas (fatias empilhadas)
+      let remainingAngle = 360; // Começamos com círculo completo
+      let startAngle = 0;
       
-      // Texto com total abaixo dos blocos
-      doc.setFontSize(10);
-      doc.text(`Total: ${total} processos`, pieX, blockY + blockHeight + 15, { align: 'center' });
-      
-      // Desenhar a representação colorida da distribuição
-      let currentX = blockStartX;
+      // Para cada status, desenhamos uma fatia
       sortedStatusData.forEach(item => {
-        // Calcular a largura proporcional deste bloco
-        const blockWidth = (item.count / total) * blockTotalWidth;
+        // Calcular a proporção deste status
+        const percentage = item.count / total;
+        const angleSize = percentage * 360;
         
-        // Definir a cor do bloco
+        // Determinar as coordenadas para desenhar a fatia
+        // Vamos desenhar vários triângulos para criar o efeito de setores circulares
+        const steps = Math.max(1, Math.floor(angleSize / 6));
+        const angleStep = angleSize / steps;
+        
+        // Definir a cor para esta fatia
         doc.setFillColor(item.color[0], item.color[1], item.color[2]);
         
-        // Desenhar o bloco - largura proporcional à quantidade de processos
-        doc.rect(currentX, blockY, blockWidth, blockHeight, 'F');
-        
-        // Se o bloco for grande o suficiente, adicionar texto
-        if (blockWidth > 25) {
-          doc.setFontSize(8);
-          doc.setTextColor(255, 255, 255);
-          doc.text(`${item.count}`, currentX + blockWidth/2, blockY + blockHeight/2 + 3, { align: 'center' });
+        // Desenhar o setor circular como múltiplos triângulos
+        for (let i = 0; i < steps; i++) {
+          // Ângulos inicial e final para este triângulo
+          const start = startAngle + (i * angleStep);
+          const end = startAngle + ((i + 1) * angleStep);
+          
+          // Converter para radianos e ajustar para começar do topo
+          const startRad = (start - 90) * Math.PI / 180;
+          const endRad = (end - 90) * Math.PI / 180;
+          
+          // Calcular pontos na circunferência
+          const x1 = pieX + pieRadius * Math.cos(startRad);
+          const y1 = pieY + pieRadius * Math.sin(startRad);
+          const x2 = pieX + pieRadius * Math.cos(endRad);
+          const y2 = pieY + pieRadius * Math.sin(endRad);
+          
+          // Desenhar o triângulo do centro até a circunferência
+          doc.triangle(pieX, pieY, x1, y1, x2, y2, 'F');
         }
         
-        // Avançar para a próxima posição
-        currentX += blockWidth;
+        // Avançar o ângulo inicial para a próxima fatia
+        startAngle += angleSize;
+        
+        // Adicionar um pequeno indicador de porcentagem se a fatia for grande o suficiente
+        if (angleSize > 36) { // Pelo menos 10% do círculo
+          const midAngle = startAngle - (angleSize / 2);
+          const midRad = (midAngle - 90) * Math.PI / 180;
+          const labelRadius = pieRadius * 0.7; // Posição do texto dentro da fatia
+          
+          const labelX = pieX + labelRadius * Math.cos(midRad);
+          const labelY = pieY + labelRadius * Math.sin(midRad);
+          
+          // Adicionar texto branco com a quantidade
+          doc.setFontSize(8);
+          doc.setTextColor(255, 255, 255);
+          doc.text(`${item.count}`, labelX, labelY, { align: 'center' });
+        }
       });
       
       // Círculo branco no centro para criar efeito de rosca
