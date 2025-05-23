@@ -14,10 +14,12 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { ThemeToggle } from "./theme-toggle";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const Sidebar = () => {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // Get current user data
   const { data: user } = useQuery<User>({
@@ -92,8 +94,13 @@ const Sidebar = () => {
       .toUpperCase();
   }, [user?.fullName]);
 
+  // Se estiver em dispositivo móvel, não renderiza a sidebar
+  if (isMobile) {
+    return null;
+  }
+
   return (
-    <aside className="flex flex-shrink-0">
+    <aside className="hidden md:flex flex-shrink-0">
       <div className="flex flex-col w-64 dark:bg-[#010021] bg-[#105e8f] shadow-lg">
         {/* Logo */}
         <div className="flex flex-col items-center justify-center h-auto px-30 dark:bg-[#01001A] bg-[#396a9c]">
