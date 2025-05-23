@@ -39,35 +39,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   }));
   
-  // Definição de tokens válidos para download (em produção, isto poderia vir de um banco de dados)
-  const validDownloadTokens = ['seappb2025'];
-  
   // Rota direta para download do arquivo (agora usando o middleware static)
   app.get('/download-app', (req, res) => {
     // Redirecionar para o arquivo estático
-    res.redirect('/downloads/SEAP-PB-win-x64.rar');
+    res.redirect('/downloads/SEAP-PB-v1.0.0.zip');
   });
   
-  // Rota para a página de download com verificação de token - sem restrição de autenticação
-  app.get('/download/:token', (req, res) => {
-    const { token } = req.params;
-    
-    // Verificar se o token é válido
-    if (validDownloadTokens.includes(token)) {
-      // Log de acesso para fins de auditoria
-      console.log(`Acesso à página de download com token válido: ${token}`);
-      res.sendFile(path.join(process.cwd(), 'public', 'download.html'));
-    } else {
-      // Token inválido - redirecionar para página de erro ou home
-      console.log(`Tentativa de acesso à página de download com token inválido: ${token}`);
-      res.status(404).send('Página não encontrada');
-    }
-  });
-  
-  // Rota simples de download para compatibilidade com links antigos
+  // Rota para a página de download pública - sem restrição de autenticação
   app.get('/download', (req, res) => {
-    // Redirecionar para o token padrão
-    res.redirect('/download/seappb2025');
+    // Log de acesso para fins de auditoria
+    console.log('Acesso à página de download pública');
+    res.sendFile(path.join(process.cwd(), 'public', 'download.html'));
   });
   // Configurar trust proxy para que as sessões funcionem corretamente em produção
   app.set('trust proxy', 1);
