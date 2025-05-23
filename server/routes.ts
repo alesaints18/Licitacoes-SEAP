@@ -32,12 +32,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Configuração para servir arquivos estáticos da pasta de downloads
   app.use('/downloads', express.static(path.join(process.cwd(), 'public', 'downloads'), {
     setHeaders: (res, path) => {
-      if (path.endsWith('.rar')) {
+      if (path.endsWith('.rar') || path.endsWith('.zip')) {
         res.setHeader('Content-Type', 'application/octet-stream');
         res.setHeader('Content-Disposition', 'attachment');
       }
     }
   }));
+  
+  // Definição de tokens válidos para download (em produção, isto poderia vir de um banco de dados)
+  const validDownloadTokens = ['seappb2025'];
   
   // Rota direta para download do arquivo (agora usando o middleware static)
   app.get('/download-app', (req, res) => {
@@ -45,9 +48,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect('/downloads/SEAP-PB-win-x64.rar');
   });
   
-  // Rota para a página de download - sem restrição de autenticação
+  // Rota para a página de download com verificação de token - sem restrição de autenticação
+  app.get('/download/:token', (req, res) => {
+    const { token } = req.params;
+    
+    // Verificar se o token é válido
+    if (validDownloadTokens.includes(token)) {
+      // Log de acesso para fins de auditoria
+      console.log(`Acesso à página de download com token válido: ${token}`);
+      res.sendFile(path.join(process.cwd(), 'public', 'download.html'));
+    } else {
+      // Token inválido - redirecionar para página de erro ou home
+      console.log(`Tentativa de acesso à página de download com token inválido: ${token}`);
+      res.status(404).send('Página não encontrada');
+    }
+  });
+  
+  // Rota simples de download para compatibilidade com links antigos
   app.get('/download', (req, res) => {
-    res.sendFile(path.join(process.cwd(), 'public', 'download.html'));
+    // Redirecionar para o token padrão
+    res.redirect('/download/seappb2025');
   });
   // Configurar trust proxy para que as sessões funcionem corretamente em produção
   app.set('trust proxy', 1);

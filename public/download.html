@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Download de Documento - SEAP-PB</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9fafb;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background-color: #105e8f;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    main {
+      padding: 40px 20px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #FFFFFF;
+    }
+
+    p {
+      color: #FFFFFF;
+      margin-bottom: 30px;
+    }
+
+    .download-btn {
+     background-color: #2563eb;
+     color: white;
+     padding: 12px 24px;
+     text-decoration: none;
+     border-radius: 8px;
+     font-size: 16px;
+     display: inline-flex;
+     align-items: center;      /* centraliza verticalmente */
+     justify-content: center;  /* centraliza horizontalmente */
+     gap: 10px;
+     transition: background-color 0.3s ease;
+    }
+
+    .download-btn:hover {
+      background-color: #1d4ed8;
+    }
+
+    footer {
+      background-color: #f3f4f6;
+      color: #6b7280;
+      text-align: center;
+      padding: 20px;
+      font-size: 14px;
+    }
+
+    .info-box {
+      margin: 40px auto;
+      max-width: 600px;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      text-align: left;
+    }
+
+    .info-box h3 {
+      color: #105e8f;
+      margin-top: 0;
+    }
+
+    .info-box ul {
+      color: #4b5563;
+      text-align: left;
+      padding-left: 20px;
+    }
+
+    .footer-links a {
+      color: #2563eb;
+      margin: 0 10px;
+      text-decoration: none;
+    }
+
+    .footer-links a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png" alt="Governo da Paraíba" width="300px" style="background: rgba(255, 255, 255, 1); border-radius: 20px; padding: 15px;">
+    <h1>Secretaria de Estado da Administração Penitenciária da Paraíba (SEAP-PB)</h1>
+    <p>Sistema de Controle de Processos Licitatórios</p>
+  </header>
+
+  <main>
+    <h2>Download do Sistema SEAP-PB</h2>
+    <p style="color: #4b5563;">Clique no botão abaixo para baixar o sistema.</p>
+    
+    <a class="download-btn" href="/downloads/SEAP-PB-v1.0.0.zip" download>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      Baixar Sistema SEAP-PB v1.0.0
+    </a>
+
+    <div class="info-box">
+      <h3>Informações do Sistema</h3>
+      <ul>
+        <li><strong>Versão:</strong> 1.0.0</li>
+        <li><strong>Tamanho:</strong> 12.5 MB</li>
+        <li><strong>Data de lançamento:</strong> 23/05/2025</li>
+        <li><strong>Compatibilidade:</strong> Windows 10/11 (64 bits)</li>
+        <li><strong>Requisitos mínimos:</strong> 4GB RAM, Processador Dual Core, 500MB de espaço livre</li>
+      </ul>
+      
+      <h3>Conteúdo do pacote</h3>
+      <ul>
+        <li>Aplicativo completo do Sistema SEAP-PB</li>
+        <li>Guia de instalação e configuração</li>
+        <li>Documentação de usuário</li>
+        <li>Módulo de conectividade com servidor</li>
+      </ul>
+    </div>
+  </main>
+
+  <footer>
+    <p>© 2025 Secretaria de Estado da Administração Penitenciária da Paraíba. Todos os direitos reservados.</p>
+    <div class="footer-links">
+      <a href="/termos">Termos de Uso</a>
+      <a href="https://paraiba.pb.gov.br/">Portal do Governo</a>
+    </div>
+  </footer>
+
+  <script>
+    // Script para rastrear downloads
+    document.querySelector('.download-btn').addEventListener('click', function() {
+      console.log('Download iniciado');
+      // Aqui você pode adicionar código para registrar estatísticas de download
+    });
+  </script>
+</body>
+</html>
