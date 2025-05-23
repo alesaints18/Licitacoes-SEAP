@@ -3,50 +3,7 @@ import 'jspdf-autotable';
 import autoTable from 'jspdf-autotable';
 import { Process, User, BiddingModality, ResourceSource, Department } from "@shared/schema";
 
-/**
- * Função auxiliar para desenhar um setor de pizza usando arcos e linhas
- * @param doc Documento jsPDF
- * @param centerX Centro X do círculo
- * @param centerY Centro Y do círculo
- * @param radius Raio do círculo
- * @param startAngle Ângulo inicial em graus
- * @param endAngle Ângulo final em graus
- */
-function drawPieSlice(doc: jsPDF, centerX: number, centerY: number, radius: number, startAngle: number, endAngle: number) {
-  // Converter ângulos para radianos e ajustar para iniciar no topo (não à direita)
-  const startRad = (startAngle - 90) * Math.PI / 180;
-  const endRad = (endAngle - 90) * Math.PI / 180;
-  
-  // Calcular pontos do início e fim do arco
-  const x1 = centerX + radius * Math.cos(startRad);
-  const y1 = centerY + radius * Math.sin(startRad);
-  const x2 = centerX + radius * Math.cos(endRad);
-  const y2 = centerY + radius * Math.sin(endRad);
-  
-  // Desenhar o setor usando linhas e arcs
-  doc.setLineWidth(0.1);
-  
-  // Mover para o centro
-  doc.moveTo(centerX, centerY);
-  
-  // Linha até o início do arco
-  doc.lineTo(x1, y1);
-  
-  // Usar segmentos de linha para aproximar o arco circular
-  const steps = Math.max(10, Math.ceil((endAngle - startAngle) / 5));
-  for (let i = 1; i <= steps; i++) {
-    const angle = startRad + (i * (endRad - startRad) / steps);
-    const x = centerX + radius * Math.cos(angle);
-    const y = centerY + radius * Math.sin(angle);
-    doc.lineTo(x, y);
-  }
-  
-  // Voltar ao centro
-  doc.lineTo(centerX, centerY);
-  
-  // Preencher o caminho
-  doc.fill();
-}
+
 
 interface ReportData {
   processes: Process[];
@@ -301,12 +258,6 @@ export function generateModernPdf(data: ReportData): void {
       doc.setFontSize(12);
       doc.setFont("helvetica", "bold");
       doc.text(`Total: ${total}`, pieX, pieY - blockHeight/2 - 5, { align: 'center' });
-      
-      // Adicionar número total no centro
-      doc.setTextColor(50, 50, 50);
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "bold");
-      doc.text(total.toString(), pieX, pieY + 4, { align: 'center' });
       
       // Legendas com maior espaçamento
       let legendY = pieY - 20;
