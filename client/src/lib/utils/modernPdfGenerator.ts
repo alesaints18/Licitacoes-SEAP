@@ -240,55 +240,50 @@ export function generateModernPdf(data: ReportData): void {
         { status: "canceled", count: statusCounts.canceled, label: "Cancelados", color: COLORS_MAP.canceled }
       ].filter(item => item.count > 0);
       
-      // Usaremos o mesmo esquema de cores da página de relatórios
-      const COLORS = [
-        [0, 136, 254],    // "#0088FE" - Azul
-        [0, 196, 159],    // "#00C49F" - Verde
-        [255, 187, 40],   // "#FFBB28" - Amarelo
-        [255, 128, 66],   // "#FF8042" - Laranja
-        [136, 132, 216]   // "#8884d8" - Roxo
-      ];
+      // Em vez de tentar desenhar um gráfico de pizza complexo com jsPDF,
+      // vamos usar uma abordagem simples de mostrar os blocos coloridos lado a lado
+      // que representam claramente as proporções
+
+      // Garantir que os dados estejam ordenados por status para manter consistência visual
+      const sortedStatusData = [...statusData];
       
-      // Para desenhar os setores da pizza, vamos criar múltiplos mini-gráficos
-      // em formato de fatias com tamanho proporcional à quantidade
-      let startAngle = 0;
+      // Configuração do layout dos blocos
+      const blockTotalWidth = 120;  // Largura total disponível
+      const blockHeight = 20;       // Altura de cada bloco
+      const blockY = pieY - 30;     // Posição Y dos blocos
+      const blockStartX = pieX - blockTotalWidth/2; // Centralizar os blocos
       
-      // Garantir que os dados estejam ordenados corretamente pela quantidade (maior para menor)
-      // para garantir que a visualização represente corretamente os dados
-      const sortedStatusData = [...statusData].sort((a, b) => b.count - a.count);
+      // Texto explicativo acima dos blocos
+      doc.setFontSize(10);
+      doc.setTextColor(50, 50, 50);
+      doc.setFont("helvetica", "bold");
+      doc.text("Distribuição de Processos por Status", pieX, blockY - 15, { align: 'center' });
       
-      sortedStatusData.forEach((item, index) => {
-        const colorIndex = index % COLORS.length;
+      // Texto com total abaixo dos blocos
+      doc.setFontSize(10);
+      doc.text(`Total: ${total} processos`, pieX, blockY + blockHeight + 15, { align: 'center' });
+      
+      // Desenhar a representação colorida da distribuição
+      let currentX = blockStartX;
+      sortedStatusData.forEach(item => {
+        // Calcular a largura proporcional deste bloco
+        const blockWidth = (item.count / total) * blockTotalWidth;
         
-        // Calcular o tamanho do ângulo baseado na proporção dos dados
-        // Para garantir que o ângulo seja proporcional à quantidade
-        const angleSize = (item.count / total) * 360;
+        // Definir a cor do bloco
+        doc.setFillColor(item.color[0], item.color[1], item.color[2]);
         
-        // Desenhar setores como triângulos com diferentes ângulos
-        const steps = Math.max(1, Math.floor(angleSize / 5));
-        const angleStep = angleSize / steps;
+        // Desenhar o bloco - largura proporcional à quantidade de processos
+        doc.rect(currentX, blockY, blockWidth, blockHeight, 'F');
         
-        // Definir cor do setor
-        doc.setFillColor(COLORS[colorIndex][0], COLORS[colorIndex][1], COLORS[colorIndex][2]);
-        
-        for (let i = 0; i < steps; i++) {
-          const start = startAngle + (i * angleStep);
-          const end = startAngle + ((i+1) * angleStep);
-          
-          // Calcular pontos
-          const startRad = (start - 90) * Math.PI / 180;
-          const endRad = (end - 90) * Math.PI / 180;
-          
-          const x1 = pieX + pieRadius * Math.cos(startRad);
-          const y1 = pieY + pieRadius * Math.sin(startRad);
-          const x2 = pieX + pieRadius * Math.cos(endRad);
-          const y2 = pieY + pieRadius * Math.sin(endRad);
-          
-          // Desenhar triângulo do setor
-          doc.triangle(pieX, pieY, x1, y1, x2, y2, 'F');
+        // Se o bloco for grande o suficiente, adicionar texto
+        if (blockWidth > 25) {
+          doc.setFontSize(8);
+          doc.setTextColor(255, 255, 255);
+          doc.text(`${item.count}`, currentX + blockWidth/2, blockY + blockHeight/2 + 3, { align: 'center' });
         }
         
-        startAngle += angleSize;
+        // Avançar para a próxima posição
+        currentX += blockWidth;
       });
       
       // Círculo branco no centro para criar efeito de rosca
