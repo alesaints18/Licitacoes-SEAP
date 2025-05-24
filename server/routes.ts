@@ -59,8 +59,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(session({
     name: 'seap-session',
     secret: process.env.SESSION_SECRET || 'seap-pb-bidding-system-secure-key-2025',
-    resave: false,
-    saveUninitialized: false,
+    resave: true,
+    saveUninitialized: true,
     cookie: {
       maxAge: 30 * 24 * 60 * 60 * 1000, // 30 dias
       secure: false, // Sempre false para garantir compatibilidade
