@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Process, User, BiddingModality, Department } from "@shared/schema";
 import { Link } from "wouter";
-import { Eye, Edit, SendHorizonal, Loader2, Clock, AlertTriangle } from "lucide-react";
+import { Eye, X, SendHorizonal, Loader2, Clock, AlertTriangle } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import {
   getProcessStatusLabel,
@@ -156,6 +156,36 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
   } = useQuery<Process[]>({
     queryKey: ["/api/processes"],
     queryFn: getQueryFn({ on401: "throw" }),
+  });
+
+  // Mutation para excluir processo
+  const deleteProcessMutation = useMutation({
+    mutationFn: async (processId: number) => {
+      const res = await apiRequest(
+        "DELETE",
+        `/api/processes/${processId}`,
+      );
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || "Erro ao excluir processo");
+      }
+      return await res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Sucesso",
+        description: "Processo excluído com sucesso",
+      });
+      // Invalidar cache para atualizar a lista
+      queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao excluir processo",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   // Mutation para transferir processo
@@ -432,29 +462,33 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 process-cell">
                       <Link href={`/processes/${process.id}`}>
                         <a
-                          className="text-primary-600 hover:text-primary-900 mr-3"
+                          className="text-primary-600 hover:text-primary-900 mr-4"
                           title="Visualizar"
                         >
-                          <Eye className="h-4 w-4 inline-block" />
-                        </a>
-                      </Link>
-                      <Link href={`/processes/${process.id}/edit`}>
-                        <a
-                          className="text-gray-900 hover:text-gray-900 mr-3"
-                          title="Editar"
-                        >
-                          <Edit className="h-4 w-4 inline-block" />
+                          <Eye className="h-5 w-5 inline-block" />
                         </a>
                       </Link>
                       <button
-                        className="text-blue-600 hover:text-blue-900 border-none bg-transparent p-0 cursor-pointer"
+                        className="text-blue-600 hover:text-blue-900 border-none bg-transparent p-0 cursor-pointer mr-4"
                         onClick={(e) => {
                           e.preventDefault();
                           handleOpenTransferDialog(process);
                         }}
                         title="Transferir para outro departamento"
                       >
-                        <SendHorizonal className="h-4 w-4 inline-block" />
+                        <SendHorizonal className="h-5 w-5 inline-block" />
+                      </button>
+                      <button
+                        className="text-red-500 hover:text-red-700 border-none bg-transparent p-0 cursor-pointer"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          if (window.confirm(`Tem certeza que deseja excluir o processo ${process.pbdocNumber}?`)) {
+                            deleteProcessMutation.mutate(process.id);
+                          }
+                        }}
+                        title="Excluir processo"
+                      >
+                        <X className="h-5 w-5 inline-block" />
                       </button>
                     </td>
                   </tr>
