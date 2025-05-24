@@ -399,32 +399,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/processes', isAuthenticated, async (req, res) => {
     try {
-      console.log('Dados recebidos para criação de processo:', req.body);
+      console.log('Dados recebidos para criação de processo:', JSON.stringify(req.body, null, 2));
       
       // Pré-processamento para garantir que o formato dos dados esteja correto
       const processData = { ...req.body };
+      
+      // Testes de validação manual antes de usar o Zod
+      if (!processData.pbdocNumber || typeof processData.pbdocNumber !== 'string') {
+        return res.status(400).json({
+          message: 'Dados inválidos',
+          error: 'Número PBDOC é obrigatório e deve ser uma string'
+        });
+      }
+      
+      if (!processData.description || typeof processData.description !== 'string') {
+        return res.status(400).json({
+          message: 'Dados inválidos',
+          error: 'Descrição/Objeto é obrigatório e deve ser uma string'
+        });
+      }
+      
+      // Verificar e converter campos numéricos
+      for (const field of ['modalityId', 'sourceId', 'responsibleId', 'currentDepartmentId']) {
+        if (processData[field] === undefined || processData[field] === null) {
+          return res.status(400).json({
+            message: 'Dados inválidos',
+            error: `Campo ${field} é obrigatório`
+          });
+        }
+        
+        const numValue = Number(processData[field]);
+        if (isNaN(numValue)) {
+          return res.status(400).json({
+            message: 'Dados inválidos',
+            error: `Campo ${field} deve ser um número válido`
+          });
+        }
+        
+        processData[field] = numValue;
+      }
+      
+      // Verificar enum de prioridade
+      if (!['low', 'medium', 'high'].includes(processData.priority)) {
+        return res.status(400).json({
+          message: 'Dados inválidos',
+          error: 'Prioridade deve ser low, medium ou high'
+        });
+      }
+      
+      // Verificar enum de status
+      if (processData.status && !['draft', 'in_progress', 'completed', 'canceled'].includes(processData.status)) {
+        return res.status(400).json({
+          message: 'Dados inválidos',
+          error: 'Status deve ser draft, in_progress, completed ou canceled'
+        });
+      }
       
       // Ajustar campos específicos que podem causar problemas de validação
       if (processData.deadline === '') {
         processData.deadline = null;
       }
       
-      // Converter campos numéricos
-      if (typeof processData.modalityId === 'string') {
-        processData.modalityId = parseInt(processData.modalityId);
-      }
-      if (typeof processData.sourceId === 'string') {
-        processData.sourceId = parseInt(processData.sourceId);
-      }
-      if (typeof processData.responsibleId === 'string') {
-        processData.responsibleId = parseInt(processData.responsibleId);
-      }
-      if (typeof processData.currentDepartmentId === 'string') {
-        processData.currentDepartmentId = parseInt(processData.currentDepartmentId);
-      }
+      console.log('Dados pré-processados:', JSON.stringify(processData, null, 2));
       
-      console.log('Dados pré-processados:', processData);
-      let validatedData = insertProcessSchema.parse(processData);
+      // Usar Zod para validação final
+      let validatedData;
+      try {
+        validatedData = insertProcessSchema.parse(processData);
+      } catch (zodError: any) {
+        console.error("Erros de validação Zod:", zodError);
+        return res.status(400).json({ 
+          message: "Dados de processo inválidos", 
+          errors: zodError.errors || zodError.message
+        });
+      }
       
       // Definir a data em que o responsável assumiu o processo
       validatedData.responsibleSince = new Date();
@@ -436,6 +484,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       console.log('Dados validados para criação de processo:', validatedData);
+      
+      // Criar o processo no banco de dados
       const process = await storage.createProcess(validatedData);
       
       const userId = (req.user as any).id;
@@ -474,21 +524,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(process);
     } catch (error: any) {
       console.error("Erro ao criar processo:", error);
-      
-      // Verificar se é um erro de validação do Zod
-      if (error.errors) {
-        console.error("Erros de validação:", JSON.stringify(error.errors, null, 2));
-        return res.status(400).json({ 
-          message: "Dados de processo inválidos", 
-          errors: error.errors
-        });
-      }
-      
       res.status(400).json({ 
         message: "Dados de processo inválidos", 
         error: error.message || "Erro desconhecido" 
       });
     }
+  });
   });
 
   app.patch('/api/processes/:id', isAuthenticated, async (req, res) => {
