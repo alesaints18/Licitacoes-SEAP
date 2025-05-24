@@ -275,6 +275,24 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       {format(new Date(process.updatedAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                     </dd>
                   </div>
+                  
+                  {process.deadline && (
+                  <div className="py-3 grid grid-cols-3">
+                    <dt className="text-sm font-medium text-gray-500">Prazo de Entrega</dt>
+                    <dd className="text-sm text-gray-900 col-span-2 flex items-center">
+                      {format(new Date(process.deadline), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      {new Date(process.deadline) < new Date() ? (
+                        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                          Atrasado
+                        </span>
+                      ) : (
+                        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                          {Math.ceil((new Date(process.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} dias restantes
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                  )}
                 </dl>
               </CardContent>
             </Card>

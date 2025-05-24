@@ -400,7 +400,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/processes', isAuthenticated, async (req, res) => {
     try {
       console.log('Dados recebidos para criação de processo:', req.body);
-      const validatedData = insertProcessSchema.parse(req.body);
+      let validatedData = insertProcessSchema.parse(req.body);
+      
+      // Definir a data em que o responsável assumiu o processo
+      validatedData.responsibleSince = new Date();
+      
+      // Converter prazo de entrega para formato de data se existir
+      if (validatedData.deadline && typeof validatedData.deadline === 'string') {
+        validatedData.deadline = new Date(validatedData.deadline);
+        console.log(`Prazo de entrega definido: ${validatedData.deadline}`);
+      }
+      
       console.log('Dados validados para criação de processo:', validatedData);
       const process = await storage.createProcess(validatedData);
       
@@ -447,7 +457,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       console.log(`Dados recebidos para atualização do processo ${id}:`, req.body);
+      
+      // Verificar se o processo existe antes de atualizar
+      const existingProcess = await storage.getProcess(id);
+      if (!existingProcess) {
+        return res.status(404).json({ message: "Processo não encontrado" });
+      }
+      
       const processData = req.body;
+      
+      // Verificar se há alteração do responsável
+      if (processData.responsibleId && processData.responsibleId !== existingProcess.responsibleId) {
+        // Se o responsável mudou, atualizar a data de início da responsabilidade
+        processData.responsibleSince = new Date();
+        console.log(`Responsável do processo alterado. Novo responsável: ${processData.responsibleId}, desde: ${processData.responsibleSince}`);
+      }
+      
+      // Converter prazo de entrega para formato de data se existir
+      if (processData.deadline && typeof processData.deadline === 'string') {
+        processData.deadline = new Date(processData.deadline);
+        console.log(`Prazo de entrega definido: ${processData.deadline}`);
+      }
+      
       const updatedProcess = await storage.updateProcess(id, processData);
       console.log(`Processo ${id} atualizado:`, updatedProcess);
       
@@ -455,8 +486,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Processo não encontrado" });
       }
       
+      // Notificar alteração via WebSocket
+      broadcast({
+        type: 'process_updated',
+        processId: id,
+        message: `Processo ${updatedProcess.pbdocNumber} foi atualizado`
+      });
+      
       res.json(updatedProcess);
     } catch (error) {
+      console.error("Erro ao atualizar processo:", error);
       res.status(400).json({ message: "Erro ao atualizar processo", error });
     }
   });
@@ -610,10 +649,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const oldDepartmentId = process.currentDepartmentId;
       
-      // 1. Atualizar departamento do processo
+      // 1. Atualizar departamento do processo e data do responsável (quando o processo é transferido, o responsável passa a ser o novo usuário)
       const updatedProcess = await storage.updateProcess(processId, {
         currentDepartmentId: departmentId,
-        updatedAt: new Date()
+        responsibleId: userId,
+        responsibleSince: new Date()
       });
       
       if (!updatedProcess) {
