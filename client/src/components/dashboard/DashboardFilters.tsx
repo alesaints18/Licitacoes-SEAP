@@ -40,7 +40,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
   const handleApplyFilters = () => {
     onApplyFilters({
       pbdoc: pbdoc || undefined,
-      Centralcompras: centralcompras || undefined,
+      centralcompras: centralcompras || undefined,
       modality: modality === "all" ? undefined : modality || undefined,
       responsible: responsible === "all" ? undefined : responsible || undefined,
     });
