@@ -398,12 +398,6 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
                 >
                   Prazo
                 </th>
-                <th
-                  scope="col"
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider dark-header"
-                >
-                  Ações
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -459,38 +453,7 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
                         <span className="text-gray-400">Sem prazo</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 process-cell">
-                      <Link href={`/processes/${process.id}`}>
-                        <a
-                          className="text-primary-600 hover:text-primary-900 mr-4"
-                          title="Visualizar"
-                        >
-                          <Eye className="h-5 w-5 inline-block" />
-                        </a>
-                      </Link>
-                      <button
-                        className="text-blue-600 hover:text-blue-900 border-none bg-transparent p-0 cursor-pointer mr-4"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleOpenTransferDialog(process);
-                        }}
-                        title="Transferir para outro departamento"
-                      >
-                        <SendHorizonal className="h-5 w-5 inline-block" />
-                      </button>
-                      <button
-                        className="text-red-500 hover:text-red-700 border-none bg-transparent p-0 cursor-pointer"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (window.confirm(`Tem certeza que deseja excluir o processo ${process.pbdocNumber}?`)) {
-                            deleteProcessMutation.mutate(process.id);
-                          }
-                        }}
-                        title="Excluir processo"
-                      >
-                        <X className="h-5 w-5 inline-block" />
-                      </button>
-                    </td>
+
                   </tr>
                 );
               })}
