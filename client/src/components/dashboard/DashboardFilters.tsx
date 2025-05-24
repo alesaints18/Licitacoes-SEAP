@@ -69,11 +69,11 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
               value={pbdoc}
               onChange={(e) => setPbdoc(e.target.value)}
               placeholder="Número do PBDOC"
-              className="w-300"
+              className="w-25%"
             />
           </div>
 
-          <div className="w-[200px]">
+          <div className="w-[100%]">
             <label
               htmlFor="filter-modalidade"
               className="block text-sm font-medium text-gray-700 mb-1"
@@ -98,7 +98,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
             </Select>
           </div>
 
-          <div className="w-[200px]">
+          <div className="w-[100%]">
             <label
               htmlFor="filter-responsavel"
               className="block text-sm font-medium text-gray-700 mb-1"
@@ -131,7 +131,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
               value={centralcompras}
               onChange={(e) => setCentralcompras(e.target.value)}
               placeholder="Número da Central de Compras"
-              className="w-300"
+              className="w-25%"
             />
           </div>
         </div>

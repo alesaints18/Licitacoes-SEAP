@@ -399,7 +399,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/processes', isAuthenticated, async (req, res) => {
     try {
+      console.log('Dados recebidos para criação de processo:', req.body);
       const validatedData = insertProcessSchema.parse(req.body);
+      console.log('Dados validados para criação de processo:', validatedData);
       const process = await storage.createProcess(validatedData);
       
       const userId = (req.user as any).id;
@@ -444,8 +446,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.patch('/api/processes/:id', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      console.log(`Dados recebidos para atualização do processo ${id}:`, req.body);
       const processData = req.body;
       const updatedProcess = await storage.updateProcess(id, processData);
+      console.log(`Processo ${id} atualizado:`, updatedProcess);
       
       if (!updatedProcess) {
         return res.status(404).json({ message: "Processo não encontrado" });

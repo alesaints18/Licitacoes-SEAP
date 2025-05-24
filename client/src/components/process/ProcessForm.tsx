@@ -120,6 +120,12 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
     defaultValues: combinedDefaultValues,
   });
   
+  // Função para lidar com o envio do formulário, com log do valor
+  const handleFormSubmit = (data: ProcessFormValues) => {
+    console.log("Enviando dados do formulário:", data);
+    onSubmit(data);
+  };
+  
   const isLoading = usersLoading || modalitiesLoading || sourcesLoading || departmentsLoading;
   
   return (
@@ -139,7 +145,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
           <p>Carregando formulário...</p>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
