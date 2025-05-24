@@ -223,7 +223,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   
                   <div className="py-3 grid grid-cols-3">
                     <dt className="text-sm font-medium text-gray-500">Responsável</dt>
-                    <dd className="text-sm text-gray-900 col-span-2">{responsible?.fullName || `Usuário ${process.responsibleId}`}</dd>
+                    <dd className="text-sm text-gray-900 col-span-2">
+                      {responsible?.fullName || `Usuário ${process.responsibleId}`}
+                      {process.responsibleSince && (
+                        <div className="mt-1 text-xs text-blue-600 flex items-center">
+                          <Clock className="h-3 w-3 mr-1" /> 
+                          Responsável desde {format(new Date(process.responsibleSince), "dd/MM/yyyy", { locale: ptBR })} 
+                          ({Math.ceil((new Date().getTime() - new Date(process.responsibleSince).getTime()) / (1000 * 60 * 60 * 24))} dias)
+                        </div>
+                      )}
+                    </dd>
                   </div>
                 </dl>
               </CardContent>

@@ -54,6 +54,8 @@ export const processes = pgTable('processes', {
   status: processStatusEnum('status').notNull().default('draft'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  responsibleSince: timestamp('responsible_since'), // Data em que o responsável assumiu o processo
+  deadline: timestamp('deadline'), // Prazo de entrega do processo
 });
 
 // Process steps table

@@ -43,6 +43,9 @@ const processFormSchema = insertProcessSchema.extend({
   pbdocNumber: z.string().min(1, "Número PBDOC é obrigatório"),
   description: z.string().min(1, "Objeto é obrigatório"),
   centralDeCompras: z.string().optional(),
+  deadline: z.string().optional().refine(val => !val || /^\d{4}-\d{2}-\d{2}$/.test(val), {
+    message: "Formato inválido de data (use AAAA-MM-DD)"
+  }),
   modalityId: z.number({
     required_error: "Por favor, selecione a modalidade",
   }).refine(val => val > 0, "Modalidade é obrigatória"),
@@ -338,31 +341,57 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                 />
               </div>
               
-              <FormField
-                control={form.control}
-                name="centralDeCompras"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      Central de Compras
-                    </FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Número do processo de Central de Compras" 
-                        value={field.value || ""}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        name={field.name}
-                        ref={field.ref}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Digite o número do processo da Central de Compras (se aplicável)
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="centralDeCompras"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Central de Compras
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="Número do processo de Central de Compras" 
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          name={field.name}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Digite o número do processo da Central de Compras (se aplicável)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="deadline"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>
+                        Prazo de Entrega
+                      </FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="date"
+                          placeholder="Data limite para conclusão" 
+                          {...field} 
+                          value={field.value || ''}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Defina a data limite para conclusão do processo
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
               <FormField
                 control={form.control}
