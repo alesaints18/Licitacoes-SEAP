@@ -15,7 +15,7 @@ import { User, BiddingModality } from "@shared/schema";
 interface DashboardFiltersProps {
   onApplyFilters: (filters: {
     pbdoc?: string;
-    Centralcompras?: string;
+    centralcompras?: string;
     modality?: string;
     responsible?: string;
   }) => void;
@@ -48,6 +48,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
 
   const handleClearFilters = () => {
     setPbdoc("");
+    setCentralcompras("");
     setModality("");
     setResponsible("");
     onApplyFilters({});

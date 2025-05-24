@@ -17,7 +17,7 @@ interface FilterState {
   pbdoc?: string;
   modality?: string;
   responsible?: string;
-  Centralcompras?: string;
+  centralcompras?: string;
 }
 
 const Dashboard = () => {
@@ -111,11 +111,14 @@ const Dashboard = () => {
     }
     
     // Filtro para Central de Compras
-    if (filters.Centralcompras) {
-      console.log(`Filtrando Central de Compras: ${filters.Centralcompras}`);
-      processosFiltrados = processosFiltrados.filter((p) => 
-        p.centralDeCompras && p.centralDeCompras.toLowerCase().includes(filters.Centralcompras!.toLowerCase())
-      );
+    if (filters.centralcompras) {
+      console.log(`Filtrando Central de Compras: "${filters.centralcompras}"`);
+      processosFiltrados = processosFiltrados.filter((p) => {
+        console.log(`Verificando processo ${p.id}, Central de Compras: "${p.centralDeCompras}"`);
+        return p.centralDeCompras && 
+               p.centralDeCompras.toString().toLowerCase().includes(filters.centralcompras!.toLowerCase());
+      });
+      console.log(`Processos após filtro de Central de Compras: ${processosFiltrados.length}`);
     }
 
     console.log("Processos após filtragem:", processosFiltrados.length);
@@ -197,7 +200,7 @@ const Dashboard = () => {
           value={stats?.completed || 0}
           icon={<CheckCircle className="h-6 w-6" />}
           color="green"
-          change={{ value: 12, label: "+12% de aumento" }}
+          change={{ value: 12, label: "" }}
         />
 
         <StatsCard
@@ -213,7 +216,7 @@ const Dashboard = () => {
           value={stats?.canceled || 0}
           icon={<XCircle className="h-6 w-6" />}
           color="red"
-          change={{ value: -3, label: "-3% redução" }}
+          change={{ value: -3, label: "" }}
         />
       </div>
 
