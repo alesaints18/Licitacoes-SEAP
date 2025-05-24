@@ -318,7 +318,7 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider dark-header"
                 >
-                  Descrição
+                  Objeto
                 </th>
                 <th
                   scope="col"
