@@ -16,8 +16,44 @@ const ProcessCreate = () => {
     setIsSubmitting(true);
     
     try {
+      // Pré-processar os dados antes de enviar para o servidor
+      const processedData = {
+        ...data,
+        // Garantir que os IDs são números
+        modalityId: Number(data.modalityId),
+        sourceId: Number(data.sourceId),
+        responsibleId: Number(data.responsibleId),
+        currentDepartmentId: Number(data.currentDepartmentId),
+        // Verificar e ajustar o deadline
+        deadline: data.deadline === '' ? null : data.deadline
+      };
+      
+      console.log("Dados processados para envio:", processedData);
+      
       // Create the process
-      const response = await apiRequest("POST", "/api/processes", data);
+      const response = await apiRequest("POST", "/api/processes", processedData);
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Erro detalhado:", errorData);
+        
+        let errorMessage = "Não foi possível criar o processo. Tente novamente.";
+        
+        if (errorData.errors) {
+          // Formatar os erros para exibição
+          const errorDetails = Object.entries(errorData.errors)
+            .map(([field, errors]) => `${field}: ${errors}`)
+            .join(', ');
+          errorMessage = `Erros no formulário: ${errorDetails}`;
+        } else if (errorData.error) {
+          errorMessage = errorData.error;
+        } else if (errorData.message) {
+          errorMessage = errorData.message;
+        }
+        
+        throw new Error(errorMessage);
+      }
+      
       const createdProcess = await response.json();
       
       // Show success message
@@ -37,7 +73,7 @@ const ProcessCreate = () => {
       // Show error message
       toast({
         title: "Erro ao criar processo",
-        description: "Não foi possível criar o processo. Tente novamente.",
+        description: error.message || "Não foi possível criar o processo. Tente novamente.",
         variant: "destructive",
       });
     } finally {

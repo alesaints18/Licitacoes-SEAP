@@ -400,7 +400,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/processes', isAuthenticated, async (req, res) => {
     try {
       console.log('Dados recebidos para criação de processo:', req.body);
-      let validatedData = insertProcessSchema.parse(req.body);
+      
+      // Pré-processamento para garantir que o formato dos dados esteja correto
+      const processData = { ...req.body };
+      
+      // Ajustar campos específicos que podem causar problemas de validação
+      if (processData.deadline === '') {
+        processData.deadline = null;
+      }
+      
+      // Converter campos numéricos
+      if (typeof processData.modalityId === 'string') {
+        processData.modalityId = parseInt(processData.modalityId);
+      }
+      if (typeof processData.sourceId === 'string') {
+        processData.sourceId = parseInt(processData.sourceId);
+      }
+      if (typeof processData.responsibleId === 'string') {
+        processData.responsibleId = parseInt(processData.responsibleId);
+      }
+      if (typeof processData.currentDepartmentId === 'string') {
+        processData.currentDepartmentId = parseInt(processData.currentDepartmentId);
+      }
+      
+      console.log('Dados pré-processados:', processData);
+      let validatedData = insertProcessSchema.parse(processData);
       
       // Definir a data em que o responsável assumiu o processo
       validatedData.responsibleSince = new Date();
@@ -448,8 +472,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       res.status(201).json(process);
-    } catch (error) {
-      res.status(400).json({ message: "Dados de processo inválidos", error });
+    } catch (error: any) {
+      console.error("Erro ao criar processo:", error);
+      
+      // Verificar se é um erro de validação do Zod
+      if (error.errors) {
+        console.error("Erros de validação:", JSON.stringify(error.errors, null, 2));
+        return res.status(400).json({ 
+          message: "Dados de processo inválidos", 
+          errors: error.errors
+        });
+      }
+      
+      res.status(400).json({ 
+        message: "Dados de processo inválidos", 
+        error: error.message || "Erro desconhecido" 
+      });
     }
   });
 
