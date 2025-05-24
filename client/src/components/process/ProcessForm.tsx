@@ -42,6 +42,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 const processFormSchema = insertProcessSchema.extend({
   pbdocNumber: z.string().min(1, "Número PBDOC é obrigatório"),
   description: z.string().min(1, "Objeto é obrigatório"),
+  centralDeCompras: z.string().optional(),
   modalityId: z.number({
     required_error: "Por favor, selecione a modalidade",
   }).refine(val => val > 0, "Modalidade é obrigatória"),
@@ -342,7 +343,11 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                     <FormControl>
                       <Input 
                         placeholder="Número do processo de Central de Compras" 
-                        {...field} 
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        name={field.name}
+                        ref={field.ref}
                       />
                     </FormControl>
                     <FormDescription>

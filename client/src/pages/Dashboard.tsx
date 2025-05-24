@@ -109,6 +109,14 @@ const Dashboard = () => {
         return p.responsibleId === responsibleId;
       });
     }
+    
+    // Filtro para Central de Compras
+    if (filters.Centralcompras) {
+      console.log(`Filtrando Central de Compras: ${filters.Centralcompras}`);
+      processosFiltrados = processosFiltrados.filter((p) => 
+        p.centralDeCompras && p.centralDeCompras.toLowerCase().includes(filters.Centralcompras!.toLowerCase())
+      );
+    }
 
     console.log("Processos após filtragem:", processosFiltrados.length);
     return processosFiltrados;
