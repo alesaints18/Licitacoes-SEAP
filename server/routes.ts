@@ -464,6 +464,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Usar Zod para validação final
       let validatedData;
+      // Converter deadline para Date antes da validação, se existir
+      if (processData.deadline && typeof processData.deadline === 'string') {
+        try {
+          processData.deadline = new Date(processData.deadline);
+        } catch (error) {
+          return res.status(400).json({
+            message: 'Dados inválidos',
+            error: 'Formato de data inválido para o prazo'
+          });
+        }
+      }
+
       try {
         validatedData = insertProcessSchema.parse(processData);
       } catch (zodError: any) {
