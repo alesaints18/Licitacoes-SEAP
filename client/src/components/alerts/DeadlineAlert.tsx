@@ -46,14 +46,15 @@ export function DeadlineAlert() {
               <div className="flex flex-col space-y-2">
                 <p>
                   O processo <span className="font-semibold">{process.pbdocNumber}</span> tem prazo de expiração em{" "}
-                  <span className="font-bold text-destructive">{daysRemaining === 0 ? "hoje" : `${daysRemaining} dias`}</span>.
+                  <span className="font-bold text-rose-400">{daysRemaining === 0 ? "hoje" : `${daysRemaining} dias`}</span>.
                 </p>
                 <Link href={`/processes/${process.id}`} className="underline text-primary hover:text-primary/80">
                   Clique para visualizar o processo
                 </Link>
               </div>
             ),
-            variant: "destructive",
+            variant: "default",
+            className: "bg-rose-100 border-rose-300 text-rose-800 bg-opacity-80",
             duration: 8000,
           });
         });
@@ -64,6 +65,7 @@ export function DeadlineAlert() {
             title: "Mais Alertas de Prazo",
             description: `Há mais ${urgentProcesses.length - processesToShow.length} processos com prazos próximos do vencimento.`,
             variant: "default",
+            className: "bg-rose-50 border-rose-200 text-rose-700 bg-opacity-90",
             duration: 5000,
           });
         }
