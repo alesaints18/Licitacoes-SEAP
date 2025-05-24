@@ -45,6 +45,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
       centralcompras: centralcompras || undefined,
       modality: modality === "all" ? undefined : modality || undefined,
       responsible: responsible === "all" ? undefined : responsible || undefined,
+      deadline: deadline === "all" ? undefined : deadline || undefined,
     });
   };
 
@@ -53,13 +54,14 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
     setCentralcompras("");
     setModality("");
     setResponsible("");
+    setDeadline("");
     onApplyFilters({});
   };
 
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label
               htmlFor="filter-pbdoc"
@@ -136,6 +138,27 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
               placeholder="Número da Central de Compras"
               className="w-25%"
             />
+          </div>
+          
+          <div className="w-[100%]">
+            <label
+              htmlFor="filter-prazo"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Prazo
+            </label>
+            <Select value={deadline} onValueChange={setDeadline}>
+              <SelectTrigger id="filter-prazo">
+                <SelectValue placeholder="Todos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="urgent">Urgentes (até 5 dias)</SelectItem>
+                <SelectItem value="soon">Próximos (até 10 dias)</SelectItem>
+                <SelectItem value="future">Futuros (mais de 10 dias)</SelectItem>
+                <SelectItem value="expired">Vencidos</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

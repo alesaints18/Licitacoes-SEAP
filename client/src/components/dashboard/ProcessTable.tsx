@@ -32,6 +32,7 @@ interface FilterState {
   pbdoc?: string;
   modality?: string;
   responsible?: string;
+  deadline?: string;
 }
 
 interface ProcessTableProps {
@@ -205,6 +206,28 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
       filteredProcesses = filteredProcesses.filter((p) =>
         p.pbdocNumber.toLowerCase().includes(filters.pbdoc!.toLowerCase()),
       );
+    }
+    
+    if (filters?.deadline) {
+      const today = new Date();
+      filteredProcesses = filteredProcesses.filter((p) => {
+        if (!p.deadline) return filters.deadline === "all";
+        
+        const daysRemaining = differenceInDays(new Date(p.deadline), today);
+        
+        switch (filters.deadline) {
+          case "urgent":
+            return daysRemaining >= 0 && daysRemaining < 5;
+          case "soon":
+            return daysRemaining >= 0 && daysRemaining < 10;
+          case "future":
+            return daysRemaining >= 10;
+          case "expired":
+            return daysRemaining < 0;
+          default:
+            return true;
+        }
+      });
     }
 
     if (filters?.modality) {
