@@ -133,6 +133,36 @@ const Login = () => {
       const user = await response.json();
       console.log("Login bem-sucedido:", user);
 
+      // Verificar processos com prazos próximos
+      try {
+        const processesResponse = await fetch("/api/processes", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+        
+        if (processesResponse.ok) {
+          const processes = await processesResponse.json();
+          
+          // Filtrar processos com prazo de até 5 dias
+          const today = new Date();
+          const urgentProcessesList = processes.filter((process: any) => {
+            if (!process.deadline) return false;
+            const daysRemaining = differenceInDays(new Date(process.deadline), today);
+            return daysRemaining >= 0 && daysRemaining <= 5;
+          });
+          
+          if (urgentProcessesList.length > 0) {
+            setUrgentProcesses(urgentProcessesList);
+            setShowUrgentAlert(true);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao buscar processos com prazos próximos:", error);
+      }
+      
       // Show success toast
       toast({
         title: "Login realizado com sucesso",
@@ -205,6 +235,55 @@ const Login = () => {
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
+      {/* Alerta de processos com prazos próximos */}
+      <AlertDialog open={showUrgentAlert} onOpenChange={setShowUrgentAlert}>
+        <AlertDialogContent className="max-w-[650px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center text-amber-600">
+              <AlertTriangle className="mr-2 h-5 w-5" />
+              Processos com Prazos Urgentes
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Os seguintes processos estão com prazos de entrega próximos do vencimento e requerem atenção imediata:
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="max-h-[300px] overflow-y-auto my-4 border rounded-md">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">PBDOC</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Objeto</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-800 uppercase">Prazo</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {urgentProcesses.map((process) => {
+                  const daysRemaining = differenceInDays(new Date(process.deadline), new Date());
+                  return (
+                    <tr key={process.id}>
+                      <td className="px-4 py-2 whitespace-nowrap text-sm font-medium">{process.pbdocNumber}</td>
+                      <td className="px-4 py-2 text-sm">{process.description}</td>
+                      <td className={`px-4 py-2 whitespace-nowrap text-sm font-medium ${
+                        daysRemaining <= 2 ? "text-red-600" : "text-amber-600"
+                      }`}>
+                        {daysRemaining > 0
+                          ? `${daysRemaining} dias`
+                          : daysRemaining === 0
+                          ? "Hoje"
+                          : "Vencido"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogAction className="bg-primary">Entendi, vou verificar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
       <div className="w-full max-w-md px-4">
         <img
           src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
