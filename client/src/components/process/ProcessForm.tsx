@@ -39,12 +39,23 @@ import { Label } from "@/components/ui/label";
 
 // Extend the process schema for the form
 const processFormSchema = insertProcessSchema.extend({
+  pbdocNumber: z.string().min(1, "Número PBDOC é obrigatório"),
+  description: z.string().min(1, "Objeto é obrigatório"),
+  modalityId: z.number({
+    required_error: "Por favor, selecione a modalidade",
+  }).refine(val => val > 0, "Modalidade é obrigatória"),
+  sourceId: z.number({
+    required_error: "Por favor, selecione a fonte de recurso",
+  }).refine(val => val > 0, "Fonte de recurso é obrigatória"),
+  responsibleId: z.number({
+    required_error: "Por favor, selecione o responsável",
+  }).refine(val => val > 0, "Responsável é obrigatório"),
   priority: z.enum(["low", "medium", "high"], {
     required_error: "Por favor, selecione a prioridade",
   }),
   currentDepartmentId: z.number({
     required_error: "Por favor, selecione o setor responsável",
-  }),
+  }).refine(val => val > 0, "Setor responsável é obrigatório"),
 });
 
 type ProcessFormValues = z.infer<typeof processFormSchema>;
@@ -131,12 +142,14 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                   name="pbdocNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Número PBDOC</FormLabel>
+                      <FormLabel className="flex">
+                        Número PBDOC <span className="text-red-500 ml-1">*</span>
+                      </FormLabel>
                       <FormControl>
                         <Input placeholder="Ex: PB-2023-5482" {...field} />
                       </FormControl>
                       <FormDescription>
-                        Número de protocolo do documento no sistema PBDOC
+                        Número de protocolo do documento no sistema PBDOC (obrigatório)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -148,7 +161,9 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                   name="modalityId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Modalidade</FormLabel>
+                      <FormLabel className="flex">
+                        Modalidade <span className="text-red-500 ml-1">*</span>
+                      </FormLabel>
                       <Select 
                         onValueChange={(value) => field.onChange(parseInt(value))}
                         value={field.value ? field.value.toString() : undefined}
@@ -170,7 +185,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Selecione a modalidade de licitação
+                        Selecione a modalidade de licitação (obrigatório)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -183,7 +198,9 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Descrição</FormLabel>
+                    <FormLabel className="flex">
+                      Objeto <span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <FormControl>
                       <Textarea 
                         placeholder="Descreva o objeto da licitação" 
@@ -192,7 +209,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                       />
                     </FormControl>
                     <FormDescription>
-                      Informe detalhes sobre o objeto da licitação
+                      Informe detalhes sobre o objeto da licitação (obrigatório)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -205,7 +222,9 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                   name="sourceId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Fonte de Recurso</FormLabel>
+                      <FormLabel className="flex">
+                        Fonte de Recurso <span className="text-red-500 ml-1">*</span>
+                      </FormLabel>
                       <Select 
                         onValueChange={(value) => field.onChange(parseInt(value))}
                         value={field.value ? field.value.toString() : undefined}
@@ -227,7 +246,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Origem do recurso financeiro
+                        Origem do recurso financeiro (obrigatório)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -239,7 +258,9 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                   name="responsibleId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Responsável</FormLabel>
+                      <FormLabel className="flex">
+                        Responsável <span className="text-red-500 ml-1">*</span>
+                      </FormLabel>
                       <Select 
                         onValueChange={(value) => field.onChange(parseInt(value))}
                         value={field.value ? field.value.toString() : undefined}
@@ -261,7 +282,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Servidor responsável pelo processo
+                        Servidor responsável pelo processo (obrigatório)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -275,7 +296,9 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                   name="currentDepartmentId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Setor Responsável</FormLabel>
+                      <FormLabel className="flex">
+                        Setor Responsável <span className="text-red-500 ml-1">*</span>
+                      </FormLabel>
                       <Select 
                         onValueChange={(value) => field.onChange(parseInt(value))}
                         value={field.value ? field.value.toString() : undefined}
@@ -297,7 +320,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Selecione o setor que será responsável pelo processo
+                        Selecione o setor que será responsável pelo processo (obrigatório)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

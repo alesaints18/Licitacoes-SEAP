@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { User, BiddingModality } from "@shared/schema";
@@ -9,6 +15,7 @@ import { User, BiddingModality } from "@shared/schema";
 interface DashboardFiltersProps {
   onApplyFilters: (filters: {
     pbdoc?: string;
+    Centralcompras?: string;
     modality?: string;
     responsible?: string;
   }) => void;
@@ -16,19 +23,20 @@ interface DashboardFiltersProps {
 
 const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
   const [pbdoc, setPbdoc] = useState("");
+  const [centralcompras, setCentralcompras] = useState("");
   const [modality, setModality] = useState("");
   const [responsible, setResponsible] = useState("");
-  
+
   // Get users for responsible selector
   const { data: users } = useQuery<User[]>({
-    queryKey: ['/api/users'],
+    queryKey: ["/api/users"],
   });
-  
+
   // Get modalities for modality selector
   const { data: modalities } = useQuery<BiddingModality[]>({
-    queryKey: ['/api/modalities'],
+    queryKey: ["/api/modalities"],
   });
-  
+
   const handleApplyFilters = () => {
     onApplyFilters({
       pbdoc: pbdoc || undefined,
@@ -36,20 +44,23 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
       responsible: responsible === "all" ? undefined : responsible || undefined,
     });
   };
-  
+
   const handleClearFilters = () => {
     setPbdoc("");
     setModality("");
     setResponsible("");
     onApplyFilters({});
   };
-  
+
   return (
     <Card>
       <CardContent className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label htmlFor="filter-pbdoc" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="filter-pbdoc"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               PBDOC
             </label>
             <Input
@@ -57,12 +68,15 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
               value={pbdoc}
               onChange={(e) => setPbdoc(e.target.value)}
               placeholder="Número do PBDOC"
-              className="w-full"
+              className="w-300"
             />
           </div>
-          
-          <div>
-            <label htmlFor="filter-modalidade" className="block text-sm font-medium text-gray-700 mb-1">
+
+          <div className="w-[200px]">
+            <label
+              htmlFor="filter-modalidade"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Modalidade
             </label>
             <Select value={modality} onValueChange={setModality}>
@@ -72,16 +86,22 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>
                 {modalities?.map((modalityItem) => (
-                  <SelectItem key={modalityItem.id} value={modalityItem.id.toString()}>
+                  <SelectItem
+                    key={modalityItem.id}
+                    value={modalityItem.id.toString()}
+                  >
                     {modalityItem.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-          
-          <div>
-            <label htmlFor="filter-responsavel" className="block text-sm font-medium text-gray-700 mb-1">
+
+          <div className="w-[200px]">
+            <label
+              htmlFor="filter-responsavel"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Responsável
             </label>
             <Select value={responsible} onValueChange={setResponsible}>
@@ -98,9 +118,24 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
               </SelectContent>
             </Select>
           </div>
+          <div>
+            <label
+              htmlFor="filter-responsavel"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Central de Compras
+            </label>
+            <Input
+              id="filter-central-compras"
+              value={centralcompras}
+              onChange={(e) => setPbdoc(e.target.value)}
+              placeholder="Número da Central de Compras"
+              className="w-300"
+            />
+          </div>
         </div>
-        
-        <div className="mt-4 flex items-center justify-end">
+
+        <div className="mt-4 flex items-center justify-center">
           <Button
             variant="outline"
             onClick={handleClearFilters}
@@ -108,9 +143,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
           >
             Limpar Filtros
           </Button>
-          <Button onClick={handleApplyFilters}>
-            Aplicar Filtros
-          </Button>
+          <Button onClick={handleApplyFilters}>Aplicar Filtros</Button>
         </div>
       </CardContent>
     </Card>
