@@ -95,6 +95,7 @@ const Login = () => {
       console.log("Iniciando login para:", data.username);
 
       // Fazer a requisição diretamente sem usar o helper apiRequest
+      console.log("Enviando dados de login:", JSON.stringify(data));
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -110,7 +111,9 @@ const Login = () => {
       console.log("Resposta do login:", response.status);
       
       if (!response.ok) {
-        throw new Error(`Erro no login: ${response.status}`);
+        const errorText = await response.text();
+        console.error("Detalhes do erro de login:", errorText);
+        throw new Error(`Erro no login: ${response.status} - ${errorText}`);
       }
 
       // Obter dados do usuário
