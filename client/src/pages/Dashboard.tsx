@@ -17,7 +17,7 @@ interface FilterState {
   pbdoc?: string;
   modality?: string;
   responsible?: string;
-  centralcompras?: string;
+  Centralcompras?: string;
 }
 
 const Dashboard = () => {

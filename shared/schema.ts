@@ -49,7 +49,7 @@ export const processes = pgTable('processes', {
   sourceId: integer('source_id').notNull(),
   responsibleId: integer('responsible_id').notNull(),
   currentDepartmentId: integer('current_department_id'), // Setor atualmente responsável pelo processo
-  centralDeCompras: boolean('central_de_compras').notNull().default(false), // Indica se o processo é da Central de Compras
+  centralDeCompras: text('central_de_compras'), // Número do processo da Central de Compras
   priority: priorityEnum('priority').notNull().default('medium'),
   status: processStatusEnum('status').notNull().default('draft'),
   createdAt: timestamp('created_at').notNull().defaultNow(),

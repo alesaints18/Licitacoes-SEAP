@@ -97,7 +97,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
     sourceId: 0,
     responsibleId: 0,
     currentDepartmentId: 0,
-    centralDeCompras: false,
+    centralDeCompras: "",
     priority: "medium",
     status: "draft",
     ...defaultValues,
@@ -108,7 +108,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
       sourceId: initialData.sourceId,
       responsibleId: initialData.responsibleId,
       currentDepartmentId: initialData.currentDepartmentId,
-      centralDeCompras: initialData.centralDeCompras,
+      centralDeCompras: initialData.centralDeCompras || "",
       priority: initialData.priority,
       status: initialData.status,
     }),
@@ -335,21 +335,19 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                 control={form.control}
                 name="centralDeCompras"
                 render={({ field }) => (
-                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                  <FormItem>
+                    <FormLabel>
+                      Central de Compras
+                    </FormLabel>
                     <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
+                      <Input 
+                        placeholder="Número do processo de Central de Compras" 
+                        {...field} 
                       />
                     </FormControl>
-                    <div className="space-y-1 leading-none">
-                      <FormLabel>
-                        Central de Compras
-                      </FormLabel>
-                      <FormDescription>
-                        Marque esta opção se o processo pertence à Central de Compras
-                      </FormDescription>
-                    </div>
+                    <FormDescription>
+                      Digite o número do processo da Central de Compras (se aplicável)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

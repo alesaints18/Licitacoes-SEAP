@@ -40,6 +40,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
   const handleApplyFilters = () => {
     onApplyFilters({
       pbdoc: pbdoc || undefined,
+      Centralcompras: centralcompras || undefined,
       modality: modality === "all" ? undefined : modality || undefined,
       responsible: responsible === "all" ? undefined : responsible || undefined,
     });
@@ -120,7 +121,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
           </div>
           <div>
             <label
-              htmlFor="filter-responsavel"
+              htmlFor="filter-central-compras"
               className="block text-sm font-medium text-gray-700 mb-1"
             >
               Central de Compras
@@ -128,7 +129,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
             <Input
               id="filter-central-compras"
               value={centralcompras}
-              onChange={(e) => setPbdoc(e.target.value)}
+              onChange={(e) => setCentralcompras(e.target.value)}
               placeholder="Número da Central de Compras"
               className="w-300"
             />
