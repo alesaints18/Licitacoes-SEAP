@@ -18,6 +18,7 @@ interface DashboardFiltersProps {
     centralcompras?: string;
     modality?: string;
     responsible?: string;
+    deadline?: string;
   }) => void;
 }
 
@@ -26,6 +27,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
   const [centralcompras, setCentralcompras] = useState("");
   const [modality, setModality] = useState("");
   const [responsible, setResponsible] = useState("");
+  const [deadline, setDeadline] = useState("");
 
   // Get users for responsible selector
   const { data: users } = useQuery<User[]>({

@@ -2,7 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Process, User, BiddingModality, Department } from "@shared/schema";
 import { Link } from "wouter";
-import { Eye, Edit, SendHorizonal, Loader2 } from "lucide-react";
+import { Eye, Edit, SendHorizonal, Loader2, Clock, AlertTriangle } from "lucide-react";
+import { format, differenceInDays } from "date-fns";
 import {
   getProcessStatusLabel,
   getProcessStatusClass,
@@ -342,6 +343,12 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider dark-header"
                 >
+                  Prazo
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-800 uppercase tracking-wider dark-header"
+                >
                   Ações
                 </th>
               </tr>
@@ -376,6 +383,28 @@ const ProcessTable = ({ filters = {} }: ProcessTableProps) => {
                       >
                         {getProcessStatusLabel(process.status)}
                       </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 process-cell">
+                      {process.deadline ? (
+                        <div className="flex items-center">
+                          <Clock className="mr-1 h-4 w-4" />
+                          <span className={
+                            differenceInDays(new Date(process.deadline), new Date()) < 5
+                              ? "text-red-600 font-medium"
+                              : differenceInDays(new Date(process.deadline), new Date()) < 10
+                              ? "text-amber-600 font-medium"
+                              : "text-gray-700"
+                          }>
+                            {differenceInDays(new Date(process.deadline), new Date()) > 0
+                              ? `${differenceInDays(new Date(process.deadline), new Date())} dias`
+                              : differenceInDays(new Date(process.deadline), new Date()) === 0
+                              ? "Hoje"
+                              : "Vencido"}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400">Sem prazo</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 process-cell">
                       <Link href={`/processes/${process.id}`}>
