@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import MobileNav from "./MobileNav";
 import { useLocation } from "wouter";
+import { DeadlineAlert } from "./alerts/DeadlineAlert";
 
 interface LayoutProps {
   children: ReactNode;
@@ -37,6 +38,9 @@ const Layout = ({ children }: LayoutProps) => {
   
   return (
     <div className="flex h-screen overflow-hidden" id="app-container">
+      {/* Componente para verificar prazos e mostrar alertas */}
+      <DeadlineAlert />
+      
       {/* Sidebar - hidden on mobile */}
       <Sidebar />
       
