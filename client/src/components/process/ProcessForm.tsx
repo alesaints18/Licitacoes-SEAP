@@ -36,6 +36,7 @@ import {
   RadioGroupItem,
 } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Extend the process schema for the form
 const processFormSchema = insertProcessSchema.extend({
@@ -96,6 +97,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
     sourceId: 0,
     responsibleId: 0,
     currentDepartmentId: 0,
+    centralDeCompras: false,
     priority: "medium",
     status: "draft",
     ...defaultValues,
@@ -106,6 +108,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
       sourceId: initialData.sourceId,
       responsibleId: initialData.responsibleId,
       currentDepartmentId: initialData.currentDepartmentId,
+      centralDeCompras: initialData.centralDeCompras,
       priority: initialData.priority,
       status: initialData.status,
     }),
@@ -328,6 +331,30 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                 />
               </div>
               
+              <FormField
+                control={form.control}
+                name="centralDeCompras"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel>
+                        Central de Compras
+                      </FormLabel>
+                      <FormDescription>
+                        Marque esta opção se o processo pertence à Central de Compras
+                      </FormDescription>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="priority"
