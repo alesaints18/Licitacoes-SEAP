@@ -18,7 +18,8 @@ import {
   FileText, 
   Search, 
   SendHorizonal, 
-  Loader2 
+  Loader2,
+  X
 } from "lucide-react";
 import { 
   Dialog, 
@@ -193,6 +194,39 @@ const Processes = () => {
       });
     }
   });
+
+  // Mutação para excluir processo
+  const deleteProcessMutation = useMutation({
+    mutationFn: async (processId: number) => {
+      const response = await apiRequest(
+        "DELETE",
+        `/api/processes/${processId}`
+      );
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Erro ao excluir processo");
+      }
+      
+      return await response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Processo excluído com sucesso",
+        description: "O processo foi removido permanentemente.",
+      });
+      
+      // Invalidar cache para recarregar processos
+      queryClient.invalidateQueries({ queryKey: ['/api/processes'] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erro ao excluir processo",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  });
   
   // Função para abrir diálogo de transferência
   const handleTransferClick = (process: Process) => {
@@ -329,6 +363,19 @@ const Processes = () => {
             >
               <SendHorizonal className="h-4 w-4 mr-2" />
               Transferir
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              onClick={() => {
+                if (window.confirm(`Tem certeza que deseja excluir o processo ${process.pbdocNumber}?`)) {
+                  deleteProcessMutation.mutate(process.id);
+                }
+              }}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Excluir
             </Button>
           </div>
         );
