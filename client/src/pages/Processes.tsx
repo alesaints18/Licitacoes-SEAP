@@ -350,23 +350,24 @@ const Processes = () => {
           <div className="flex space-x-2">
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              title="Visualizar"
               onClick={() => handleViewProcess(process.id)}
             >
-              <FileText className="h-4 w-4 mr-2" />
-              Visualizar
+              <FileText className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              title="Transferir"
               onClick={() => handleTransferClick(process)}
             >
-              <SendHorizonal className="h-4 w-4 mr-2" />
-              Transferir
+              <SendHorizonal className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
-              size="sm"
+              size="icon"
+              title="Excluir"
               className="text-red-500 hover:text-red-700 hover:bg-red-50"
               onClick={() => {
                 if (window.confirm(`Tem certeza que deseja excluir o processo ${process.pbdocNumber}?`)) {
@@ -374,8 +375,7 @@ const Processes = () => {
                 }
               }}
             >
-              <X className="h-4 w-4 mr-2" />
-              Excluir
+              <X className="h-5 w-5" />
             </Button>
           </div>
         );
