@@ -333,7 +333,9 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                 name="priority"
                 render={({ field }) => (
                   <FormItem className="space-y-3">
-                    <FormLabel>Prioridade</FormLabel>
+                    <FormLabel className="flex">
+                      Prioridade <span className="text-red-500 ml-1">*</span>
+                    </FormLabel>
                     <FormControl>
                       <RadioGroup
                         onValueChange={field.onChange}
@@ -354,6 +356,9 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                         </div>
                       </RadioGroup>
                     </FormControl>
+                    <FormDescription>
+                      Selecione a prioridade do processo (obrigatório)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
