@@ -530,7 +530,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  });
 
   app.patch('/api/processes/:id', isAuthenticated, async (req, res) => {
     try {
