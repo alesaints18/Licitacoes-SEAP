@@ -7,6 +7,7 @@ import {
   Users,
   Settings,
   LogOut,
+  Workflow,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -58,6 +59,11 @@ const Sidebar = () => {
         label: "Fluxo de Licitação",
       },
       {
+        path: "/flowchart",
+        icon: <Workflow className="h-5 w-5 mr-3" />,
+        label: "Fluxograma Pregão",
+      },
+      {
         path: "/reports",
         icon: <BarChart2 className="h-5 w-5 mr-3" />,
         label: "Relatórios",
@@ -73,6 +79,7 @@ const Sidebar = () => {
         path: "/settings",
         icon: <Settings className="h-5 w-5 mr-3" />,
         label: "Configurações",
+        adminOnly: true,
       },
     ],
     [],

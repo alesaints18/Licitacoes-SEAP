@@ -11,6 +11,7 @@ import ProcessDetail from "@/pages/ProcessDetail";
 import ProcessCreate from "@/pages/ProcessCreate";
 import ProcessEdit from "@/pages/ProcessEdit";
 import BiddingFlow from "@/pages/BiddingFlow";
+import BiddingFlowchart from "@/pages/BiddingFlowchart";
 import Reports from "@/pages/Reports";
 import Users from "@/pages/Users";
 import Settings from "@/pages/Settings";
@@ -244,6 +245,12 @@ function Router() {
       <Route path="/bidding-flow">
         <Layout>
           <BiddingFlow />
+        </Layout>
+      </Route>
+      
+      <Route path="/flowchart">
+        <Layout>
+          <BiddingFlowchart />
         </Layout>
       </Route>
       
