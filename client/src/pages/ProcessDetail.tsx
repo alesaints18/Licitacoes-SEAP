@@ -300,7 +300,128 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         </TabsContent>
         
         <TabsContent value="flow">
-          <BiddingFlowchart selectedModalityId={process.modalityId} />
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border">
+              <h2 className="text-xl font-bold text-gray-800 mb-2">
+                Fluxograma do Pregão Eletrônico - SEAP/PB
+              </h2>
+              <p className="text-gray-600">
+                Baseado na Lei nº 14.133/2021 - Nova Lei de Licitações e Contratos
+              </p>
+            </div>
+
+            {/* Fase 1: Iniciação */}
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+              <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
+                <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</span>
+                FASE DE INICIAÇÃO
+              </h3>
+              <div className="grid gap-3">
+                <div className="bg-white p-4 rounded border-l-2 border-blue-300">
+                  <h4 className="font-medium text-gray-800">Setor Demandante</h4>
+                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                    <li>• Documento de Formalização da Demanda (DFD)</li>
+                    <li>• Estudo Técnico Preliminar (ETP)</li>
+                    <li>• Mapa de Risco (MR)</li>
+                    <li>• Termo de Referência (TR)</li>
+                  </ul>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-orange-300">
+                  <h4 className="font-medium text-gray-800">Ordenador de Despesa</h4>
+                  <p className="text-sm text-gray-600 mt-2">• Autorização (Prazo: 10 dias)</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Fase 2: Preparação */}
+            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-r-lg">
+              <h3 className="text-lg font-semibold text-yellow-800 mb-4 flex items-center gap-2">
+                <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</span>
+                FASE DE PREPARAÇÃO
+              </h3>
+              <div className="grid gap-3">
+                <div className="bg-white p-4 rounded border-l-2 border-yellow-300">
+                  <h4 className="font-medium text-gray-800">Divisão de Licitação</h4>
+                  <p className="text-sm text-gray-600 mt-2">• Criar Processo no Órgão (Prazo: 2 dias)</p>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-green-300">
+                  <h4 className="font-medium text-gray-800">Núcleo de Pesquisa de Preços</h4>
+                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                    <li>• Fazer Pesquisa de Preços (Prazo: 2 dias)</li>
+                    <li>• Elaborar Mapa Comparativo (Prazo: 10 dias)</li>
+                    <li>• Metodologia da Pesquisa (Prazo: 10 dias)</li>
+                  </ul>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-purple-300">
+                  <h4 className="font-medium text-gray-800">Orçamento e Finanças</h4>
+                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                    <li>• Consultar Disponibilidade Orçamentária (Prazo: 1 dia)</li>
+                    <li>• Emitir Reserva Orçamentária (Prazo: 1 dia)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Fase 3: Execução */}
+            <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
+              <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center gap-2">
+                <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</span>
+                FASE DE EXECUÇÃO
+              </h3>
+              <div className="grid gap-3">
+                <div className="bg-white p-4 rounded border-l-2 border-red-300">
+                  <h4 className="font-medium text-gray-800">Secretário SEAP</h4>
+                  <p className="text-sm text-gray-600 mt-2">• Autorização Final</p>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-green-300">
+                  <h4 className="font-medium text-gray-800">Divisão de Licitação</h4>
+                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                    <li>• Elaborar Edital e Anexos (Prazo: 10 dias)</li>
+                    <li>• Consultar Comitê Gestor (Prazo: 2 dias)</li>
+                    <li>• Publicar Edital</li>
+                    <li>• Realizar Sessão Pública de Lances</li>
+                    <li>• Análise de Documentação</li>
+                  </ul>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-blue-300">
+                  <h4 className="font-medium text-gray-800">Assessoria Jurídica</h4>
+                  <p className="text-sm text-gray-600 mt-2">• Elaboração de Nota Técnica (Prazo: 1 dia)</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Fase 4: Finalização */}
+            <div className="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-lg">
+              <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center gap-2">
+                <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">4</span>
+                FASE DE FINALIZAÇÃO
+              </h3>
+              <div className="grid gap-3">
+                <div className="bg-white p-4 rounded border-l-2 border-purple-300">
+                  <h4 className="font-medium text-gray-800">Divisão de Licitação</h4>
+                  <p className="text-sm text-gray-600 mt-2">• Adjudicação e Homologação</p>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-blue-300">
+                  <h4 className="font-medium text-gray-800">Assessoria Jurídica</h4>
+                  <p className="text-sm text-gray-600 mt-2">• Elaboração do Contrato</p>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-red-300">
+                  <h4 className="font-medium text-gray-800">Secretário SEAP</h4>
+                  <p className="text-sm text-gray-600 mt-2">• Assinatura do Contrato</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="font-medium text-gray-800 mb-2">Observações Importantes:</h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>• Este fluxograma segue rigorosamente a Lei nº 14.133/2021</li>
+                <li>• Os prazos indicados são obrigatórios conforme legislação</li>
+                <li>• Cada fase deve ser concluída antes do início da próxima</li>
+                <li>• A documentação de cada etapa deve ser arquivada no processo</li>
+              </ul>
+            </div>
+          </div>
         </TabsContent>
         
         <TabsContent value="checklist">
