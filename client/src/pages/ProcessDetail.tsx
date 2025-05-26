@@ -80,6 +80,62 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     enabled: !!process,
   });
 
+  // Create default steps if none exist
+  const createDefaultSteps = async () => {
+    if (!process || !steps || steps.length > 0) return;
+    
+    const defaultSteps = [
+      "Demanda identificada pela unidade requisitante",
+      "Encaminhamento da demanda ao setor de licitações",
+      "Elaboração dos estudos técnicos preliminares",
+      "Análise de viabilidade e adequação orçamentária",
+      "Elaboração do termo de referência ou projeto básico",
+      "Aprovação do termo de referência pela autoridade competente",
+      "Designação do pregoeiro e equipe de apoio",
+      "Elaboração do edital de licitação",
+      "Análise jurídica do edital",
+      "Aprovação do edital pela autoridade competente",
+      "Publicação do aviso de licitação",
+      "Disponibilização do edital aos interessados",
+      "Período para envio de propostas",
+      "Sessão pública do pregão eletrônico",
+      "Análise e julgamento das propostas",
+      "Fase de lances",
+      "Análise da documentação do vencedor",
+      "Adjudicação do objeto",
+      "Homologação do resultado",
+      "Assinatura do contrato ou emissão da ordem",
+      "Publicação do extrato do contrato"
+    ];
+
+    try {
+      for (const stepName of defaultSteps) {
+        await apiRequest('POST', `/api/processes/${parsedId}/steps`, {
+          stepName,
+          departmentId: process.departmentId,
+          isCompleted: false,
+        });
+      }
+      
+      // Refresh steps after creation
+      queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
+      
+      toast({
+        title: "Checklist criado",
+        description: "As etapas do pregão eletrônico foram criadas automaticamente.",
+      });
+    } catch (error) {
+      console.error("Erro ao criar etapas padrão:", error);
+    }
+  };
+
+  // Auto-create steps if none exist
+  React.useEffect(() => {
+    if (process && steps !== undefined && steps.length === 0) {
+      createDefaultSteps();
+    }
+  }, [process, steps]);
+
   // Fetch departments for step details
   const { data: departments } = useQuery<any[]>({
     queryKey: ['/api/departments'],
