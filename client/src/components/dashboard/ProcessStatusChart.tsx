@@ -115,7 +115,7 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-4" style={{ marginTop: '150px' }}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-4 mt-8">
           <div className="flex items-center justify-center sm:justify-start">
             <div className="w-3 h-3 bg-green-500 rounded-full mr-3 flex-shrink-0"></div>
             <div className="text-center sm:text-left">
