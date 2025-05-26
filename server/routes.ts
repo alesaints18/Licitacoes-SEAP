@@ -806,10 +806,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/processes/:processId/steps', isAuthenticated, async (req, res) => {
     try {
       const processId = parseInt(req.params.processId);
+      console.log(`Buscando etapas para o processo ${processId}`);
+      
+      if (isNaN(processId)) {
+        return res.status(400).json({ message: "ID do processo inválido" });
+      }
+      
       const steps = await storage.getProcessSteps(processId);
+      console.log(`Etapas encontradas para processo ${processId}:`, steps.length);
       res.json(steps);
     } catch (error) {
-      res.status(500).json({ message: "Erro ao buscar etapas do processo", error });
+      console.error("Erro ao buscar etapas do processo:", error);
+      res.status(500).json({ message: "Erro ao buscar etapas do processo", error: String(error) });
     }
   });
 
