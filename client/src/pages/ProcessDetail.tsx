@@ -386,58 +386,54 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           />
                         </div>
                       </div>
+
+                      {/* Compact Checklist within Next Step Card */}
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                          <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                          Checklist das Etapas
+                        </h4>
+                        {!steps || steps.length === 0 ? (
+                          <p className="text-xs text-gray-500">Nenhuma etapa encontrada</p>
+                        ) : (
+                          <div className="space-y-2 max-h-64 overflow-y-auto">
+                            {steps.slice(0, 8).map((step, index) => (
+                              <div key={step.id} className="flex items-center space-x-2 p-1 rounded hover:bg-gray-50">
+                                <button
+                                  className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                                    step.isCompleted 
+                                      ? "bg-green-600 border-green-600 hover:bg-green-700" 
+                                      : "border-gray-300 hover:border-green-400 bg-white"
+                                  }`}
+                                  onClick={() => handleStepToggle(step.id, !step.isCompleted)}
+                                >
+                                  {step.isCompleted ? (
+                                    <CheckCircle className="h-3 w-3 text-white" />
+                                  ) : (
+                                    <span className="text-xs text-gray-400 font-medium">{index + 1}</span>
+                                  )}
+                                </button>
+                                <div className="flex-1">
+                                  <p className={`text-xs ${step.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                                    {step.stepName}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                            {steps.length > 8 && (
+                              <div className="text-center pt-2">
+                                <Button variant="ghost" size="sm" className="text-xs">
+                                  Ver todas ({steps.length} etapas)
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               )}
-
-              {/* Compact Checklist */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center text-lg">
-                    <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
-                    Checklist ({steps?.length || 0} etapas)
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {!steps || steps.length === 0 ? (
-                    <p className="text-sm text-gray-500">Nenhuma etapa encontrada</p>
-                  ) : (
-                    <div className="space-y-2 max-h-96 overflow-y-auto">
-                      {steps.slice(0, 10).map((step, index) => (
-                      <div key={step.id} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50">
-                        <button
-                          className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                            step.isCompleted 
-                              ? "bg-green-600 border-green-600 hover:bg-green-700" 
-                              : "border-gray-300 hover:border-green-400 bg-white"
-                          }`}
-                          onClick={() => handleStepToggle(step.id, !step.isCompleted)}
-                        >
-                          {step.isCompleted ? (
-                            <CheckCircle className="h-3 w-3 text-white" />
-                          ) : (
-                            <span className="text-xs text-gray-400 font-medium">{index + 1}</span>
-                          )}
-                        </button>
-                        <div className="flex-1">
-                          <p className={`text-xs ${step.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                            {step.stepName}
-                          </p>
-                        </div>
-                      </div>
-                      ))}
-                      {steps.length > 10 && (
-                        <div className="text-center pt-2">
-                          <Button variant="ghost" size="sm" className="text-xs">
-                            Ver todas ({steps.length} etapas)
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             </div>
           </div>
         </TabsContent>
