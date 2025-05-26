@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -112,7 +112,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       for (const stepName of defaultSteps) {
         await apiRequest('POST', `/api/processes/${parsedId}/steps`, {
           stepName,
-          departmentId: process.departmentId,
+          departmentId: process.currentDepartmentId,
           isCompleted: false,
         });
       }
@@ -130,7 +130,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   };
 
   // Auto-create steps if none exist
-  React.useEffect(() => {
+  useEffect(() => {
     if (process && steps !== undefined && steps.length === 0) {
       createDefaultSteps();
     }
