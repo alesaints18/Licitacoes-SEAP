@@ -115,18 +115,39 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
           </div>
         </div>
         
-        <div className="flex justify-center space-x-6 mt-4">
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-            <span className="text-sm text-gray-600">Concluídos ({data.completed})</span>
+        <div className="flex flex-wrap justify-center gap-6 mt-6 px-4">
+          <div className="flex items-center min-w-0">
+            <div className="w-3 h-3 bg-green-500 rounded-full mr-3 flex-shrink-0"></div>
+            <span className="text-sm text-gray-600 whitespace-nowrap">
+              Concluídos ({data.completed})
+              {data.total > 0 && (
+                <span className="ml-2 text-xs text-gray-500">
+                  {((data.completed / data.total) * 100).toFixed(1)}%
+                </span>
+              )}
+            </span>
           </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
-            <span className="text-sm text-gray-600">Em Andamento ({data.inProgress})</span>
+          <div className="flex items-center min-w-0">
+            <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3 flex-shrink-0"></div>
+            <span className="text-sm text-gray-600 whitespace-nowrap">
+              Em Andamento ({data.inProgress})
+              {data.total > 0 && (
+                <span className="ml-2 text-xs text-gray-500">
+                  {((data.inProgress / data.total) * 100).toFixed(1)}%
+                </span>
+              )}
+            </span>
           </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
-            <span className="text-sm text-gray-600">Cancelados ({data.canceled})</span>
+          <div className="flex items-center min-w-0">
+            <div className="w-3 h-3 bg-red-500 rounded-full mr-3 flex-shrink-0"></div>
+            <span className="text-sm text-gray-600 whitespace-nowrap">
+              Cancelados ({data.canceled})
+              {data.total > 0 && (
+                <span className="ml-2 text-xs text-gray-500">
+                  {((data.canceled / data.total) * 100).toFixed(1)}%
+                </span>
+              )}
+            </span>
           </div>
         </div>
       </CardContent>

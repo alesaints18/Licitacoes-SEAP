@@ -105,18 +105,19 @@ const Sidebar = () => {
     <aside className="hidden md:flex flex-shrink-0">
       <div className="flex flex-col w-64 dark:bg-[#010021] bg-[#105e8f] shadow-lg">
         {/* Logo */}
-        <div className="flex flex-col items-center justify-center h-auto px-30 dark:bg-[#01001A] bg-[#396a9c]">
-          <img
-            src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
-            alt="Logo"
-            className=" w-100 mr-2"
-            width={150}
-          />
-          <div className="flex items-center">
-            <span className=" text-white font-medium text-lg">SEAP-PB</span>
+        <a href="/">
+          <div className="flex flex-col items-center justify-center h-auto px-30 dark:bg-[#01001A] bg-[#396a9c]">
+            <img
+              src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
+              alt="Logo"
+              className=" w-100 mr-2"
+              width={150}
+            />
+            <div className="flex items-center">
+              <span className=" text-white font-medium text-lg">SEAP-PB</span>
+            </div>
           </div>
-        </div>
-
+        </a>
         {/* User Info */}
         <div className="flex flex-col items-center py-4 border-b dark:border-[#090935] border-[#5892c2]">
           <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-2">
@@ -154,7 +155,7 @@ const Sidebar = () => {
         {/* Version and Theme */}
         <div className="p-2 border-t dark:border-[#090935] border-[#5892c2]">
           <div className="flex items-center justify-between px-4 py-2 text-white text-xs">
-            <span>v1.0.0</span>
+            <span>v1.0.1</span>
             {/* <div className="hidden md:block">
               <ThemeToggle />
             </div>
