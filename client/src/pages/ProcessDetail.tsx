@@ -81,14 +81,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   });
 
   // Fetch departments for step details
-  const { data: departments } = useQuery({
+  const { data: departments } = useQuery<any[]>({
     queryKey: ['/api/departments'],
     enabled: !!process,
   });
 
   // Find the next incomplete step
   const nextStep = steps?.find(step => !step.isCompleted);
-  const stepDepartment = nextStep && departments 
+  const stepDepartment = nextStep && Array.isArray(departments) 
     ? departments.find((d: any) => d.id === nextStep.departmentId)
     : undefined;
   
@@ -327,8 +327,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <div className="space-y-3">
                     <div>
                       <h4 className="font-medium text-gray-900">{nextStep.stepName}</h4>
-                      {nextStep.description && (
-                        <p className="text-sm text-gray-600 mt-1">{nextStep.description}</p>
+                      {nextStep.observations && (
+                        <p className="text-sm text-gray-600 mt-1">{nextStep.observations}</p>
                       )}
                     </div>
                     
@@ -340,11 +340,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                         </span>
                       </div>
                       
-                      {nextStep.deadline && (
+                      {nextStep.dueDate && (
                         <div className="flex items-center text-sm">
                           <Clock className="h-4 w-4 mr-1 text-orange-500" />
                           <span className="text-orange-600 font-medium">
-                            {format(new Date(nextStep.deadline), "dd/MM/yyyy")}
+                            {format(new Date(nextStep.dueDate), "dd/MM/yyyy")}
                           </span>
                         </div>
                       )}
@@ -353,12 +353,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">
-                          Etapa {nextStep.stepOrder} de 21
+                          Etapa {nextStep.id} de 21
                         </span>
                         <div className="w-24 bg-gray-200 rounded-full h-2">
                           <div 
                             className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${(nextStep.stepOrder / 21) * 100}%` }}
+                            style={{ width: `${(nextStep.id / 21) * 100}%` }}
                           />
                         </div>
                       </div>
