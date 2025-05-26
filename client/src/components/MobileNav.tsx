@@ -1,5 +1,5 @@
 import { useLocation, Link } from "wouter";
-import { Home, FileText, BarChart2, Menu } from "lucide-react";
+import { Home, FileText, BarChart2, Users } from "lucide-react";
 
 const MobileNav = () => {
   const [location] = useLocation();
@@ -31,10 +31,13 @@ const MobileNav = () => {
           <span className="text-xs mt-1">Relatórios</span>
         </Link>
 
-        {/*    <button className="flex flex-col items-center py-3 text-white">
-          <Menu className="h-6 w-6" />
-          <span className="text-xs mt-1">Menu</span>
-        </button> */}
+        <Link
+          href="/users"
+          className={`flex flex-col items-center py-3 text-white ${location === "/users" ? "bg-[#396a9c] dark:bg-[#01001A] px-4 rounded-t-lg" : ""}`}
+        >
+          <Users className="h-6 w-6" />
+          <span className="text-xs mt-1">Usuários</span>
+        </Link>
       </div>
     </div>
   );

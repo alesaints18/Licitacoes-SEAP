@@ -18,26 +18,33 @@ const Header = ({ title }: HeaderProps) => {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
-  
+  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+    useNotifications();
+
   // Get current user data
-  const { data: user } = useQuery<User>({ 
-    queryKey: ['/api/auth/status'],
+  const { data: user } = useQuery<User>({
+    queryKey: ["/api/auth/status"],
     refetchOnWindowFocus: false,
   });
-  
+
   // Função para atualizar todos os dados
   const refreshData = () => {
     // Invalidar as consultas mais comuns para forçar a atualização
-    queryClient.invalidateQueries({ queryKey: ['/api/processes'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/analytics/process-statistics'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/analytics/processes-by-source'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/analytics/processes-by-responsible'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/settings/monthly-goal'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/users'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/modalities'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/sources'] });
-    
+    queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+    queryClient.invalidateQueries({
+      queryKey: ["/api/analytics/process-statistics"],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["/api/analytics/processes-by-source"],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["/api/analytics/processes-by-responsible"],
+    });
+    queryClient.invalidateQueries({ queryKey: ["/api/settings/monthly-goal"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/modalities"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/sources"] });
+
     // Mostrar notificação de dados atualizados
     toast({
       title: "Dados atualizados",
@@ -45,47 +52,47 @@ const Header = ({ title }: HeaderProps) => {
       duration: 3000,
     });
   };
-  
+
   // Get user initials for the avatar
   const userInitials = user?.fullName
     ? user.fullName
-        .split(' ')
-        .map(n => n[0])
+        .split(" ")
+        .map((n) => n[0])
         .slice(0, 2)
-        .join('')
+        .join("")
         .toUpperCase()
     : "US";
-  
+
   return (
     <header className="bg-background shadow-sm">
       <div className="flex justify-between items-center px-4 py-3">
         <div className="flex items-center">
           {/* Mobile Menu Button */}
-          <button 
-            type="button" 
+          <button
+            type="button"
             className="md:hidden text-secondary-500 mr-3"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-6 w-6" 
-              fill="none" 
-              viewBox="0 0 24 24" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
               stroke="currentColor"
             >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth="2" 
-                d="M4 6h16M4 12h16M4 18h16" 
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h16"
               />
             </svg>
           </button>
-          
+
           <div className="text-lg font-medium text-secondary-500 dark:text-white">
             {title}
           </div>
-          
+
           {/* Botão de atualização */}
           <Button
             variant="ghost"
@@ -98,27 +105,29 @@ const Header = ({ title }: HeaderProps) => {
             <span className="hidden sm:inline text-sm">Atualizar</span>
           </Button>
         </div>
-        
+
         <div className="flex items-center">
-          <NotificationDropdown 
+          <NotificationDropdown
             notifications={notifications}
             unreadCount={unreadCount}
             onMarkAllAsRead={markAllAsRead}
             onReadNotification={markAsRead}
           />
-          
-          <button 
-            type="button" 
+
+          <button
+            type="button"
             className="ml-3 flex items-center text-sm focus:outline-none"
           >
-            <span className="mr-2 hidden md:block text-foreground">{user?.fullName}</span>
+            <span className="mr-2 hidden md:block text-foreground">
+              {user?.fullName}
+            </span>
             <div className="w-8 h-8 rounded-full bg-secondary-500 flex items-center justify-center text-white">
               <span>{userInitials}</span>
             </div>
           </button>
         </div>
       </div>
-      
+
       {/* Mobile Menu */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-background shadow-lg absolute z-10 w-full">
@@ -138,21 +147,16 @@ const Header = ({ title }: HeaderProps) => {
                   </a>
                 </Link>
               </li>
-              <li>
-                <Link href="/bidding-flow">
-                  <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
-                    Fluxo de Licitação
-                  </a>
-                </Link>
-              </li>
-              <li>
-                <Link href="/reports">
-                  <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
-                    Relatórios
-                  </a>
-                </Link>
-              </li>
-              {user?.role === 'admin' && (
+              {user?.role === "admin" && (
+                <li>
+                  <Link href="/reports">
+                    <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
+                      Relatórios
+                    </a>
+                  </Link>
+                </li>
+              )}
+              {user?.role === "admin" && (
                 <li>
                   <Link href="/users">
                     <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
@@ -161,13 +165,6 @@ const Header = ({ title }: HeaderProps) => {
                   </Link>
                 </li>
               )}
-              <li>
-                <Link href="/settings">
-                  <a className="block px-4 py-2 text-sm text-foreground hover:bg-muted rounded-md">
-                    Configurações
-                  </a>
-                </Link>
-              </li>
             </ul>
           </nav>
         </div>
