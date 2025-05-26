@@ -42,8 +42,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 const processFormSchema = insertProcessSchema.extend({
   pbdocNumber: z.string().min(1, "Número PBDOC é obrigatório"),
   description: z.string().min(1, "Objeto é obrigatório"),
-  centralDeCompras: z.string().optional(),
-  deadline: z.string().optional().refine(val => !val || /^\d{4}-\d{2}-\d{2}$/.test(val), {
+  centralDeCompras: z.string().min(1, "Central de Compras é obrigatória"),
+  deadline: z.string().min(1, "Prazo de entrega é obrigatório").refine(val => /^\d{4}-\d{2}-\d{2}$/.test(val), {
     message: "Formato inválido de data (use AAAA-MM-DD)"
   }),
   modalityId: z.number({
@@ -132,24 +132,24 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
   const isLoading = usersLoading || modalitiesLoading || sourcesLoading || departmentsLoading;
   
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>
+    <Card className="w-full max-w-none">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-xl md:text-2xl">
           {defaultValues ? "Editar Processo" : "Novo Processo"}
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-sm md:text-base">
           {defaultValues 
             ? "Atualize os detalhes do processo de licitação" 
             : "Cadastre um novo processo de licitação"}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         {isLoading ? (
           <p>Carregando formulário...</p>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
                 <FormField
                   control={form.control}
                   name="pbdocNumber"
@@ -347,8 +347,8 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                   name="centralDeCompras"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Central de Compras
+                      <FormLabel className="flex">
+                        Central de Compras <span className="text-red-500 ml-1">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -361,7 +361,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                         />
                       </FormControl>
                       <FormDescription>
-                        Digite o número do processo da Central de Compras (se aplicável)
+                        Digite o número do processo da Central de Compras (obrigatório)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -373,8 +373,8 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                   name="deadline"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>
-                        Prazo de Entrega
+                      <FormLabel className="flex">
+                        Prazo de Entrega <span className="text-red-500 ml-1">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input 
@@ -385,7 +385,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                         />
                       </FormControl>
                       <FormDescription>
-                        Defina a data limite para conclusão do processo
+                        Defina a data limite para conclusão do processo (obrigatório)
                       </FormDescription>
                       <FormMessage />
                     </FormItem>

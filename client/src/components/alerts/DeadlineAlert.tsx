@@ -19,46 +19,59 @@ export function DeadlineAlert() {
   useEffect(() => {
     if (processes && processes.length > 0 && !alertShown) {
       // Filtrar processos com prazo de 5 dias ou menos e que não estejam concluídos ou cancelados
-      const urgentProcesses = processes.filter(process => {
-        if (!process.deadline || process.status === "completed" || process.status === "canceled") {
+      const urgentProcesses = processes.filter((process) => {
+        if (
+          !process.deadline ||
+          process.status === "completed" ||
+          process.status === "canceled"
+        ) {
           return false;
         }
-        
+
         const deadlineDate = new Date(process.deadline);
         const today = new Date();
         const daysRemaining = differenceInDays(deadlineDate, today);
-        
+
         return daysRemaining <= 5 && daysRemaining >= 0;
       });
 
       if (urgentProcesses.length > 0) {
         // Mostrar alerta para cada processo urgente (limitado a 3 para não sobrecarregar)
         const processesToShow = urgentProcesses.slice(0, 3);
-        
-        processesToShow.forEach(process => {
+
+        processesToShow.forEach((process) => {
           const deadlineDate = new Date(process.deadline!);
           const today = new Date();
           const daysRemaining = differenceInDays(deadlineDate, today);
-          
+
           toast({
             title: "Alerta de Prazo",
             description: (
               <div className="flex flex-col space-y-2">
                 <p>
-                  O processo <span className="font-semibold">{process.pbdocNumber}</span> tem prazo de expiração em{" "}
-                  <span className="font-bold text-rose-400">{daysRemaining === 0 ? "hoje" : `${daysRemaining} dias`}</span>.
+                  O processo{" "}
+                  <span className="font-semibold">{process.pbdocNumber}</span>{" "}
+                  tem prazo de expiração em{" "}
+                  <span className="font-bold text-crimson">
+                    {daysRemaining === 0 ? "hoje" : `${daysRemaining} dias`}
+                  </span>
+                  .
                 </p>
-                <Link href={`/processes/${process.id}`} className="underline text-primary hover:text-primary/80">
+                <Link
+                  href={`/processes/${process.id}`}
+                  className="underline text-primary hover:text-primary/80"
+                >
                   Clique para visualizar o processo
                 </Link>
               </div>
             ),
             variant: "default",
-            className: "bg-rose-100 border-rose-300 text-rose-800 bg-opacity-80",
+            className:
+              "bg-rose-100 border-rose-300 text-rose-800 bg-opacity-80",
             duration: 8000,
           });
         });
-        
+
         // Se tiver mais processos do que os mostrados
         if (urgentProcesses.length > processesToShow.length) {
           toast({
@@ -69,7 +82,7 @@ export function DeadlineAlert() {
             duration: 5000,
           });
         }
-        
+
         setAlertShown(true);
       }
     }

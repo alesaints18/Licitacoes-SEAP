@@ -82,16 +82,18 @@ const ProcessCreate = () => {
   };
   
   return (
-    <div>
+    <div className="max-w-6xl mx-auto px-4 py-6">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-800">Novo Processo de Licitação</h1>
-        <p className="text-gray-600">Cadastre um novo processo licitatório no sistema</p>
+        <h1 className="text-2xl md:text-3xl font-semibold text-gray-800">Novo Processo de Licitação</h1>
+        <p className="text-gray-600 mt-2">Cadastre um novo processo licitatório no sistema</p>
       </div>
       
-      <ProcessForm 
-        onSubmit={handleSubmit} 
-        isSubmitting={isSubmitting} 
-      />
+      <div className="w-full">
+        <ProcessForm 
+          onSubmit={handleSubmit} 
+          isSubmitting={isSubmitting} 
+        />
+      </div>
     </div>
   );
 };
