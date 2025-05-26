@@ -133,23 +133,23 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
   
   return (
     <Card className="w-full max-w-none">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl md:text-2xl">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg md:text-xl">
           {defaultValues ? "Editar Processo" : "Novo Processo"}
         </CardTitle>
-        <CardDescription className="text-sm md:text-base">
+        <CardDescription className="text-sm">
           {defaultValues 
             ? "Atualize os detalhes do processo de licitação" 
             : "Cadastre um novo processo de licitação"}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="space-y-4">
         {isLoading ? (
           <p>Carregando formulário...</p>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4 md:space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+            <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-3 md:space-y-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
                 <FormField
                   control={form.control}
                   name="pbdocNumber"
@@ -229,7 +229,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                 )}
               />
               
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
                 <FormField
                   control={form.control}
                   name="sourceId"
@@ -341,7 +341,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                 />
               </div>
               
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
                 <FormField
                   control={form.control}
                   name="centralDeCompras"
