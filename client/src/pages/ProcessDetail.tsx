@@ -387,49 +387,39 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                         </div>
                       </div>
 
-                      {/* Compact Checklist within Next Step Card */}
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                          <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                          Checklist das Etapas
-                        </h4>
-                        {!steps || steps.length === 0 ? (
-                          <p className="text-xs text-gray-500">Nenhuma etapa encontrada</p>
-                        ) : (
-                          <div className="space-y-2 max-h-64 overflow-y-auto">
-                            {steps.slice(0, 8).map((step, index) => (
-                              <div key={step.id} className="flex items-center space-x-2 p-1 rounded hover:bg-gray-50">
-                                <button
-                                  className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                                    step.isCompleted 
-                                      ? "bg-green-600 border-green-600 hover:bg-green-700" 
-                                      : "border-gray-300 hover:border-green-400 bg-white"
-                                  }`}
-                                  onClick={() => handleStepToggle(step.id, !step.isCompleted)}
-                                >
-                                  {step.isCompleted ? (
-                                    <CheckCircle className="h-3 w-3 text-white" />
-                                  ) : (
-                                    <span className="text-xs text-gray-400 font-medium">{index + 1}</span>
-                                  )}
-                                </button>
-                                <div className="flex-1">
-                                  <p className={`text-xs ${step.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                                    {step.stepName}
-                                  </p>
-                                </div>
-                              </div>
-                            ))}
-                            {steps.length > 8 && (
-                              <div className="text-center pt-2">
-                                <Button variant="ghost" size="sm" className="text-xs">
-                                  Ver todas ({steps.length} etapas)
-                                </Button>
-                              </div>
-                            )}
+                      {/* Current Step Action */}
+                      {nextStep && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                            Ação da Etapa Atual
+                          </h4>
+                          <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <button
+                              className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                nextStep.isCompleted 
+                                  ? "bg-green-600 border-green-600 hover:bg-green-700" 
+                                  : "border-blue-400 hover:border-green-400 bg-white hover:bg-green-50"
+                              }`}
+                              onClick={() => handleStepToggle(nextStep.id, !nextStep.isCompleted)}
+                            >
+                              {nextStep.isCompleted ? (
+                                <CheckCircle className="h-4 w-4 text-white" />
+                              ) : (
+                                <span className="text-sm text-blue-600 font-medium">✓</span>
+                              )}
+                            </button>
+                            <div className="flex-1">
+                              <p className={`text-sm font-medium ${nextStep.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                                {nextStep.stepName}
+                              </p>
+                              <p className="text-xs text-gray-600 mt-1">
+                                {nextStep.isCompleted ? 'Etapa concluída' : 'Clique para marcar como concluída'}
+                              </p>
+                            </div>
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
