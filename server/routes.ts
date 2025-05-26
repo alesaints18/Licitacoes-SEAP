@@ -850,20 +850,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stepId = parseInt(req.params.stepId);
       const stepData = req.body;
       
-      // If marking as completed, add the user who completed it
+      console.log(`Atualizando etapa ${stepId} com dados:`, stepData);
+      
+      // If marking as completed, add the user who completed it and timestamp
       if (stepData.isCompleted) {
         stepData.completedBy = (req.user as any).id;
+        stepData.completedAt = new Date();
+      } else {
+        stepData.completedBy = null;
+        stepData.completedAt = null;
       }
+      
+      console.log(`Dados processados para etapa ${stepId}:`, stepData);
       
       const updatedStep = await storage.updateProcessStep(stepId, stepData);
       
       if (!updatedStep) {
+        console.log(`Etapa ${stepId} não encontrada`);
         return res.status(404).json({ message: "Etapa não encontrada" });
       }
       
+      console.log(`Etapa ${stepId} atualizada com sucesso:`, updatedStep);
       res.json(updatedStep);
     } catch (error) {
-      res.status(400).json({ message: "Erro ao atualizar etapa", error });
+      console.error(`Erro ao atualizar etapa ${req.params.stepId}:`, error);
+      res.status(400).json({ message: "Erro ao atualizar etapa", error: error instanceof Error ? error.message : String(error) });
     }
   });
 

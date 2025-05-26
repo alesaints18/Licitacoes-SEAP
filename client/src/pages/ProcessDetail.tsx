@@ -104,7 +104,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       
       const response = await apiRequest('PATCH', `/api/processes/${parsedId}/steps/${stepId}`, {
         isCompleted,
-        completedAt: isCompleted ? new Date().toISOString() : null,
       });
 
       if (response.ok) {
