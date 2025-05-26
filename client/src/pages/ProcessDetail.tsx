@@ -396,12 +396,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 <CardHeader>
                   <CardTitle className="flex items-center text-lg">
                     <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
-                    Checklist
+                    Checklist ({steps?.length || 0} etapas)
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2 max-h-96 overflow-y-auto">
-                    {steps?.slice(0, 10).map((step, index) => (
+                  {!steps || steps.length === 0 ? (
+                    <p className="text-sm text-gray-500">Nenhuma etapa encontrada</p>
+                  ) : (
+                    <div className="space-y-2 max-h-96 overflow-y-auto">
+                      {steps.slice(0, 10).map((step, index) => (
                       <div key={step.id} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50">
                         <button
                           className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all ${
@@ -423,15 +426,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           </p>
                         </div>
                       </div>
-                    ))}
-                    {(steps?.length || 0) > 10 && (
-                      <div className="text-center pt-2">
-                        <Button variant="ghost" size="sm" className="text-xs">
-                          Ver todas ({steps?.length} etapas)
-                        </Button>
-                      </div>
-                    )}
-                  </div>
+                      ))}
+                      {steps.length > 10 && (
+                        <div className="text-center pt-2">
+                          <Button variant="ghost" size="sm" className="text-xs">
+                            Ver todas ({steps.length} etapas)
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
