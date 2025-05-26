@@ -79,7 +79,13 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
     { name: "Concluídos", value: data.completed, color: "#4CAF50" },
     { name: "Em Andamento", value: data.inProgress, color: "#FFC107" },
     { name: "Cancelados", value: data.canceled, color: "#D32F2F" },
-  ].filter(item => item.value > 0); // Only include non-zero values
+  ];
+  
+  // Se não há dados com valores > 0, adiciona um placeholder para mostrar o gráfico
+  const filteredChartData = chartData.filter(item => item.value > 0);
+  const displayData = filteredChartData.length > 0 ? filteredChartData : [
+    { name: "Sem dados", value: 1, color: "#E0E0E0" }
+  ];
   
   return (
     <Card>
@@ -94,7 +100,7 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={chartData}
+                  data={displayData}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -102,7 +108,7 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
                   paddingAngle={5}
                   dataKey="value"
                 >
-                  {chartData.map((entry, index) => (
+                  {displayData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
