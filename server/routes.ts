@@ -809,15 +809,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Buscando etapas para o processo ${processId}`);
       
       if (isNaN(processId)) {
+        console.log("ID do processo é inválido:", req.params.processId);
         return res.status(400).json({ message: "ID do processo inválido" });
       }
       
+      console.log("Iniciando consulta de etapas no storage...");
       const steps = await storage.getProcessSteps(processId);
-      console.log(`Etapas encontradas para processo ${processId}:`, steps.length);
-      res.json(steps);
+      console.log(`Etapas encontradas para processo ${processId}:`, steps?.length || 0);
+      
+      // Retornar array vazio se não houver etapas
+      res.json(steps || []);
     } catch (error) {
-      console.error("Erro ao buscar etapas do processo:", error);
-      res.status(500).json({ message: "Erro ao buscar etapas do processo", error: String(error) });
+      console.error("Erro completo ao buscar etapas:", error);
+      console.error("Stack trace:", error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ 
+        message: "Erro ao buscar etapas do processo", 
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 

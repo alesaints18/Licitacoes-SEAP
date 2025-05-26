@@ -387,11 +387,18 @@ export class DatabaseStorage implements IStorage {
 
   // Process steps operations
   async getProcessSteps(processId: number): Promise<ProcessStep[]> {
-    return await db
-      .select()
-      .from(processSteps)
-      .where(eq(processSteps.processId, processId))
-      .orderBy(desc(processSteps.createdAt));
+    try {
+      const steps = await db
+        .select()
+        .from(processSteps)
+        .where(eq(processSteps.processId, processId))
+        .orderBy(processSteps.id);
+      
+      return steps || [];
+    } catch (error) {
+      console.error("Erro na consulta de etapas:", error);
+      throw new Error("Falha ao buscar etapas do processo");
+    }
   }
 
   async createProcessStep(step: InsertProcessStep): Promise<ProcessStep> {
