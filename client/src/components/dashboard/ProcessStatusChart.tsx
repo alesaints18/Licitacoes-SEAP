@@ -74,18 +74,21 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
     );
   }
   
-  // Transform data for chart
+  // Transform data for chart - incluindo rascunhos como "Em Andamento"
+  const rascunhosCount = data.total - data.completed - data.canceled;
   const chartData = [
-    { name: "Concluídos", value: data.completed, color: "#4CAF50" },
-    { name: "Em Andamento", value: data.inProgress, color: "#FFC107" },
-    { name: "Cancelados", value: data.canceled, color: "#D32F2F" },
+    { name: "Concluídos", value: data.completed, color: "#10B981" },
+    { name: "Em Andamento", value: rascunhosCount, color: "#3B82F6" },
+    { name: "Cancelados", value: data.canceled, color: "#EF4444" },
   ];
   
-  // Se não há dados com valores > 0, adiciona um placeholder para mostrar o gráfico
-  const filteredChartData = chartData.filter(item => item.value > 0);
-  const displayData = filteredChartData.length > 0 ? filteredChartData : [
-    { name: "Sem dados", value: 1, color: "#E0E0E0" }
-  ];
+  // Filtrar apenas dados com valores > 0 para mostrar no gráfico
+  const displayData = chartData.filter(item => item.value > 0);
+  
+  // Se não há dados, mostrar placeholder
+  if (displayData.length === 0) {
+    displayData.push({ name: "Sem dados", value: 1, color: "#E5E7EB" });
+  }
   
   return (
     <Card>
@@ -123,7 +126,7 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
         
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-4 mt-8">
           <div className="flex items-center justify-center sm:justify-start">
-            <div className="w-3 h-3 bg-green-500 rounded-full mr-3 flex-shrink-0"></div>
+            <div className="w-3 h-3 bg-emerald-500 rounded-full mr-3 flex-shrink-0"></div>
             <div className="text-center sm:text-left">
               <div className="text-sm text-gray-600">Concluídos</div>
               <div className="text-xs text-gray-500">
@@ -132,11 +135,11 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
             </div>
           </div>
           <div className="flex items-center justify-center sm:justify-start">
-            <div className="w-3 h-3 bg-yellow-500 rounded-full mr-3 flex-shrink-0"></div>
+            <div className="w-3 h-3 bg-blue-500 rounded-full mr-3 flex-shrink-0"></div>
             <div className="text-center sm:text-left">
               <div className="text-sm text-gray-600">Em Andamento</div>
               <div className="text-xs text-gray-500">
-                {data.inProgress} {data.total > 0 && `(${((data.inProgress / data.total) * 100).toFixed(1)}%)`}
+                {rascunhosCount} {data.total > 0 && `(${((rascunhosCount / data.total) * 100).toFixed(1)}%)`}
               </div>
             </div>
           </div>
