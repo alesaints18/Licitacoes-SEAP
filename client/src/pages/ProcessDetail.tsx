@@ -96,6 +96,31 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const handleEdit = () => {
     setLocation(`/processes/${id}/edit`);
   };
+
+  // Handle step toggle
+  const handleStepToggle = async (stepId: number, isCompleted: boolean) => {
+    try {
+      const response = await apiRequest('PATCH', `/api/processes/${parsedId}/steps/${stepId}`, {
+        isCompleted,
+        completedAt: isCompleted ? new Date().toISOString() : null,
+      });
+
+      if (response.ok) {
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
+        toast({
+          title: isCompleted ? "Etapa concluída" : "Etapa desmarcada",
+          description: isCompleted ? "A etapa foi marcada como concluída." : "A etapa foi desmarcada.",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar a etapa.",
+        variant: "destructive",
+      });
+    }
+  };
   
   // Handle delete process
   const handleDelete = async () => {
@@ -209,12 +234,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         </TabsList>
         
         <TabsContent value="overview">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Informações Básicas</CardTitle>
-              </CardHeader>
-              <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Informações Básicas</CardTitle>
+                </CardHeader>
+                <CardContent>
                 <dl className="divide-y divide-gray-200">
                   <div className="py-3 grid grid-cols-3">
                     <dt className="text-sm font-medium text-gray-500">PBDOC</dt>
@@ -313,60 +339,97 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 </dl>
               </CardContent>
             </Card>
+            </div>
 
-            {/* Next Step Card */}
-            {nextStep && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Clock className="h-5 w-5 mr-2 text-blue-600" />
-                    Próxima Etapa
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{nextStep.stepName}</h4>
-                      {nextStep.observations && (
-                        <p className="text-sm text-gray-600 mt-1">{nextStep.observations}</p>
-                      )}
-                    </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-sm text-gray-500">
-                        <span className="font-medium">Responsável:</span>
-                        <span className="ml-1">
+            {/* Right Sidebar with Checklist */}
+            <div className="space-y-6">
+              {/* Next Step Card */}
+              {nextStep && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-lg">
+                      <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                      Próxima Etapa
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-medium text-gray-900 text-sm">{nextStep.stepName}</h4>
+                        <p className="text-xs text-gray-500 mt-1">
                           {stepDepartment?.name || 'Departamento não definido'}
-                        </span>
+                        </p>
                       </div>
                       
                       {nextStep.dueDate && (
-                        <div className="flex items-center text-sm">
-                          <Clock className="h-4 w-4 mr-1 text-orange-500" />
-                          <span className="text-orange-600 font-medium">
-                            {format(new Date(nextStep.dueDate), "dd/MM/yyyy")}
-                          </span>
+                        <div className="flex items-center text-xs text-orange-600">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {format(new Date(nextStep.dueDate), "dd/MM/yyyy")}
                         </div>
                       )}
-                    </div>
 
-                    <div className="mt-3 pt-3 border-t border-gray-200">
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">
-                          Etapa {nextStep.id} de 21
+                          Progresso: {steps?.filter(s => s.isCompleted).length || 0} de {steps?.length || 0}
                         </span>
-                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
                           <div 
-                            className="bg-blue-600 h-2 rounded-full" 
-                            style={{ width: `${(nextStep.id / 21) * 100}%` }}
+                            className="bg-blue-600 h-1.5 rounded-full" 
+                            style={{ width: `${((steps?.filter(s => s.isCompleted).length || 0) / (steps?.length || 1)) * 100}%` }}
                           />
                         </div>
                       </div>
                     </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Compact Checklist */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center text-lg">
+                    <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
+                    Checklist
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2 max-h-96 overflow-y-auto">
+                    {steps?.slice(0, 10).map((step, index) => (
+                      <div key={step.id} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50">
+                        <Button
+                          size="sm"
+                          variant={step.isCompleted ? "default" : "outline"}
+                          className={`h-6 w-6 p-0 rounded-full ${
+                            step.isCompleted 
+                              ? "bg-green-600 hover:bg-green-700" 
+                              : "border-gray-300 hover:border-green-400"
+                          }`}
+                          onClick={() => handleStepToggle(step.id, !step.isCompleted)}
+                        >
+                          {step.isCompleted ? (
+                            <CheckCircle className="h-3 w-3 text-white" />
+                          ) : (
+                            <span className="text-xs text-gray-400">{index + 1}</span>
+                          )}
+                        </Button>
+                        <div className="flex-1">
+                          <p className={`text-xs ${step.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                            {step.stepName}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                    {(steps?.length || 0) > 10 && (
+                      <div className="text-center pt-2">
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          Ver todas ({steps?.length} etapas)
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-            )}
+            </div>
           </div>
         </TabsContent>
         

@@ -70,12 +70,12 @@ const Sidebar = () => {
         label: "Usuários",
         adminOnly: true,
       },
-      {
+      /* {
         path: "/settings",
         icon: <Settings className="h-5 w-5 mr-3" />,
         label: "Configurações",
         adminOnly: true,
-      },
+      }, */
     ],
     [],
   );
