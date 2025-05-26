@@ -100,20 +100,27 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   // Handle step toggle
   const handleStepToggle = async (stepId: number, isCompleted: boolean) => {
     try {
+      console.log(`Atualizando etapa ${stepId} para isCompleted: ${isCompleted}`);
+      
       const response = await apiRequest('PATCH', `/api/processes/${parsedId}/steps/${stepId}`, {
         isCompleted,
         completedAt: isCompleted ? new Date().toISOString() : null,
       });
 
       if (response.ok) {
+        console.log("Etapa atualizada com sucesso");
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
         toast({
           title: isCompleted ? "Etapa concluída" : "Etapa desmarcada",
           description: isCompleted ? "A etapa foi marcada como concluída." : "A etapa foi desmarcada.",
         });
+      } else {
+        console.error("Erro na resposta:", response.status);
+        throw new Error(`HTTP ${response.status}`);
       }
     } catch (error) {
+      console.error("Erro ao atualizar etapa:", error);
       toast({
         title: "Erro",
         description: "Não foi possível atualizar a etapa.",
@@ -396,22 +403,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {steps?.slice(0, 10).map((step, index) => (
                       <div key={step.id} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-50">
-                        <Button
-                          size="sm"
-                          variant={step.isCompleted ? "default" : "outline"}
-                          className={`h-6 w-6 p-0 rounded-full ${
+                        <button
+                          className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all ${
                             step.isCompleted 
-                              ? "bg-green-600 hover:bg-green-700" 
-                              : "border-gray-300 hover:border-green-400"
+                              ? "bg-green-600 border-green-600 hover:bg-green-700" 
+                              : "border-gray-300 hover:border-green-400 bg-white"
                           }`}
                           onClick={() => handleStepToggle(step.id, !step.isCompleted)}
                         >
                           {step.isCompleted ? (
                             <CheckCircle className="h-3 w-3 text-white" />
                           ) : (
-                            <span className="text-xs text-gray-400">{index + 1}</span>
+                            <span className="text-xs text-gray-400 font-medium">{index + 1}</span>
                           )}
-                        </Button>
+                        </button>
                         <div className="flex-1">
                           <p className={`text-xs ${step.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                             {step.stepName}
