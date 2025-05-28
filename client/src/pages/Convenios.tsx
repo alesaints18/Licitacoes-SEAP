@@ -43,17 +43,11 @@ const Convenios = () => {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  // Carregar convênios do localStorage ou iniciar vazio
+  // Forçar limpeza completa e iniciar vazio
   const [convenios, setConvenios] = useState<Convenio[]>(() => {
-    const saved = localStorage.getItem('convenios-seap');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (error) {
-        console.error('Erro ao carregar convênios:', error);
-      }
-    }
-    // Iniciar com lista vazia
+    // Limpar qualquer dado antigo
+    localStorage.removeItem('convenios-seap');
+    // Sempre iniciar com lista vazia
     return [];
   });
 
