@@ -357,9 +357,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { pbdoc, modality, source, responsible, status } = req.query;
       const userId = (req.user as any).id;
+      const userDepartment = (req.user as any).department;
       
-      // Obter processos com filtro de acesso por participante
-      console.log(`Obtendo processos para usuário: ${userId} (${(req.user as any).username})`);
+      // Mapeamento de departamentos por nome
+      const departmentIdMap: { [key: string]: number } = {
+        "TI": 1,
+        "Licitações": 2,
+        "Jurídico": 3,
+        "Financeiro": 4,
+        "Administrativo": 5
+      };
+
+      const userDepartmentId = departmentIdMap[userDepartment];
+      
+      console.log(`Obtendo processos para usuário: ${userId} (${(req.user as any).username}) do departamento: ${userDepartment} (ID: ${userDepartmentId})`);
       
       const filters = {
         pbdocNumber: pbdoc as string | undefined,
@@ -367,11 +378,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sourceId: source ? parseInt(source as string) : undefined,
         responsibleId: responsible ? parseInt(responsible as string) : undefined,
         status: status as string | undefined,
-        userId: userId // Adicionado userId para filtrar processos por participante
+        currentDepartmentId: userDepartmentId // Filtrar apenas processos do departamento atual do usuário
       };
       
       const processes = await storage.getProcesses(filters);
-      console.log(`Processos encontrados para usuário ${userId}: ${processes.length}`);
+      console.log(`Processos encontrados para usuário ${userId} no departamento ${userDepartment}: ${processes.length}`);
       
       res.json(processes);
     } catch (error) {

@@ -42,6 +42,7 @@ export interface IStorage {
     sourceId?: number;
     responsibleId?: number;
     status?: string;
+    currentDepartmentId?: number; // Filtrar por departamento atual do processo
     userId?: number; // Adicionado userId para filtrar por participante
   }): Promise<Process[]>;
   

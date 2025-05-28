@@ -153,45 +153,54 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     ? departments.find((d: any) => d.id === nextStep.departmentId)
     : undefined;
 
+  // Mapeamento de departamentos por ID
+  const departmentIdMap: { [key: string]: number } = {
+    "TI": 1,
+    "Licitações": 2,
+    "Jurídico": 3,
+    "Financeiro": 4,
+    "Administrativo": 5
+  };
+
   // Function to get sector-specific steps
   const getSectorSteps = (userDepartment: string, modalityId: number) => {
     if (modalityId !== 1) return []; // Apenas para Pregão Eletrônico
     
-    const stepsBySector: { [key: string]: { name: string; phase: string }[] } = {
+    const stepsBySector: { [key: string]: { name: string; phase: string; nextSector?: string }[] } = {
       // TI - Setor Demandante (Fase de Iniciação)
       "TI": [
         { name: "Demanda identificada pela unidade requisitante", phase: "Iniciação" },
         { name: "Elaboração dos estudos técnicos preliminares", phase: "Iniciação" },
         { name: "Análise de viabilidade e adequação orçamentária", phase: "Iniciação" },
-        { name: "Elaboração do termo de referência ou projeto básico", phase: "Iniciação" },
+        { name: "Elaboração do termo de referência ou projeto básico", phase: "Iniciação", nextSector: "Financeiro" },
       ],
       
       // Licitações - Divisão de Licitação
       "Licitações": [
         { name: "Encaminhamento da demanda ao setor de licitações", phase: "Preparação" },
         { name: "Designação do pregoeiro e equipe de apoio", phase: "Preparação" },
-        { name: "Elaboração do edital de licitação", phase: "Preparação" },
+        { name: "Elaboração do edital de licitação", phase: "Preparação", nextSector: "Jurídico" },
         { name: "Publicação do aviso de licitação", phase: "Execução" },
         { name: "Disponibilização do edital aos interessados", phase: "Execução" },
         { name: "Período para envio de propostas", phase: "Execução" },
         { name: "Sessão pública do pregão eletrônico", phase: "Execução" },
         { name: "Análise e classificação das propostas", phase: "Execução" },
-        { name: "Habilitação dos licitantes", phase: "Execução" },
+        { name: "Habilitação dos licitantes", phase: "Execução", nextSector: "Financeiro" },
       ],
       
       // Jurídico - Assessoria Jurídica
       "Jurídico": [
-        { name: "Análise jurídica do edital", phase: "Preparação" },
+        { name: "Análise jurídica do edital", phase: "Preparação", nextSector: "Financeiro" },
         { name: "Análise de recursos administrativos", phase: "Execução" },
-        { name: "Elaboração da minuta do contrato", phase: "Finalização" },
+        { name: "Elaboração da minuta do contrato", phase: "Finalização", nextSector: "Administrativo" },
       ],
       
       // Financeiro - Ordenador de Despesa
       "Financeiro": [
-        { name: "Aprovação do termo de referência pela autoridade competente", phase: "Iniciação" },
-        { name: "Aprovação do edital pela autoridade competente", phase: "Preparação" },
-        { name: "Adjudicação e homologação", phase: "Finalização" },
-        { name: "Empenho da despesa", phase: "Finalização" },
+        { name: "Aprovação do termo de referência pela autoridade competente", phase: "Iniciação", nextSector: "Licitações" },
+        { name: "Aprovação do edital pela autoridade competente", phase: "Preparação", nextSector: "Licitações" },
+        { name: "Adjudicação e homologação", phase: "Finalização", nextSector: "Jurídico" },
+        { name: "Empenho da despesa", phase: "Finalização", nextSector: "Administrativo" },
       ],
       
       // Administrativo - Gestão Contratual
@@ -204,6 +213,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     
     return stepsBySector[userDepartment] || [];
   };
+
+  // Function to get next sector for a step
+  const getNextSectorForStep = (stepName: string) => {
+    const allSteps = [
+      ...getSectorSteps("TI", 1),
+      ...getSectorSteps("Licitações", 1), 
+      ...getSectorSteps("Jurídico", 1),
+      ...getSectorSteps("Financeiro", 1),
+      ...getSectorSteps("Administrativo", 1)
+    ];
+    
+    const step = allSteps.find(s => s.name === stepName);
+    return step?.nextSector;
+  };
   
   // Handle edit process
   const handleEdit = () => {
@@ -215,12 +238,47 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     try {
       console.log(`Atualizando etapa ${stepId} para isCompleted: ${isCompleted}`);
       
+      const step = steps?.find(s => s.id === stepId);
+      if (!step) return;
+
       const response = await apiRequest('PATCH', `/api/processes/${parsedId}/steps/${stepId}`, {
         isCompleted,
       });
 
       if (response.ok) {
         console.log("Etapa atualizada com sucesso");
+        
+        // Se a etapa foi marcada como concluída, verificar se precisa transferir o processo
+        if (isCompleted && step.stepName) {
+          const nextSector = getNextSectorForStep(step.stepName);
+          if (nextSector && process) {
+            const nextDepartmentId = departmentIdMap[nextSector];
+            if (nextDepartmentId && nextDepartmentId !== process.currentDepartmentId) {
+              try {
+                console.log(`Transferindo processo para o setor ${nextSector} (ID: ${nextDepartmentId})`);
+                await apiRequest("PATCH", `/api/processes/${parsedId}`, {
+                  currentDepartmentId: nextDepartmentId,
+                });
+                
+                toast({
+                  title: "Processo transferido automaticamente",
+                  description: `Processo transferido para o setor ${nextSector}`,
+                });
+
+                // Invalidate process query to refresh department
+                queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}`] });
+              } catch (transferError) {
+                console.error("Erro na transferência:", transferError);
+                toast({
+                  title: "Aviso",
+                  description: "Etapa concluída, mas houve problema na transferência automática",
+                  variant: "destructive",
+                });
+              }
+            }
+          }
+        }
+        
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
         toast({
