@@ -152,6 +152,58 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const stepDepartment = nextStep && Array.isArray(departments) 
     ? departments.find((d: any) => d.id === nextStep.departmentId)
     : undefined;
+
+  // Function to get sector-specific steps
+  const getSectorSteps = (userDepartment: string, modalityId: number) => {
+    if (modalityId !== 1) return []; // Apenas para Pregão Eletrônico
+    
+    const stepsBySector: { [key: string]: { name: string; phase: string }[] } = {
+      // TI - Setor Demandante (Fase de Iniciação)
+      "TI": [
+        { name: "Demanda identificada pela unidade requisitante", phase: "Iniciação" },
+        { name: "Elaboração dos estudos técnicos preliminares", phase: "Iniciação" },
+        { name: "Análise de viabilidade e adequação orçamentária", phase: "Iniciação" },
+        { name: "Elaboração do termo de referência ou projeto básico", phase: "Iniciação" },
+      ],
+      
+      // Licitações - Divisão de Licitação
+      "Licitações": [
+        { name: "Encaminhamento da demanda ao setor de licitações", phase: "Preparação" },
+        { name: "Designação do pregoeiro e equipe de apoio", phase: "Preparação" },
+        { name: "Elaboração do edital de licitação", phase: "Preparação" },
+        { name: "Publicação do aviso de licitação", phase: "Execução" },
+        { name: "Disponibilização do edital aos interessados", phase: "Execução" },
+        { name: "Período para envio de propostas", phase: "Execução" },
+        { name: "Sessão pública do pregão eletrônico", phase: "Execução" },
+        { name: "Análise e classificação das propostas", phase: "Execução" },
+        { name: "Habilitação dos licitantes", phase: "Execução" },
+      ],
+      
+      // Jurídico - Assessoria Jurídica
+      "Jurídico": [
+        { name: "Análise jurídica do edital", phase: "Preparação" },
+        { name: "Análise de recursos administrativos", phase: "Execução" },
+        { name: "Elaboração da minuta do contrato", phase: "Finalização" },
+      ],
+      
+      // Financeiro - Ordenador de Despesa
+      "Financeiro": [
+        { name: "Aprovação do termo de referência pela autoridade competente", phase: "Iniciação" },
+        { name: "Aprovação do edital pela autoridade competente", phase: "Preparação" },
+        { name: "Adjudicação e homologação", phase: "Finalização" },
+        { name: "Empenho da despesa", phase: "Finalização" },
+      ],
+      
+      // Administrativo - Gestão Contratual
+      "Administrativo": [
+        { name: "Assinatura do contrato", phase: "Finalização" },
+        { name: "Publicação do extrato do contrato", phase: "Finalização" },
+        { name: "Fiscalização e acompanhamento contratual", phase: "Finalização" },
+      ]
+    };
+    
+    return stepsBySector[userDepartment] || [];
+  };
   
   // Handle edit process
   const handleEdit = () => {
@@ -446,6 +498,51 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           />
                         </div>
                       </div>
+
+                      {/* Sector-Specific Checklist */}
+                      {currentUser && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                            Checklist do Setor {currentUser.department}
+                          </h4>
+                          
+                          {/* Sector Steps */}
+                          <div className="space-y-2">
+                            {getSectorSteps(currentUser.department, process?.modalityId || 1).map((sectorStep, index) => {
+                              const existingStep = steps?.find(s => s.stepName === sectorStep.name);
+                              const isCompleted = existingStep?.isCompleted || false;
+                              
+                              return (
+                                <div key={index} className="flex items-center space-x-3 p-2 bg-white rounded border border-gray-200">
+                                  <button
+                                    className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                      isCompleted 
+                                        ? "bg-green-600 border-green-600 hover:bg-green-700" 
+                                        : "border-blue-400 hover:border-green-400 bg-white hover:bg-green-50"
+                                    }`}
+                                    onClick={() => existingStep && handleStepToggle(existingStep.id, !isCompleted)}
+                                  >
+                                    {isCompleted ? (
+                                      <CheckCircle className="h-3 w-3 text-white" />
+                                    ) : (
+                                      <span className="text-xs text-blue-600 font-medium">✓</span>
+                                    )}
+                                  </button>
+                                  <div className="flex-1">
+                                    <p className={`text-sm font-medium ${isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                                      {sectorStep.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      Fase: {sectorStep.phase}
+                                    </p>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Current Step Action */}
                       {nextStep && (
