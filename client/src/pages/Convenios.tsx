@@ -42,16 +42,18 @@ const Convenios = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingConvenio, setEditingConvenio] = useState<Convenio | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   // Carregar convênios salvos do localStorage
   const [convenios, setConvenios] = useState<Convenio[]>(() => {
     try {
-      const saved = localStorage.getItem('convenios-seap');
+      const saved = localStorage.getItem("convenios-seap");
       if (saved) {
         return JSON.parse(saved);
       }
     } catch (error) {
-      console.error('Erro ao carregar convênios:', error);
+      console.error("Erro ao carregar convênios:", error);
     }
     // Iniciar com lista vazia se não houver dados salvos
     return [];
@@ -59,13 +61,13 @@ const Convenios = () => {
 
   // Salvar convênios no localStorage sempre que a lista mudar
   useEffect(() => {
-    localStorage.setItem('convenios-seap', JSON.stringify(convenios));
+    localStorage.setItem("convenios-seap", JSON.stringify(convenios));
   }, [convenios]);
 
   // Função para limpar todos os convênios
   const handleClearAll = () => {
     setConvenios([]);
-    localStorage.removeItem('convenios-seap');
+    localStorage.removeItem("convenios-seap");
     toast({
       title: "Dados limpos",
       description: "Todos os convênios foram removidos.",
@@ -145,6 +147,87 @@ const Convenios = () => {
       observacoes: "",
     });
     setIsAddDialogOpen(false);
+  };
+
+  // Função para editar convênio
+  const handleEditConvenio = (convenio: Convenio) => {
+    setEditingConvenio(convenio);
+    setNewConvenio({
+      numero: convenio.numero,
+      nome: convenio.nome,
+      orgaoConvenente: convenio.orgaoConvenente,
+      valor: convenio.valor.replace("R$ ", ""),
+      dataInicio: convenio.dataInicio,
+      dataFim: convenio.dataFim,
+      status: convenio.status,
+      observacoes: convenio.observacoes || "",
+    });
+    setIsEditDialogOpen(true);
+  };
+
+  // Função para salvar edição
+  const handleSaveEdit = () => {
+    if (!editingConvenio) return;
+
+    // Validate required fields
+    if (!newConvenio.numero || !newConvenio.nome || !newConvenio.orgaoConvenente || 
+        !newConvenio.valor || !newConvenio.dataInicio || !newConvenio.dataFim) {
+      toast({
+        title: "Erro",
+        description: "Todos os campos obrigatórios devem ser preenchidos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const updatedConvenios = convenios.map(conv =>
+      conv.id === editingConvenio.id
+        ? {
+            ...conv,
+            numero: newConvenio.numero,
+            nome: newConvenio.nome,
+            orgaoConvenente: newConvenio.orgaoConvenente,
+            valor: newConvenio.valor.startsWith("R$") ? newConvenio.valor : `R$ ${newConvenio.valor}`,
+            dataInicio: newConvenio.dataInicio,
+            dataFim: newConvenio.dataFim,
+            status: newConvenio.status,
+            observacoes: newConvenio.observacoes,
+            updatedAt: new Date().toISOString(),
+          }
+        : conv
+    );
+
+    setConvenios(updatedConvenios);
+    setIsEditDialogOpen(false);
+    setEditingConvenio(null);
+    setNewConvenio({
+      numero: "",
+      nome: "",
+      orgaoConvenente: "",
+      valor: "",
+      dataInicio: "",
+      dataFim: "",
+      status: "ativo",
+      observacoes: "",
+    });
+
+    toast({
+      title: "Convênio atualizado",
+      description: `Convênio ${newConvenio.numero} foi atualizado com sucesso.`,
+    });
+  };
+
+  // Função para excluir convênio
+  const handleDeleteConvenio = (id: number) => {
+    if (confirm("Tem certeza que deseja excluir este convênio?")) {
+      const updatedConvenios = convenios.filter(conv => conv.id !== id);
+      setConvenios(updatedConvenios);
+      
+      toast({
+        title: "Convênio excluído",
+        description: "O convênio foi removido com sucesso.",
+      });
+    }
   };
 
   const getStatusBadgeVariant = (status: string) => {
@@ -357,13 +440,7 @@ const Convenios = () => {
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
+                            onClick={() => handleEditConvenio(convenio)}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -371,6 +448,7 @@ const Convenios = () => {
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                            onClick={() => handleDeleteConvenio(convenio.id)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -384,6 +462,147 @@ const Convenios = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Diálogo de Edição */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Editar Convênio</DialogTitle>
+            <DialogDescription>
+              Atualize as informações do convênio selecionado.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-numero" className="text-right">
+                Número *
+              </Label>
+              <Input
+                id="edit-numero"
+                value={newConvenio.numero}
+                onChange={(e) =>
+                  setNewConvenio({ ...newConvenio, numero: e.target.value })
+                }
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-nome" className="text-right">
+                Nome *
+              </Label>
+              <Input
+                id="edit-nome"
+                value={newConvenio.nome}
+                onChange={(e) =>
+                  setNewConvenio({ ...newConvenio, nome: e.target.value })
+                }
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-orgao" className="text-right">
+                Órgão *
+              </Label>
+              <Input
+                id="edit-orgao"
+                value={newConvenio.orgaoConvenente}
+                onChange={(e) =>
+                  setNewConvenio({
+                    ...newConvenio,
+                    orgaoConvenente: e.target.value,
+                  })
+                }
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-valor" className="text-right">
+                Valor *
+              </Label>
+              <Input
+                id="edit-valor"
+                value={newConvenio.valor}
+                onChange={(e) =>
+                  setNewConvenio({ ...newConvenio, valor: e.target.value })
+                }
+                className="col-span-3"
+                placeholder="Ex: 150.000,00"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-inicio" className="text-right">
+                Data Início *
+              </Label>
+              <Input
+                id="edit-inicio"
+                type="date"
+                value={newConvenio.dataInicio}
+                onChange={(e) =>
+                  setNewConvenio({ ...newConvenio, dataInicio: e.target.value })
+                }
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-fim" className="text-right">
+                Data Fim *
+              </Label>
+              <Input
+                id="edit-fim"
+                type="date"
+                value={newConvenio.dataFim}
+                onChange={(e) =>
+                  setNewConvenio({ ...newConvenio, dataFim: e.target.value })
+                }
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-status" className="text-right">
+                Status
+              </Label>
+              <Select
+                value={newConvenio.status}
+                onValueChange={(value) =>
+                  setNewConvenio({ ...newConvenio, status: value })
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ativo">Ativo</SelectItem>
+                  <SelectItem value="encerrado">Encerrado</SelectItem>
+                  <SelectItem value="suspenso">Suspenso</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-observacoes" className="text-right">
+                Observações
+              </Label>
+              <Textarea
+                id="edit-observacoes"
+                value={newConvenio.observacoes}
+                onChange={(e) =>
+                  setNewConvenio({
+                    ...newConvenio,
+                    observacoes: e.target.value,
+                  })
+                }
+                className="col-span-3"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveEdit}>Salvar Alterações</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
