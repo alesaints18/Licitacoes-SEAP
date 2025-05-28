@@ -43,23 +43,23 @@ const Convenios = () => {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  // Forçar limpeza completa e iniciar vazio
+  // Carregar convênios salvos do localStorage
   const [convenios, setConvenios] = useState<Convenio[]>(() => {
-    // Limpar qualquer dado antigo
-    localStorage.removeItem('convenios-seap');
-    // Sempre iniciar com lista vazia
+    try {
+      const saved = localStorage.getItem('convenios-seap');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar convênios:', error);
+    }
+    // Iniciar com lista vazia se não houver dados salvos
     return [];
   });
 
-  // Limpar dados antigos e salvar convênios no localStorage sempre que mudar
+  // Salvar convênios no localStorage sempre que a lista mudar
   useEffect(() => {
-    // Limpar dados de teste na primeira execução
-    if (convenios.length > 0) {
-      localStorage.setItem('convenios-seap', JSON.stringify(convenios));
-    } else {
-      // Forçar limpeza completa se a lista estiver vazia
-      localStorage.removeItem('convenios-seap');
-    }
+    localStorage.setItem('convenios-seap', JSON.stringify(convenios));
   }, [convenios]);
 
   // Função para limpar todos os convênios
