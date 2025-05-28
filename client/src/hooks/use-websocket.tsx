@@ -43,8 +43,10 @@ export function useWebSocket() {
             const data = JSON.parse(event.data);
             console.log('Mensagem WebSocket recebida:', data);
             
-            // Processar diferentes tipos de mensagens
-            handleWebSocketMessage(data);
+            // Verificar se os dados são válidos antes de processar
+            if (data && typeof data === 'object') {
+              handleWebSocketMessage(data);
+            }
           } catch (error) {
             console.error('Erro ao processar mensagem WebSocket:', error);
           }
@@ -95,14 +97,18 @@ export function useWebSocket() {
       case 'process_updated':
         // Similar ao caso anterior, mas para atualizações
         queryClient.invalidateQueries({ queryKey: ['/api/processes'] });
-        queryClient.invalidateQueries({ queryKey: [`/api/processes/${data.process.id}`] });
+        if (data.processId) {
+          queryClient.invalidateQueries({ queryKey: [`/api/processes/${data.processId}`] });
+        }
         queryClient.invalidateQueries({ queryKey: ['/api/analytics/process-statistics'] });
         
-        toast({
-          title: 'Processo Atualizado',
-          description: data.message,
-          duration: 5000,
-        });
+        if (data.message) {
+          toast({
+            title: 'Processo Atualizado',
+            description: data.message,
+            duration: 5000,
+          });
+        }
         break;
         
       case 'user_created':
