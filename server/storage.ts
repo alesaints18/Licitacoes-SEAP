@@ -353,8 +353,19 @@ export class MemStorage implements IStorage {
       }
 
       if (filters.currentDepartmentId) {
+        console.log(`Aplicando filtro por departamento. Departamento solicitado: ${filters.currentDepartmentId}`);
+        console.log(`Processos antes do filtro:`, processes.map(p => ({
+          id: p.id,
+          pbdoc: p.pbdocNumber,
+          currentDepartmentId: p.currentDepartmentId
+        })));
+        
         processes = processes.filter(p => p.currentDepartmentId === filters.currentDepartmentId);
         console.log(`Após filtro currentDepartmentId (${filters.currentDepartmentId}):`, processes.length);
+        
+        if (processes.length === 0) {
+          console.log(`Nenhum processo encontrado para o departamento ${filters.currentDepartmentId}`);
+        }
       }
     }
     
