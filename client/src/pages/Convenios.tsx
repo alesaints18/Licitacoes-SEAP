@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -43,35 +43,52 @@ const Convenios = () => {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [convenios, setConvenios] = useState<Convenio[]>([
-    {
-      id: 1,
-      numero: "CV001/2025",
-      nome: "Convênio de Cooperação Técnica",
-      orgaoConvenente: "Ministério da Justiça",
-      valor: "R$ 150.000,00",
-      dataInicio: "2025-01-01",
-      dataFim: "2025-12-31",
-      status: "ativo",
-      observacoes: "Convênio para modernização do sistema",
-      createdAt: "2025-01-01T00:00:00.000Z",
-      updatedAt: "2025-01-01T00:00:00.000Z",
-    },
-    {
-      id: 2,
-      numero: "CV002/2025",
-      nome: "Convênio de Capacitação",
-      orgaoConvenente: "SEAP Nacional",
-      valor: "R$ 75.000,00",
-      dataInicio: "2025-02-01",
-      dataFim: "2025-06-30",
-      status: "ativo",
-      observacoes: "Capacitação de servidores",
-      createdAt: "2025-02-01T00:00:00.000Z",
-      updatedAt: "2025-02-01T00:00:00.000Z",
-    },
-  ]);
-  
+  // Carregar convênios do localStorage ou usar dados padrão
+  const [convenios, setConvenios] = useState<Convenio[]>(() => {
+    const saved = localStorage.getItem('convenios-seap');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error('Erro ao carregar convênios:', error);
+      }
+    }
+    // Dados padrão
+    return [
+      {
+        id: 1,
+        numero: "CV001/2025",
+        nome: "Convênio de Cooperação Técnica",
+        orgaoConvenente: "Ministério da Justiça",
+        valor: "R$ 150.000,00",
+        dataInicio: "2025-01-01",
+        dataFim: "2025-12-31",
+        status: "ativo",
+        observacoes: "Convênio para modernização do sistema",
+        createdAt: "2025-01-01T00:00:00.000Z",
+        updatedAt: "2025-01-01T00:00:00.000Z",
+      },
+      {
+        id: 2,
+        numero: "CV002/2025", 
+        nome: "Convênio de Capacitação",
+        orgaoConvenente: "SEAP Nacional",
+        valor: "R$ 75.000,00",
+        dataInicio: "2025-02-01",
+        dataFim: "2025-06-30",
+        status: "ativo",
+        observacoes: "Capacitação de servidores",
+        createdAt: "2025-02-01T00:00:00.000Z",
+        updatedAt: "2025-02-01T00:00:00.000Z",
+      },
+    ];
+  });
+
+  // Salvar convênios no localStorage sempre que mudar
+  useEffect(() => {
+    localStorage.setItem('convenios-seap', JSON.stringify(convenios));
+  }, [convenios]);
+
   const [newConvenio, setNewConvenio] = useState({
     numero: "",
     nome: "",
@@ -87,13 +104,19 @@ const Convenios = () => {
     (convenio) =>
       convenio.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
       convenio.numero.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      convenio.orgaoConvenente.toLowerCase().includes(searchTerm.toLowerCase())
+      convenio.orgaoConvenente.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleAddConvenio = () => {
     // Validate required fields
-    if (!newConvenio.numero || !newConvenio.nome || !newConvenio.orgaoConvenente || 
-        !newConvenio.valor || !newConvenio.dataInicio || !newConvenio.dataFim) {
+    if (
+      !newConvenio.numero ||
+      !newConvenio.nome ||
+      !newConvenio.orgaoConvenente ||
+      !newConvenio.valor ||
+      !newConvenio.dataInicio ||
+      !newConvenio.dataFim
+    ) {
       toast({
         title: "Erro",
         description: "Todos os campos obrigatórios devem ser preenchidos.",
@@ -104,11 +127,13 @@ const Convenios = () => {
 
     // Create new convenio with generated ID
     const novoConvenio: Convenio = {
-      id: Math.max(...convenios.map(c => c.id)) + 1,
+      id: Math.max(...convenios.map((c) => c.id)) + 1,
       numero: newConvenio.numero,
       nome: newConvenio.nome,
       orgaoConvenente: newConvenio.orgaoConvenente,
-      valor: newConvenio.valor.startsWith("R$") ? newConvenio.valor : `R$ ${newConvenio.valor}`,
+      valor: newConvenio.valor.startsWith("R$")
+        ? newConvenio.valor
+        : `R$ ${newConvenio.valor}`,
       dataInicio: newConvenio.dataInicio,
       dataFim: newConvenio.dataFim,
       status: newConvenio.status,
@@ -165,11 +190,9 @@ const Convenios = () => {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Convênios</h1>
-          <p className="text-gray-600 mt-1">
-            Gerencie os convênios da SEAP-PB
-          </p>
+          <p className="text-gray-600 mt-1">Gerencie os convênios da SEAP-PB</p>
         </div>
-        
+
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-blue-600 hover:bg-blue-700">
@@ -187,7 +210,9 @@ const Convenios = () => {
                 <Input
                   id="numero"
                   value={newConvenio.numero}
-                  onChange={(e) => setNewConvenio({ ...newConvenio, numero: e.target.value })}
+                  onChange={(e) =>
+                    setNewConvenio({ ...newConvenio, numero: e.target.value })
+                  }
                   placeholder="Ex: CV001/2025"
                 />
               </div>
@@ -196,7 +221,9 @@ const Convenios = () => {
                 <Input
                   id="nome"
                   value={newConvenio.nome}
-                  onChange={(e) => setNewConvenio({ ...newConvenio, nome: e.target.value })}
+                  onChange={(e) =>
+                    setNewConvenio({ ...newConvenio, nome: e.target.value })
+                  }
                   placeholder="Nome do convênio"
                 />
               </div>
@@ -205,7 +232,12 @@ const Convenios = () => {
                 <Input
                   id="orgaoConvenente"
                   value={newConvenio.orgaoConvenente}
-                  onChange={(e) => setNewConvenio({ ...newConvenio, orgaoConvenente: e.target.value })}
+                  onChange={(e) =>
+                    setNewConvenio({
+                      ...newConvenio,
+                      orgaoConvenente: e.target.value,
+                    })
+                  }
                   placeholder="Órgão convenente"
                 />
               </div>
@@ -214,7 +246,9 @@ const Convenios = () => {
                 <Input
                   id="valor"
                   value={newConvenio.valor}
-                  onChange={(e) => setNewConvenio({ ...newConvenio, valor: e.target.value })}
+                  onChange={(e) =>
+                    setNewConvenio({ ...newConvenio, valor: e.target.value })
+                  }
                   placeholder="Ex: 150000.00"
                 />
               </div>
@@ -224,7 +258,12 @@ const Convenios = () => {
                   id="dataInicio"
                   type="date"
                   value={newConvenio.dataInicio}
-                  onChange={(e) => setNewConvenio({ ...newConvenio, dataInicio: e.target.value })}
+                  onChange={(e) =>
+                    setNewConvenio({
+                      ...newConvenio,
+                      dataInicio: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -233,7 +272,9 @@ const Convenios = () => {
                   id="dataFim"
                   type="date"
                   value={newConvenio.dataFim}
-                  onChange={(e) => setNewConvenio({ ...newConvenio, dataFim: e.target.value })}
+                  onChange={(e) =>
+                    setNewConvenio({ ...newConvenio, dataFim: e.target.value })
+                  }
                 />
               </div>
               <div className="col-span-2 space-y-2">
@@ -241,7 +282,12 @@ const Convenios = () => {
                 <Input
                   id="observacoes"
                   value={newConvenio.observacoes}
-                  onChange={(e) => setNewConvenio({ ...newConvenio, observacoes: e.target.value })}
+                  onChange={(e) =>
+                    setNewConvenio({
+                      ...newConvenio,
+                      observacoes: e.target.value,
+                    })
+                  }
                   placeholder="Observações adicionais"
                 />
               </div>
@@ -253,7 +299,10 @@ const Convenios = () => {
               >
                 Cancelar
               </Button>
-              <Button onClick={handleAddConvenio} className="bg-blue-600 hover:bg-blue-700">
+              <Button
+                onClick={handleAddConvenio}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
                 Adicionar
               </Button>
             </div>
@@ -291,8 +340,13 @@ const Convenios = () => {
               <TableBody>
                 {filteredConvenios.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
-                      {searchTerm ? "Nenhum convênio encontrado com os critérios de pesquisa." : "Nenhum convênio cadastrado."}
+                    <TableCell
+                      colSpan={7}
+                      className="text-center py-8 text-gray-500"
+                    >
+                      {searchTerm
+                        ? "Nenhum convênio encontrado com os critérios de pesquisa."
+                        : "Nenhum convênio cadastrado."}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -305,11 +359,13 @@ const Convenios = () => {
                       <TableCell>{convenio.orgaoConvenente}</TableCell>
                       <TableCell>{formatCurrency(convenio.valor)}</TableCell>
                       <TableCell>
-                        {formatDate(convenio.dataInicio)} - {formatDate(convenio.dataFim)}
+                        {formatDate(convenio.dataInicio)} -{" "}
+                        {formatDate(convenio.dataFim)}
                       </TableCell>
                       <TableCell>
                         <Badge variant={getStatusBadgeVariant(convenio.status)}>
-                          {convenio.status.charAt(0).toUpperCase() + convenio.status.slice(1)}
+                          {convenio.status.charAt(0).toUpperCase() +
+                            convenio.status.slice(1)}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
