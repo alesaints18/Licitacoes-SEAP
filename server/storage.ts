@@ -351,6 +351,11 @@ export class MemStorage implements IStorage {
         processes = processes.filter(p => p.status === filters.status);
         console.log(`Após filtro status (${filters.status}):`, processes.length);
       }
+
+      if (filters.currentDepartmentId) {
+        processes = processes.filter(p => p.currentDepartmentId === filters.currentDepartmentId);
+        console.log(`Após filtro currentDepartmentId (${filters.currentDepartmentId}):`, processes.length);
+      }
     }
     
     console.log(`Retornando ${processes.length} processos após aplicação de todos os filtros`);
