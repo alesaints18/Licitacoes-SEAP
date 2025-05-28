@@ -66,15 +66,15 @@ const Sidebar = () => {
         adminOnly: true,
       },
       {
-        path: "/users",
-        icon: <Users className="h-5 w-5 mr-3" />,
-        label: "Usuários",
-        adminOnly: true,
-      },
-      {
         path: "/conv",
         icon: <FileSpreadsheet className="h-5 w-5 mr-3" />,
         label: "Convênios",
+        adminOnly: true,
+      },
+      {
+        path: "/users",
+        icon: <Users className="h-5 w-5 mr-3" />,
+        label: "Usuários",
         adminOnly: true,
       },
     ],

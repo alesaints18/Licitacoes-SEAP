@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Eye, Edit, Trash2 } from "lucide-react";
@@ -39,21 +40,10 @@ interface Convenio {
 
 const Convenios = () => {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [newConvenio, setNewConvenio] = useState({
-    numero: "",
-    nome: "",
-    orgaoConvenente: "",
-    valor: "",
-    dataInicio: "",
-    dataFim: "",
-    status: "ativo",
-    observacoes: "",
-  });
-
-  // Mock data for now - will be replaced with real API call
-  const mockConvenios: Convenio[] = [
+  const [convenios, setConvenios] = useState<Convenio[]>([
     {
       id: 1,
       numero: "CV001/2025",
@@ -80,9 +70,18 @@ const Convenios = () => {
       createdAt: "2025-02-01T00:00:00.000Z",
       updatedAt: "2025-02-01T00:00:00.000Z",
     },
-  ];
-
-  const convenios = mockConvenios;
+  ]);
+  
+  const [newConvenio, setNewConvenio] = useState({
+    numero: "",
+    nome: "",
+    orgaoConvenente: "",
+    valor: "",
+    dataInicio: "",
+    dataFim: "",
+    status: "ativo",
+    observacoes: "",
+  });
 
   const filteredConvenios = convenios.filter(
     (convenio) =>
@@ -103,7 +102,24 @@ const Convenios = () => {
       return;
     }
 
-    // Here we would make the API call to add the convenio
+    // Create new convenio with generated ID
+    const novoConvenio: Convenio = {
+      id: Math.max(...convenios.map(c => c.id)) + 1,
+      numero: newConvenio.numero,
+      nome: newConvenio.nome,
+      orgaoConvenente: newConvenio.orgaoConvenente,
+      valor: newConvenio.valor.startsWith("R$") ? newConvenio.valor : `R$ ${newConvenio.valor}`,
+      dataInicio: newConvenio.dataInicio,
+      dataFim: newConvenio.dataFim,
+      status: newConvenio.status,
+      observacoes: newConvenio.observacoes,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Add to the list
+    setConvenios([...convenios, novoConvenio]);
+
     toast({
       title: "Convênio adicionado",
       description: `Convênio ${newConvenio.numero} foi criado com sucesso.`,

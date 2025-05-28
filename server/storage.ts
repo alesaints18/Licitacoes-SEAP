@@ -112,6 +112,7 @@ export class MemStorage implements IStorage {
   private resourceSources: Map<number, ResourceSource>;
   private processes: Map<number, Process>;
   private processSteps: Map<number, ProcessStep>;
+  private convenios: Map<number, Convenio>;
   
   private currentUserId: number;
   private currentDepartmentId: number;
@@ -119,6 +120,7 @@ export class MemStorage implements IStorage {
   private currentSourceId: number;
   private currentProcessId: number;
   private currentStepId: number;
+  private currentConvenioId: number;
 
   constructor() {
     this.users = new Map();
