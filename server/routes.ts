@@ -376,6 +376,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Usuário ${(req.user as any).username} (ID: ${userId}) pertence ao departamento ${userDepartment}`);
       console.log(`ID do departamento do usuário: ${userDepartmentId}`);
       
+      // VALIDAÇÃO CRÍTICA PARA DEPLOY: Se o departamento não for encontrado, negar acesso
+      if (!userDepartmentId) {
+        console.log(`ERRO: Departamento ${userDepartment} não encontrado no mapeamento!`);
+        return res.status(403).json({ message: "Departamento não reconhecido" });
+      }
+      
       const filters = {
         pbdocNumber: pbdoc as string | undefined,
         modalityId: modality ? parseInt(modality as string) : undefined,
