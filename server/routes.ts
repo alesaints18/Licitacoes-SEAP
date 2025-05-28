@@ -370,7 +370,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userDepartmentId = departmentIdMap[userDepartment];
       
-      console.log(`Obtendo processos para usuário: ${userId} (${(req.user as any).username}) do departamento: ${userDepartment} (ID: ${userDepartmentId})`);
+      console.log(`Obtendo processos para usuário: ${userId} (${(req.user as any).username})`);
+      console.log(`Usuário não é admin - aplicando restrições de acesso`);
+      console.log(`Usuário ${(req.user as any).username} (ID: ${userId}) pertence ao departamento ${userDepartment}`);
       
       const filters = {
         pbdocNumber: pbdoc as string | undefined,
@@ -378,7 +380,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sourceId: source ? parseInt(source as string) : undefined,
         responsibleId: responsible ? parseInt(responsible as string) : undefined,
         status: status as string | undefined,
-        currentDepartmentId: userDepartmentId // Filtrar apenas processos do departamento atual do usuário
+        currentDepartmentId: userDepartmentId // SEMPRE filtrar por departamento para garantir visibilidade restrita
       };
       
       const processes = await storage.getProcesses(filters);
