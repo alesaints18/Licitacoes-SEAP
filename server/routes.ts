@@ -103,14 +103,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   passport.deserializeUser(async (id: number, done) => {
     try {
       const user = await storage.getUser(id);
-      
-      if (!user) {
-        return done(null, false);
-      }
-      
-      done(null, user);
+      done(null, user || false);
     } catch (error) {
-      console.error("Erro durante desserialização:", error);
       done(error);
     }
   });
@@ -347,13 +341,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { pbdoc, modality, source, responsible, status } = req.query;
       const userId = (req.user as any).id;
+      const userRole = (req.user as any).role;
       const userDepartment = (req.user as any).department;
       
-      // Mapeamento de departamentos por nome
+      // ADMIN TEM ACESSO TOTAL A TODOS OS PROCESSOS
+      if (userRole === 'admin') {
+        const filters = {
+          pbdocNumber: pbdoc as string | undefined,
+          modalityId: modality ? parseInt(modality as string) : undefined,
+          sourceId: source ? parseInt(source as string) : undefined,
+          responsibleId: responsible ? parseInt(responsible as string) : undefined,
+          status: status as string | undefined
+          // NÃO filtrar por departamento para admin
+        };
+        
+        const processes = await storage.getProcesses(filters);
+        return res.json(processes);
+      }
+      
+      // USUÁRIOS COMUNS: Visibilidade restrita por departamento
       const departmentIdMap: { [key: string]: number } = {
         "TI": 1,
         "Licitações": 2,
-        "Divisão de Licitação": 2, // Adicionado mapeamento correto
+        "Divisão de Licitação": 2,
         "Jurídico": 3,
         "Financeiro": 4,
         "Administrativo": 5
@@ -361,7 +371,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userDepartmentId = departmentIdMap[userDepartment];
       
-      // VALIDAÇÃO CRÍTICA PARA DEPLOY: Se o departamento não for encontrado, negar acesso
       if (!userDepartmentId) {
         return res.status(403).json({ message: "Departamento não reconhecido" });
       }
@@ -372,12 +381,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         sourceId: source ? parseInt(source as string) : undefined,
         responsibleId: responsible ? parseInt(responsible as string) : undefined,
         status: status as string | undefined,
-        currentDepartmentId: userDepartmentId // SEMPRE filtrar por departamento para garantir visibilidade restrita
+        currentDepartmentId: userDepartmentId
       };
       
       const allProcesses = await storage.getProcesses(filters);
       
-      // FILTRO ADICIONAL DE SEGURANÇA: Garantir que apenas processos do departamento atual sejam retornados
+      // FILTRO ADICIONAL DE SEGURANÇA para usuários comuns
       const filteredProcesses = allProcesses.filter(process => {
         return process.currentDepartmentId === userDepartmentId;
       });
