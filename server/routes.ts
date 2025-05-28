@@ -363,6 +363,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const departmentIdMap: { [key: string]: number } = {
         "TI": 1,
         "Licitações": 2,
+        "Divisão de Licitação": 2, // Adicionado mapeamento correto
         "Jurídico": 3,
         "Financeiro": 4,
         "Administrativo": 5
