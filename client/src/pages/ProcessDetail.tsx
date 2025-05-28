@@ -317,6 +317,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 // Invalidate process query to refresh department
                 queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}`] });
                 
+                // Invalidar cache de processos antes do redirecionamento
+                queryClient.invalidateQueries({ queryKey: ['/api/processes'] });
+                
                 // Redirecionar para a lista de processos após transferência
                 setTimeout(() => {
                   setLocation("/processes");
