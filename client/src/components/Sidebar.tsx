@@ -8,6 +8,7 @@ import {
   Settings,
   LogOut,
   Workflow,
+  FileSpreadsheet,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -72,8 +73,8 @@ const Sidebar = () => {
       },
       {
         path: "/conv",
-        icon: <Users className="h-5 w-5 mr-3" />,
-        label: "Convênios e Fundos",
+        icon: <FileSpreadsheet className="h-5 w-5 mr-3" />,
+        label: "Convênios",
         adminOnly: true,
       },
     ],
