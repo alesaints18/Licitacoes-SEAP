@@ -393,10 +393,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Filtros sendo aplicados:`, filters);
       
-      const processes = await storage.getProcesses(filters);
-      console.log(`Processos encontrados para usuário ${userId} no departamento ${userDepartment}: ${processes.length}`);
+      const allProcesses = await storage.getProcesses(filters);
       
-      res.json(processes);
+      // FILTRO ADICIONAL DE SEGURANÇA: Garantir que apenas processos do departamento atual sejam retornados
+      const filteredProcesses = allProcesses.filter(process => {
+        const processCurrentDept = process.currentDepartmentId;
+        const userDept = userDepartmentId;
+        console.log(`Processo ${process.id}: currentDepartmentId=${processCurrentDept}, userDepartmentId=${userDept}`);
+        return processCurrentDept === userDept;
+      });
+      
+      console.log(`Processos encontrados para usuário ${userId} no departamento ${userDepartment}: ${filteredProcesses.length} de ${allProcesses.length} total`);
+      
+      res.json(filteredProcesses);
     } catch (error) {
       console.error("Erro ao buscar processos:", error);
       res.status(500).json({ message: "Erro ao buscar processos", error });

@@ -307,6 +307,7 @@ export class MemStorage implements IStorage {
     sourceId?: number;
     responsibleId?: number;
     status?: string;
+    currentDepartmentId?: number;
   }): Promise<Process[]> {
     let processes = Array.from(this.processes.values());
     console.log("getProcesses - Processos iniciais:", processes.length, "Filtros:", filters);
