@@ -282,6 +282,12 @@ function Router() {
         </Layout>
       </Route>
       
+      <Route path="/relatorio">
+        <Layout>
+          <ReportExport />
+        </Layout>
+      </Route>
+      
       <Route component={NotFound} />
     </Switch>
   );
