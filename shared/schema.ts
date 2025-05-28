@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, pgEnum } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, pgEnum, varchar, decimal, date, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -82,6 +82,20 @@ export const processParticipants = pgTable('process_participants', {
   isActive: boolean('is_active').notNull().default(true), // Indica se o participante tem acesso ativo
 });
 
+export const convenios = pgTable('convenios', {
+  id: serial('id').primaryKey(),
+  numero: text('numero').notNull(),
+  nome: text('nome').notNull(),
+  orgaoConvenente: text('orgao_convenente').notNull(),
+  valor: text('valor').notNull(), // Storing as text for simplicity
+  dataInicio: text('data_inicio').notNull(), // Storing as text for date
+  dataFim: text('data_fim').notNull(), // Storing as text for date
+  status: text('status').notNull().default('ativo'),
+  observacoes: text('observacoes'),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
 // Export Zod schemas for insert operations
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
@@ -115,6 +129,12 @@ export const insertProcessParticipantSchema = createInsertSchema(processParticip
   addedAt: true,
 });
 
+export const insertConvenioSchema = createInsertSchema(convenios).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Export types
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -136,3 +156,6 @@ export type InsertProcessStep = z.infer<typeof insertProcessStepSchema>;
 
 export type ProcessParticipant = typeof processParticipants.$inferSelect;
 export type InsertProcessParticipant = z.infer<typeof insertProcessParticipantSchema>;
+
+export type Convenio = typeof convenios.$inferSelect;
+export type InsertConvenio = z.infer<typeof insertConvenioSchema>;

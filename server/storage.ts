@@ -95,6 +95,13 @@ export interface IStorage {
     responsibleId?: number;
     status?: string;
   }): Promise<{responsibleId: number; total: number; completed: number}[]>;
+
+  // Convenio operations
+  getConvenios(): Promise<Convenio[]>;
+  getConvenio(id: number): Promise<Convenio | undefined>;
+  createConvenio(convenio: InsertConvenio): Promise<Convenio>;
+  updateConvenio(id: number, convenioData: Partial<InsertConvenio>): Promise<Convenio | undefined>;
+  deleteConvenio(id: number): Promise<boolean>;
 }
 
 // Memory storage implementation
