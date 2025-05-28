@@ -17,6 +17,7 @@ import Users from "@/pages/Users";
 import Settings from "@/pages/Settings";
 import Download from "@/pages/Download";
 import TermsOfUse from "@/pages/TermsOfUse";
+import Convenios from "@/pages/Convenios";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -271,6 +272,12 @@ function Router() {
       <Route path="/settings">
         <Layout>
           <Settings />
+        </Layout>
+      </Route>
+      
+      <Route path="/conv">
+        <Layout>
+          <Convenios />
         </Layout>
       </Route>
       
