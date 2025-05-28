@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StepChecklist from "@/components/bidding/StepChecklist";
 import BiddingFlowchart from "@/components/bidding/BiddingFlowchart";
-import { Edit, Trash, AlertCircle, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Edit, Trash, AlertCircle, Clock, CheckCircle, XCircle, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getProcessStatusLabel, getProcessPriorityLabel } from "@/lib/utils/process";
@@ -153,6 +153,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     ? departments.find((d: any) => d.id === nextStep.departmentId)
     : undefined;
 
+  // Get current department from process
+  const currentDepartment = process && Array.isArray(departments)
+    ? departments.find((d: any) => d.id === process.currentDepartmentId)
+    : undefined;
+
   // Mapeamento de departamentos por ID
   const departmentIdMap: { [key: string]: number } = {
     "TI": 1,
@@ -227,6 +232,50 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     const step = allSteps.find(s => s.name === stepName);
     return step?.nextSector;
   };
+
+  // Function to calculate deadlines by phase based on the bidding flowchart
+  const getPhaseDeadlines = (processCreatedAt: Date) => {
+    const createdDate = new Date(processCreatedAt);
+    
+    return {
+      "Iniciação": {
+        name: "Fase de Iniciação",
+        description: "Identificação da demanda até aprovação do termo de referência",
+        deadline: new Date(createdDate.getTime() + (15 * 24 * 60 * 60 * 1000)), // 15 dias
+        color: "blue"
+      },
+      "Preparação": {
+        name: "Fase de Preparação", 
+        description: "Elaboração e aprovação do edital",
+        deadline: new Date(createdDate.getTime() + (25 * 24 * 60 * 60 * 1000)), // 25 dias
+        color: "yellow"
+      },
+      "Execução": {
+        name: "Fase de Execução",
+        description: "Publicação do edital até habilitação dos licitantes",
+        deadline: new Date(createdDate.getTime() + (45 * 24 * 60 * 60 * 1000)), // 45 dias
+        color: "orange"
+      },
+      "Finalização": {
+        name: "Fase de Finalização",
+        description: "Adjudicação até assinatura do contrato",
+        deadline: new Date(createdDate.getTime() + (60 * 24 * 60 * 60 * 1000)), // 60 dias
+        color: "green"
+      }
+    };
+  };
+
+  // Get current phase based on user department
+  const getCurrentPhase = (userDepartment: string) => {
+    const phaseMap: { [key: string]: string } = {
+      "TI": "Iniciação",
+      "Licitações": "Preparação",
+      "Jurídico": "Preparação", 
+      "Financeiro": "Iniciação",
+      "Administrativo": "Finalização"
+    };
+    return phaseMap[userDepartment] || "Iniciação";
+  };
   
   // Handle edit process
   const handleEdit = () => {
@@ -267,6 +316,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
                 // Invalidate process query to refresh department
                 queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}`] });
+                
+                // Redirecionar para a lista de processos após transferência
+                setTimeout(() => {
+                  setLocation("/processes");
+                }, 2000);
               } catch (transferError) {
                 console.error("Erro na transferência:", transferError);
                 toast({
@@ -534,7 +588,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       <div>
                         <h4 className="font-medium text-gray-900 text-sm">{nextStep.stepName}</h4>
                         <p className="text-xs text-gray-500 mt-1">
-                          {stepDepartment?.name || 'Departamento não definido'}
+                          Setor Responsável: {currentDepartment?.name || 'Departamento não definido'}
                         </p>
                       </div>
                       
@@ -632,6 +686,79 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                 {nextStep.isCompleted ? 'Etapa concluída' : 'Clique para marcar como concluída'}
                               </p>
                             </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Prazo de Finalização por Fase */}
+                      {currentUser && process && (
+                        <div className="mt-6 pt-4 border-t border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                            <Calendar className="h-4 w-4 mr-2 text-orange-600" />
+                            Prazos de Finalização - Fluxograma Oficial
+                          </h4>
+                          
+                          {(() => {
+                            const currentPhase = getCurrentPhase(currentUser.department);
+                            const phaseDeadlines = getPhaseDeadlines(new Date(process.createdAt));
+                            const currentPhaseInfo = phaseDeadlines[currentPhase as keyof typeof phaseDeadlines];
+                            
+                            if (!currentPhaseInfo) return null;
+                            
+                            const daysRemaining = Math.ceil((currentPhaseInfo.deadline.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                            const isOverdue = daysRemaining < 0;
+                            const isUrgent = daysRemaining <= 3 && daysRemaining >= 0;
+                            
+                            return (
+                              <div className={`p-3 rounded-lg border-2 ${
+                                isOverdue ? 'bg-red-50 border-red-200' :
+                                isUrgent ? 'bg-yellow-50 border-yellow-200' :
+                                'bg-green-50 border-green-200'
+                              }`}>
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5 className={`font-medium text-sm ${
+                                    isOverdue ? 'text-red-800' :
+                                    isUrgent ? 'text-yellow-800' :
+                                    'text-green-800'
+                                  }`}>
+                                    {currentPhaseInfo.name}
+                                  </h5>
+                                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                    isOverdue ? 'bg-red-200 text-red-800' :
+                                    isUrgent ? 'bg-yellow-200 text-yellow-800' :
+                                    'bg-green-200 text-green-800'
+                                  }`}>
+                                    {isOverdue ? `${Math.abs(daysRemaining)} dias em atraso` :
+                                     daysRemaining === 0 ? 'Vence hoje' :
+                                     `${daysRemaining} dias restantes`}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-600 mb-2">
+                                  {currentPhaseInfo.description}
+                                </p>
+                                <div className="flex items-center text-xs text-gray-500">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  Prazo final: {format(currentPhaseInfo.deadline, "dd/MM/yyyy", { locale: ptBR })}
+                                </div>
+                              </div>
+                            );
+                          })()}
+                          
+                          {/* Resumo de todas as fases */}
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            {process && Object.entries(getPhaseDeadlines(new Date(process.createdAt))).map(([phase, info]) => {
+                              const daysFromStart = Math.ceil((info.deadline.getTime() - new Date(process.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+                              const isPast = new Date() > info.deadline;
+                              
+                              return (
+                                <div key={phase} className={`p-2 rounded text-xs border ${
+                                  isPast ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-white border-gray-200'
+                                }`}>
+                                  <div className="font-medium">{info.name}</div>
+                                  <div className="text-gray-500">{daysFromStart} dias</div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
                       )}
