@@ -310,12 +310,6 @@ export class MemStorage implements IStorage {
     currentDepartmentId?: number;
   }): Promise<Process[]> {
     let processes = Array.from(this.processes.values());
-    console.log("getProcesses - Processos iniciais:", processes.length, "Filtros:", filters);
-    console.log("Processos disponíveis:", processes.map(p => ({
-      id: p.id,
-      pbdoc: p.pbdocNumber,
-      responsible: p.responsibleId
-    })));
     
     if (filters) {
       if (filters.pbdocNumber) {

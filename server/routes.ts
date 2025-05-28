@@ -79,20 +79,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   passport.use(new LocalStrategy(async (username, password, done) => {
     try {
-      console.log("Tentativa de autenticação para usuário:", username);
       const user = await storage.authenticateUser(username, password);
       
       if (!user) {
-        console.log("Autenticação falhou para:", username);
         return done(null, false, { message: "Credenciais inválidas." });
       }
       
       if (!user.isActive) {
-        console.log("Usuário não está ativo:", username);
         return done(null, false, { message: "Sua conta ainda não foi ativada por um administrador." });
       }
       
-      console.log("Autenticação bem-sucedida para:", username);
       return done(null, user);
     } catch (error) {
       console.error("Erro na autenticação:", error);
@@ -101,21 +97,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   }));
 
   passport.serializeUser((user: any, done) => {
-    console.log("Serializando usuário:", user.id);
     done(null, user.id);
   });
 
   passport.deserializeUser(async (id: number, done) => {
     try {
-      console.log("Desserializando usuário ID:", id);
       const user = await storage.getUser(id);
       
       if (!user) {
-        console.log("Usuário não encontrado na desserialização:", id);
         return done(null, false);
       }
       
-      console.log("Usuário desserializado com sucesso:", user.username);
       done(null, user);
     } catch (error) {
       console.error("Erro durante desserialização:", error);
@@ -149,10 +141,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/auth/status', (req, res) => {
     if (req.isAuthenticated()) {
-      console.log("Usuário autenticado:", req.user?.username);
       res.json(req.user);
     } else {
-      console.log("Usuário não autenticado");
       res.status(401).json({ message: "Não autenticado" });
     }
   });
@@ -371,14 +361,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const userDepartmentId = departmentIdMap[userDepartment];
       
-      console.log(`Obtendo processos para usuário: ${userId} (${(req.user as any).username})`);
-      console.log(`Usuário não é admin - aplicando restrições de acesso`);
-      console.log(`Usuário ${(req.user as any).username} (ID: ${userId}) pertence ao departamento ${userDepartment}`);
-      console.log(`ID do departamento do usuário: ${userDepartmentId}`);
-      
       // VALIDAÇÃO CRÍTICA PARA DEPLOY: Se o departamento não for encontrado, negar acesso
       if (!userDepartmentId) {
-        console.log(`ERRO: Departamento ${userDepartment} não encontrado no mapeamento!`);
         return res.status(403).json({ message: "Departamento não reconhecido" });
       }
       
@@ -391,19 +375,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         currentDepartmentId: userDepartmentId // SEMPRE filtrar por departamento para garantir visibilidade restrita
       };
       
-      console.log(`Filtros sendo aplicados:`, filters);
-      
       const allProcesses = await storage.getProcesses(filters);
       
       // FILTRO ADICIONAL DE SEGURANÇA: Garantir que apenas processos do departamento atual sejam retornados
       const filteredProcesses = allProcesses.filter(process => {
-        const processCurrentDept = process.currentDepartmentId;
-        const userDept = userDepartmentId;
-        console.log(`Processo ${process.id}: currentDepartmentId=${processCurrentDept}, userDepartmentId=${userDept}`);
-        return processCurrentDept === userDept;
+        return process.currentDepartmentId === userDepartmentId;
       });
-      
-      console.log(`Processos encontrados para usuário ${userId} no departamento ${userDepartment}: ${filteredProcesses.length} de ${allProcesses.length} total`);
       
       res.json(filteredProcesses);
     } catch (error) {
