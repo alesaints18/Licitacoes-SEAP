@@ -43,7 +43,7 @@ const Convenios = () => {
   const queryClient = useQueryClient();
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  // Carregar convênios do localStorage ou usar dados padrão
+  // Carregar convênios do localStorage ou iniciar vazio
   const [convenios, setConvenios] = useState<Convenio[]>(() => {
     const saved = localStorage.getItem('convenios-seap');
     if (saved) {
@@ -53,41 +53,30 @@ const Convenios = () => {
         console.error('Erro ao carregar convênios:', error);
       }
     }
-    // Dados padrão
-    return [
-      {
-        id: 1,
-        numero: "CV001/2025",
-        nome: "Convênio de Cooperação Técnica",
-        orgaoConvenente: "Ministério da Justiça",
-        valor: "R$ 150.000,00",
-        dataInicio: "2025-01-01",
-        dataFim: "2025-12-31",
-        status: "ativo",
-        observacoes: "Convênio para modernização do sistema",
-        createdAt: "2025-01-01T00:00:00.000Z",
-        updatedAt: "2025-01-01T00:00:00.000Z",
-      },
-      {
-        id: 2,
-        numero: "CV002/2025", 
-        nome: "Convênio de Capacitação",
-        orgaoConvenente: "SEAP Nacional",
-        valor: "R$ 75.000,00",
-        dataInicio: "2025-02-01",
-        dataFim: "2025-06-30",
-        status: "ativo",
-        observacoes: "Capacitação de servidores",
-        createdAt: "2025-02-01T00:00:00.000Z",
-        updatedAt: "2025-02-01T00:00:00.000Z",
-      },
-    ];
+    // Iniciar com lista vazia
+    return [];
   });
 
-  // Salvar convênios no localStorage sempre que mudar
+  // Limpar dados antigos e salvar convênios no localStorage sempre que mudar
   useEffect(() => {
-    localStorage.setItem('convenios-seap', JSON.stringify(convenios));
+    // Limpar dados de teste na primeira execução
+    if (convenios.length > 0) {
+      localStorage.setItem('convenios-seap', JSON.stringify(convenios));
+    } else {
+      // Forçar limpeza completa se a lista estiver vazia
+      localStorage.removeItem('convenios-seap');
+    }
   }, [convenios]);
+
+  // Função para limpar todos os convênios
+  const handleClearAll = () => {
+    setConvenios([]);
+    localStorage.removeItem('convenios-seap');
+    toast({
+      title: "Dados limpos",
+      description: "Todos os convênios foram removidos.",
+    });
+  };
 
   const [newConvenio, setNewConvenio] = useState({
     numero: "",
