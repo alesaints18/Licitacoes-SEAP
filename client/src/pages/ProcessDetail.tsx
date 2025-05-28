@@ -53,6 +53,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     enabled: !!process,
   });
   
+  // Get current user
+  const { data: currentUser } = useQuery<User>({
+    queryKey: ['/api/auth/status'],
+  });
+
   // Get user details
   const { data: users } = useQuery<User[]>({
     queryKey: ['/api/users'],

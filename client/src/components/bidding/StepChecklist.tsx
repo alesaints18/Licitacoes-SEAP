@@ -12,9 +12,10 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 interface StepChecklistProps {
   processId: number;
   modalityId: number;
+  userDepartment: string;
 }
 
-const StepChecklist = ({ processId, modalityId }: StepChecklistProps) => {
+const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeStep, setActiveStep] = useState<ProcessStep | null>(null);
@@ -30,9 +31,74 @@ const StepChecklist = ({ processId, modalityId }: StepChecklistProps) => {
     queryKey: ['/api/departments'],
   });
   
-  // Checklist baseado no fluxograma oficial do Pregão Eletrônico SEAP/PB
+  // Mapeamento de departamentos por nome
+  const departmentMap: { [key: string]: number } = {
+    "TI": 1,
+    "Licitações": 2,
+    "Jurídico": 3,
+    "Financeiro": 4,
+    "Administrativo": 5
+  };
+
+  // Checklist específico por setor baseado no fluxograma do Pregão Eletrônico
+  const getSectorSpecificSteps = () => {
+    if (modalityId !== 1) return []; // Apenas para Pregão Eletrônico
+    
+    const currentDeptId = departmentMap[userDepartment];
+    
+    // Etapas por setor conforme fluxograma oficial
+    const stepsBySector: { [key: number]: any[] } = {
+      // TI - Setor Demandante (Fase de Iniciação)
+      1: [
+        { name: "1. Documento de Formalização da Demanda - DFD", departmentId: 1, phase: "Iniciação" },
+        { name: "2. Estudo Técnico Preliminar - ETP", departmentId: 1, phase: "Iniciação" },
+        { name: "3. Mapa de Risco - MR", departmentId: 1, phase: "Iniciação" },
+        { name: "4. Termo de Referência - TR", departmentId: 1, phase: "Iniciação" },
+      ],
+      
+      // Licitações - Divisão de Licitação (Fase de Preparação e Execução)
+      2: [
+        { name: "6. Criar Processo no Órgão", departmentId: 2, phase: "Preparação" },
+        { name: "8. Pesquisa de Preços - NPP", departmentId: 2, phase: "Preparação" },
+        { name: "9. Aprovação da Pesquisa de Preços", departmentId: 2, phase: "Preparação" },
+        { name: "11. Designação do Pregoeiro e Equipe de Apoio", departmentId: 2, phase: "Preparação" },
+        { name: "12. Elaboração do Edital", departmentId: 2, phase: "Preparação" },
+        { name: "14. Publicação do Edital", departmentId: 2, phase: "Execução" },
+        { name: "15. Recebimento das Propostas", departmentId: 2, phase: "Execução" },
+        { name: "16. Sessão Pública do Pregão", departmentId: 2, phase: "Execução" },
+        { name: "17. Julgamento das Propostas", departmentId: 2, phase: "Execução" },
+        { name: "18. Habilitação do Vencedor", departmentId: 2, phase: "Execução" },
+        { name: "19. Adjudicação", departmentId: 2, phase: "Execução" },
+      ],
+      
+      // Jurídico - Assessoria Jurídica (Análise Legal)
+      3: [
+        { name: "13. Análise Jurídica do Edital", departmentId: 3, phase: "Preparação" },
+        { name: "20. Análise de Recursos", departmentId: 3, phase: "Execução" },
+      ],
+      
+      // Financeiro - Ordenador de Despesa (Autorizações e Homologação)
+      4: [
+        { name: "5. Autorização pelo Ordenador de Despesa", departmentId: 4, phase: "Iniciação" },
+        { name: "10. Autorização da Licitação", departmentId: 4, phase: "Preparação" },
+        { name: "21. Homologação", departmentId: 4, phase: "Finalização" },
+        { name: "22. Empenho", departmentId: 4, phase: "Finalização" },
+      ],
+      
+      // Administrativo - Gestão Contratual (Finalização)
+      5: [
+        { name: "23. Elaboração do Contrato", departmentId: 5, phase: "Finalização" },
+        { name: "24. Assinatura do Contrato", departmentId: 5, phase: "Finalização" },
+        { name: "25. Publicação do Contrato", departmentId: 5, phase: "Finalização" },
+        { name: "26. Fiscalização Contratual", departmentId: 5, phase: "Finalização" },
+      ]
+    };
+    
+    return stepsBySector[currentDeptId] || [];
+  };
+
+  // Função para obter todas as etapas (para compatibilidade)
   const getDefaultSteps = () => {
-    // Etapas específicas para Pregão Eletrônico conforme fluxograma oficial
     if (modalityId === 1) { // Pregão Eletrônico
       return [
         // FASE 1: INICIAÇÃO (Setor Demandante)
@@ -84,6 +150,12 @@ const StepChecklist = ({ processId, modalityId }: StepChecklistProps) => {
     ];
   };
   
+  // Filtrar etapas pelo setor atual
+  const filteredSteps = steps?.filter(step => {
+    const sectorSteps = getSectorSpecificSteps();
+    return sectorSteps.some(sectorStep => step.stepName === sectorStep.name);
+  }) || [];
+
   // Create initial steps if none exist
   useEffect(() => {
     const createInitialSteps = async () => {
@@ -200,8 +272,8 @@ const StepChecklist = ({ processId, modalityId }: StepChecklistProps) => {
     );
   }
   
-  // Agrupar etapas por fase
-  const stepsByPhase = steps?.reduce((acc, step) => {
+  // Agrupar etapas filtradas por fase
+  const stepsByPhase = filteredSteps?.reduce((acc, step) => {
     // Extrair fase do nome da etapa ou usar uma fase padrão
     let phase = "Execução";
     if (step.stepName.includes("DFD") || step.stepName.includes("ETP") || step.stepName.includes("Mapa de Risco") || step.stepName.includes("Termo de Referência") || step.stepName.includes("Ordenador")) {
@@ -215,7 +287,7 @@ const StepChecklist = ({ processId, modalityId }: StepChecklistProps) => {
     if (!acc[phase]) acc[phase] = [];
     acc[phase].push(step);
     return acc;
-  }, {} as Record<string, typeof steps>) || {};
+  }, {} as Record<string, typeof filteredSteps>) || {};
 
   const phaseOrder = ["Iniciação", "Preparação", "Execução", "Finalização"];
   const phaseColors = {
