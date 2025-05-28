@@ -305,8 +305,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             if (nextDepartmentId && nextDepartmentId !== process.currentDepartmentId) {
               try {
                 console.log(`Transferindo processo para o setor ${nextSector} (ID: ${nextDepartmentId})`);
-                await apiRequest("PATCH", `/api/processes/${parsedId}`, {
-                  currentDepartmentId: nextDepartmentId,
+                await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
+                  departmentId: nextDepartmentId,
                 });
                 
                 toast({

@@ -244,32 +244,10 @@ export class DatabaseStorage implements IStorage {
           return [];
         }
         
-        // 2. Obter os IDs dos processos onde o usuário é participante
-        const userParticipations = await db
-          .select()
-          .from(processParticipants)
-          .where(
-            and(
-              eq(processParticipants.userId, user.id),
-              eq(processParticipants.isActive, true)
-            )
-          );
-        
-        const participantProcessIds = userParticipations.map(p => p.processId);
-        console.log(`Usuário ${user.username} é participante de ${participantProcessIds.length} processos`);
-        
-        // 3. Filtrar os processos com regras ESTRITAS de acesso
-        // A ÚNICA condição que determina a visibilidade do processo é:
-        // - O departamento atual do processo é exatamente o mesmo do usuário
-        // NÃO MOSTRAR processos em que o usuário é apenas responsável ou participante
-        // CRITÉRIO EXCLUSIVO: Pertencer ao departamento atual
+        // REGRA SIMPLES: Mostrar APENAS processos que estão no departamento atual do usuário
+        // Remover todos os filtros por responsável/participante - apenas por departamento
         allProcesses = allProcesses.filter(p => {
-          // Verificar SOMENTE se o processo está no departamento atual do usuário
-          const isInCurrentDepartment = p.currentDepartmentId === userDepartment.id;
-          
-          // REGRA DEFINITIVA: O processo SÓ é visível se estiver no departamento atual do usuário
-          // Nenhuma outra condição é aceita
-          return isInCurrentDepartment;
+          return p.currentDepartmentId === userDepartment.id;
         });
         
         console.log(`Consulta retornou ${allProcesses.length} processos`);
@@ -348,24 +326,11 @@ export class DatabaseStorage implements IStorage {
         .where(eq(processes.id, processId))
         .returning();
       
-      // 3. Remover TODOS os participantes atuais do processo para garantir visibilidade correta
-      console.log(`Removendo todos os participantes atuais do processo ${processId}`);
+      // 3. Limpar participantes antigos (transferência completa de departamento)
+      console.log(`Removendo participantes antigos do processo ${processId}`);
       await db
         .delete(processParticipants)
         .where(eq(processParticipants.processId, processId));
-      
-      // 4. Adicionar o usuário que está fazendo a transferência como participante (se não for o responsável)
-      if (process.responsibleId !== userId) {
-        console.log(`Adicionando usuário ${userId} como participante do processo ${processId}`);
-        await db
-          .insert(processParticipants)
-          .values({
-            processId,
-            userId,
-            isActive: true,
-            notifications: true
-          });
-      }
       
       // 5. Registrar a transferência no histórico do processo
       console.log(`Registrando transferência do processo ${processId} para o departamento ${departmentId}`);
