@@ -18,7 +18,7 @@ const Header = ({ title }: HeaderProps) => {
   const [location, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { toast } = useToast();
-  const { notifications, unreadCount, markAsRead, markAllAsRead } =
+  const { notifications, unreadCount, markAsRead, markAllAsRead, clearAllNotifications } =
     useNotifications();
 
   // Get current user data
@@ -111,6 +111,7 @@ const Header = ({ title }: HeaderProps) => {
             notifications={notifications}
             unreadCount={unreadCount}
             onMarkAllAsRead={markAllAsRead}
+            onClearAll={clearAllNotifications}
             onReadNotification={markAsRead}
           />
 
