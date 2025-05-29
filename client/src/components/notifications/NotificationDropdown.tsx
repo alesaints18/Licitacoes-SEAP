@@ -18,6 +18,7 @@ interface NotificationDropdownProps {
   notifications: Notification[];
   unreadCount: number;
   onMarkAllAsRead: () => void;
+  onClearAll: () => void;
   onReadNotification: (id: string) => void;
 }
 
@@ -25,6 +26,7 @@ export default function NotificationDropdown({
   notifications,
   unreadCount,
   onMarkAllAsRead,
+  onClearAll,
   onReadNotification
 }: NotificationDropdownProps) {
   const [open, setOpen] = useState(false);
@@ -97,16 +99,28 @@ export default function NotificationDropdown({
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between p-4 border-b">
           <h4 className="font-semibold text-base">Notificações</h4>
-          {unreadCount > 0 && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onMarkAllAsRead}
-              className="text-xs"
-            >
-              Marcar todas como lidas
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {unreadCount > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onMarkAllAsRead}
+                className="text-xs"
+              >
+                Marcar todas como lidas
+              </Button>
+            )}
+            {notifications.length > 0 && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={onClearAll}
+                className="text-xs text-red-600 hover:text-red-700"
+              >
+                Limpar todas
+              </Button>
+            )}
+          </div>
         </div>
         
         <Tabs defaultValue="unread">

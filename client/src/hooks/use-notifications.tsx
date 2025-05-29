@@ -11,55 +11,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 
 // API simulada - no futuro pode ser substituída por chamadas reais à API
-const MOCK_NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    title: "Processo próximo do prazo",
-    message: "O processo PB123456 vence em 3 dias",
-    type: "deadline",
-    read: false,
-    createdAt: new Date(Date.now() - 3600000),
-    link: "/processes/123",
-    entityId: 123
-  },
-  {
-    id: "2",
-    title: "Novo processo criado",
-    message: "Processo PB345678 foi criado por João Silva",
-    type: "new_process",
-    read: false,
-    createdAt: new Date(Date.now() - 7200000),
-    link: "/processes/234",
-    entityId: 234
-  },
-  {
-    id: "3",
-    title: "Atualização de processo",
-    message: "O processo PB567890 foi atualizado para status 'Em andamento'",
-    type: "update",
-    read: false,
-    createdAt: new Date(Date.now() - 10800000),
-    link: "/processes/345",
-    entityId: 345
-  },
-  {
-    id: "4",
-    title: "Novo usuário aguardando aprovação",
-    message: "Maria Oliveira solicitou acesso ao sistema",
-    type: "admin",
-    read: false,
-    createdAt: new Date(Date.now() - 14400000),
-    link: "/users",
-  },
-  {
-    id: "5",
-    title: "Manutenção do sistema",
-    message: "O sistema estará indisponível amanhã das 22h às 23h para manutenção",
-    type: "system",
-    read: true,
-    createdAt: new Date(Date.now() - 86400000),
-  }
-];
+const MOCK_NOTIFICATIONS: Notification[] = [];
 
 // Intervalo para verificar novos processos com prazo próximo (15 minutos)
 const CHECK_DEADLINES_INTERVAL = 15 * 60 * 1000;
@@ -70,6 +22,7 @@ interface NotificationContextType {
   unreadCount: number;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
+  clearAllNotifications: () => void;
   addNotification: (notification: Omit<Notification, "id" | "createdAt" | "read">) => void;
 }
 
@@ -284,6 +237,16 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       unreadCount: 0
     }));
   };
+
+  // Função para limpar todas as notificações
+  const clearAllNotifications = () => {
+    setState({
+      notifications: [],
+      unreadCount: 0
+    });
+    // Limpar também do localStorage
+    localStorage.removeItem('notifications');
+  };
   
   // Função para adicionar uma nova notificação
   const addNotification = (notification: Omit<Notification, "id" | "createdAt" | "read">) => {
@@ -393,6 +356,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         unreadCount: state.unreadCount,
         markAsRead,
         markAllAsRead,
+        clearAllNotifications,
         addNotification
       }}
     >
