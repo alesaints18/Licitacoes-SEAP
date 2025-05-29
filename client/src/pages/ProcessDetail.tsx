@@ -305,13 +305,26 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         // Se a etapa foi marcada como concluída, verificar se precisa transferir o processo
         if (isCompleted && step.stepName) {
           const nextSector = getNextSectorForStep(step.stepName);
+          console.log(`Etapa completada: ${step.stepName}`);
+          console.log(`Próximo setor encontrado: ${nextSector}`);
+          
           if (nextSector && process && departments) {
-            // Buscar departamento por nome diretamente no array de departamentos
+            // Mapeamento direto por nome de setor
+            const sectorToDepartmentMap: { [key: string]: string } = {
+              "Financeiro": "Unidade de Orçamento e Finanças",
+              "Licitações": "Núcleo de Pesquisa de Preços – NPP", 
+              "Jurídico": "Setor Jurídico",
+              "Administrativo": "Setor Administrativo",
+              "TI": "TI"
+            };
+            
+            const departmentName = sectorToDepartmentMap[nextSector] || nextSector;
             const nextDepartment = departments.find((dept: any) => 
-              dept.name === nextSector || 
-              dept.name.includes(nextSector) ||
-              nextSector.includes(dept.name)
+              dept.name === departmentName
             );
+            
+            console.log(`Buscando departamento: ${departmentName}`);
+            console.log(`Departamento encontrado:`, nextDepartment);
             
             if (nextDepartment && nextDepartment.id !== process.currentDepartmentId) {
               try {
