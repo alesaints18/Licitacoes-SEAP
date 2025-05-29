@@ -661,8 +661,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           {/* Sector Steps */}
                           <div className="space-y-2">
                             {getSectorSteps(currentDepartment?.name || currentUser.department, process?.modalityId || 1).map((sectorStep, index) => {
+                              // Filtrar apenas etapas do departamento atual que ainda não foram completadas por outros setores
                               const existingStep = steps?.find(s => s.stepName === sectorStep.name);
                               const isCompleted = existingStep?.isCompleted || false;
+                              
+                              // Verificar se esta etapa já foi completada por outro setor anteriormente
+                              const completedByOtherSector = existingStep && 
+                                existingStep.isCompleted && 
+                                existingStep.departmentId !== process?.currentDepartmentId;
+                              
+                              // Não mostrar etapas já completadas por outros setores
+                              if (completedByOtherSector) {
+                                return null;
+                              }
+                              
+                              // Só mostrar se o usuário atual pertence ao departamento do processo
+                              const userCanEdit = currentUser.department === currentDepartment?.name || currentUser.role === 'admin';
                               
                               return (
                                 <div key={index} className="flex items-center space-x-3 p-2 bg-white rounded border border-gray-200">
@@ -670,9 +684,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                     className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all ${
                                       isCompleted 
                                         ? "bg-green-600 border-green-600 hover:bg-green-700" 
-                                        : "border-blue-400 hover:border-green-400 bg-white hover:bg-green-50"
+                                        : userCanEdit 
+                                          ? "border-blue-400 hover:border-green-400 bg-white hover:bg-green-50"
+                                          : "border-gray-300 bg-gray-100"
                                     }`}
-                                    onClick={() => existingStep && handleStepToggle(existingStep.id, !isCompleted)}
+                                    onClick={() => userCanEdit && existingStep && handleStepToggle(existingStep.id, !isCompleted)}
+                                    disabled={!userCanEdit}
                                   >
                                     {isCompleted ? (
                                       <CheckCircle className="h-3 w-3 text-white" />
