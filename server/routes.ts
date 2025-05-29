@@ -361,12 +361,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // USUÁRIOS COMUNS: Visibilidade restrita por departamento
       const departmentIdMap: { [key: string]: number } = {
+        "Setor Demandante": 1,
         "TI": 1,
-        "Licitações": 2,
         "Divisão de Licitação": 2,
-        "Jurídico": 3,
+        "Licitações": 2,
+        " Núcleo de Pesquisa  de Preços – NPP  Núcleo de Pes": 3,
+        "Unidade de  Orçamento e  Finanças": 4,
         "Financeiro": 4,
-        "Administrativo": 5
+        "Secretário de Estado da Administração  Penitenciária - SEAP": 5,
+        " Comitê Gestor do Plano de  Contingência - CGPC": 6,
+        "Unidade Técnico Normativa": 7,
+        "Procuradoria Geral do Estado - PGE": 8,
+        " Controladoria Geral do Estado – CGE": 9,
+        "Equipe de Pregão": 10,
+        "Subgerência de Contratos e  Convênios - SUBCC": 11
       };
 
       const userDepartmentId = departmentIdMap[userDepartment];
