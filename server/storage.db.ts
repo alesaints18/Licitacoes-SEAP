@@ -264,11 +264,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProcess(id: number, processData: Partial<InsertProcess>): Promise<Process | undefined> {
+    // Adicionar updatedAt automaticamente
+    const updateData = {
+      ...processData,
+      updatedAt: new Date()
+    };
+    
+    console.log(`Atualizando processo ${id} com dados:`, updateData);
+    
     const [updatedProcess] = await db
       .update(processes)
-      .set(processData)
+      .set(updateData)
       .where(eq(processes.id, id))
       .returning();
+    
+    console.log(`Processo ${id} atualizado no banco:`, updatedProcess);
     return updatedProcess;
   }
 
