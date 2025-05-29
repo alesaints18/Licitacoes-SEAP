@@ -209,13 +209,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Financeiro": [
         { name: "Aprovação do termo de referência pela autoridade competente", phase: "Iniciação", nextSector: "Licitações" },
         { name: "Aprovação do edital pela autoridade competente", phase: "Preparação", nextSector: "Licitações" },
-        { name: "Adjudicação e homologação", phase: "Finalização", nextSector: "Jurídico" },
+        { name: "Adjudicação do objeto", phase: "Finalização", nextSector: "Administrativo" },
+        { name: "Homologação do resultado", phase: "Finalização", nextSector: "Administrativo" },
         { name: "Empenho da despesa", phase: "Finalização", nextSector: "Administrativo" },
       ],
       
       // Administrativo - Gestão Contratual
       "Administrativo": [
-        { name: "Assinatura do contrato", phase: "Finalização" },
+        { name: "Assinatura do contrato ou emissão da ordem", phase: "Finalização" },
         { name: "Publicação do extrato do contrato", phase: "Finalização" },
         { name: "Fiscalização e acompanhamento contratual", phase: "Finalização" },
       ]
