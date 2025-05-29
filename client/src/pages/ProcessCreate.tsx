@@ -23,7 +23,8 @@ const ProcessCreate = () => {
         modalityId: Number(data.modalityId),
         sourceId: Number(data.sourceId),
         responsibleId: Number(data.responsibleId),
-        currentDepartmentId: Number(data.currentDepartmentId),
+        // Todos os processos sempre começam no Setor Demandante (ID: 1)
+        currentDepartmentId: 1,
         // Verificar e ajustar o deadline
         deadline: data.deadline === '' ? null : data.deadline
       };

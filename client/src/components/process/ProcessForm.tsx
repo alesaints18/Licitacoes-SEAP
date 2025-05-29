@@ -58,9 +58,6 @@ const processFormSchema = insertProcessSchema.extend({
   priority: z.enum(["low", "medium", "high"], {
     required_error: "Por favor, selecione a prioridade",
   }),
-  currentDepartmentId: z.number({
-    required_error: "Por favor, selecione o setor responsável",
-  }).refine(val => val > 0, "Setor responsável é obrigatório"),
 });
 
 type ProcessFormValues = z.infer<typeof processFormSchema>;
@@ -100,7 +97,6 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
     modalityId: 0,
     sourceId: 0,
     responsibleId: 0,
-    currentDepartmentId: 0,
     centralDeCompras: "",
     priority: "medium",
     status: "draft",
@@ -111,7 +107,6 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
       modalityId: initialData.modalityId,
       sourceId: initialData.sourceId,
       responsibleId: initialData.responsibleId,
-      currentDepartmentId: initialData.currentDepartmentId,
       centralDeCompras: initialData.centralDeCompras || "",
       priority: initialData.priority,
       status: initialData.status,
@@ -303,43 +298,7 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                 />
               </div>
               
-              <div className="grid grid-cols-1 gap-6">
-                <FormField
-                  control={form.control}
-                  name="currentDepartmentId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex">
-                        Setor Responsável <span className="text-red-500 ml-1">*</span>
-                      </FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        value={field.value ? field.value.toString() : undefined}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Selecione o setor responsável" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {departments?.map((department) => (
-                            <SelectItem 
-                              key={department.id} 
-                              value={department.id.toString()}
-                            >
-                              {department.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Selecione o setor que será responsável pelo processo (obrigatório)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 md:gap-4">
                 <FormField
