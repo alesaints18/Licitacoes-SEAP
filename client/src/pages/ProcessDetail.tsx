@@ -176,6 +176,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const getSectorSteps = (userDepartment: string, modalityId: number) => {
     if (modalityId !== 1) return []; // Apenas para Pregão Eletrônico
     
+    // Mapeamento dos nomes de departamentos do banco para os setores do fluxo
+    const departmentToSectorMap: { [key: string]: string } = {
+      "Setor Demandante": "TI",
+      "Divisão de Licitação": "Licitações", 
+      "Unidade de  Orçamento e  Finanças": "Financeiro",
+      "Procuradoria Geral do Estado - PGE": "Jurídico",
+      "Secretário de Estado da Administração  Penitenciária - SEAP": "Administrativo"
+    };
+    
+    const sector = departmentToSectorMap[userDepartment] || userDepartment;
+    
     const stepsBySector: { [key: string]: { name: string; phase: string; nextSector?: string }[] } = {
       // TI - Setor Demandante (Fase de Iniciação)
       "TI": [
@@ -222,7 +233,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       ]
     };
     
-    return stepsBySector[userDepartment] || [];
+    return stepsBySector[sector] || [];
   };
 
   // Function to get next sector for a step
@@ -644,12 +655,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
                             <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                            Checklist do Setor {currentUser.department}
+                            Checklist do Setor {currentDepartment?.name || 'Atual'}
                           </h4>
                           
                           {/* Sector Steps */}
                           <div className="space-y-2">
-                            {getSectorSteps(currentUser.department, process?.modalityId || 1).map((sectorStep, index) => {
+                            {getSectorSteps(currentDepartment?.name || currentUser.department, process?.modalityId || 1).map((sectorStep, index) => {
                               const existingStep = steps?.find(s => s.stepName === sectorStep.name);
                               const isCompleted = existingStep?.isCompleted || false;
                               
