@@ -128,7 +128,7 @@ const Sidebar = () => {
           </div>
           <div className="text-white text-sm font-medium">{user?.fullName}</div>
           <div className="dark:text-blue-200 text-blue-100 text-xs capitalize">
-            {user?.role}
+            {user?.department}
           </div>
         </div>
 

@@ -198,7 +198,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
               case 'new_process':
                 // Adicionar nova notificação para o processo criado
                 addNotification({
-                  title: "Novo processo criado (tempo real)",
+                  title: "Novo processo criado",
                   message: data.message,
                   type: "new_process",
                   link: `/processes/${data.process.id}`,
