@@ -158,13 +158,18 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     ? departments.find((d: any) => d.id === process.currentDepartmentId)
     : undefined;
 
-  // Mapeamento de departamentos por ID
+  // Mapeamento de departamentos por ID - usando nomes exatos do banco
   const departmentIdMap: { [key: string]: number } = {
     "TI": 1,
+    "Setor Demandante": 1,
     "Licitações": 2,
+    "Núcleo de Pesquisa de Preços – NPP": 2,
     "Jurídico": 3,
+    "Setor Jurídico": 3,
     "Financeiro": 4,
-    "Administrativo": 5
+    "Unidade de Orçamento e Finanças": 4,
+    "Administrativo": 5,
+    "Setor Administrativo": 5
   };
 
   // Function to get sector-specific steps
@@ -300,13 +305,19 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         // Se a etapa foi marcada como concluída, verificar se precisa transferir o processo
         if (isCompleted && step.stepName) {
           const nextSector = getNextSectorForStep(step.stepName);
-          if (nextSector && process) {
-            const nextDepartmentId = departmentIdMap[nextSector];
-            if (nextDepartmentId && nextDepartmentId !== process.currentDepartmentId) {
+          if (nextSector && process && departments) {
+            // Buscar departamento por nome diretamente no array de departamentos
+            const nextDepartment = departments.find((dept: any) => 
+              dept.name === nextSector || 
+              dept.name.includes(nextSector) ||
+              nextSector.includes(dept.name)
+            );
+            
+            if (nextDepartment && nextDepartment.id !== process.currentDepartmentId) {
               try {
-                console.log(`Transferindo processo para o setor ${nextSector} (ID: ${nextDepartmentId})`);
+                console.log(`Transferindo processo para o setor ${nextSector} (ID: ${nextDepartment.id})`);
                 await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-                  departmentId: nextDepartmentId,
+                  departmentId: nextDepartment.id,
                 });
                 
                 toast({

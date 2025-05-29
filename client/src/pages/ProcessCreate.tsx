@@ -25,8 +25,8 @@ const ProcessCreate = () => {
         responsibleId: Number(data.responsibleId),
         // Todos os processos sempre começam no Setor Demandante (ID: 1)
         currentDepartmentId: 1,
-        // Verificar e ajustar o deadline
-        deadline: data.deadline === '' ? null : data.deadline
+        // Converter deadline string para Date
+        deadline: data.deadline ? new Date(data.deadline) : null
       };
       
       console.log("Dados processados para envio:", processedData);
