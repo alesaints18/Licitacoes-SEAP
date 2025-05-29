@@ -309,13 +309,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           console.log(`Próximo setor encontrado: ${nextSector}`);
           
           if (nextSector && process && departments) {
-            // Mapeamento direto por nome de setor
+            // Mapeamento direto por nome de setor usando nomes reais do banco
             const sectorToDepartmentMap: { [key: string]: string } = {
-              "Financeiro": "Unidade de Orçamento e Finanças",
-              "Licitações": "Núcleo de Pesquisa de Preços – NPP", 
-              "Jurídico": "Setor Jurídico",
-              "Administrativo": "Setor Administrativo",
-              "TI": "TI"
+              "Financeiro": "Unidade de  Orçamento e  Finanças",
+              "Licitações": "Divisão de Licitação", 
+              "Jurídico": "Procuradoria Geral do Estado - PGE",
+              "Administrativo": "Secretário de Estado da Administração  Penitenciária - SEAP",
+              "TI": "Setor Demandante"
             };
             
             const departmentName = sectorToDepartmentMap[nextSector] || nextSector;
