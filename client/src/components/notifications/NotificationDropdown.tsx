@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Bell, Calendar, FileText, UserPlus, RefreshCw, Info } from "lucide-react";
+import { Bell, Calendar, FileText, UserPlus, RefreshCw, Info, Trash2 } from "lucide-react";
 import { 
   Popover, 
   PopoverContent, 
@@ -115,9 +115,10 @@ export default function NotificationDropdown({
                 variant="ghost" 
                 size="sm" 
                 onClick={onClearAll}
-                className="text-xs text-red-600 hover:text-red-700"
+                className="text-red-600 hover:text-red-700 p-2"
+                title="Limpar todas as notificações"
               >
-                Limpar todas
+                <Trash2 className="h-4 w-4" />
               </Button>
             )}
           </div>
