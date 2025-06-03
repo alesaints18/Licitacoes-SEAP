@@ -7,7 +7,7 @@ import { Process, Department } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 
 interface ProcessTransferProps {
   id: string;
@@ -128,48 +128,94 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">Departamento Atual</label>
-            <div className="p-3 bg-gray-50 rounded-lg border">
-              {currentDepartment?.name || "Departamento não identificado"}
+            <label className="block text-sm font-medium mb-4">Fluxo de Transferência</label>
+            
+            {/* Visualização do fluxo de departamentos */}
+            <div className="space-y-4">
+              {departmentFlow.map((deptId, index) => {
+                const dept = departments?.find(d => d.id === deptId);
+                if (!dept) return null;
+                
+                const isPrevious = index < currentIndex;
+                const isCurrent = index === currentIndex;
+                const isNext = index === currentIndex + 1;
+                const isFuture = index > currentIndex + 1;
+                
+                return (
+                  <div key={deptId} className="flex items-center space-x-3">
+                    {/* Botão do departamento */}
+                    <div
+                      className={`flex-1 p-4 rounded-lg border-2 transition-all ${
+                        isPrevious 
+                          ? "bg-green-50 border-green-200 text-green-800"
+                          : isCurrent 
+                            ? "bg-blue-50 border-blue-400 text-blue-800"
+                            : isNext 
+                              ? "bg-orange-50 border-orange-300 text-orange-800 border-dashed"
+                              : "bg-gray-50 border-gray-200 text-gray-500"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">{dept.name}</h4>
+                          <p className="text-sm opacity-75">
+                            {isPrevious && "Concluído"}
+                            {isCurrent && "Atual"}
+                            {isNext && "Próximo"}
+                            {isFuture && "Aguardando"}
+                          </p>
+                        </div>
+                        <div className="flex items-center">
+                          {isPrevious && <CheckCircle className="h-5 w-5 text-green-600" />}
+                          {isCurrent && <div className="h-3 w-3 bg-blue-500 rounded-full animate-pulse" />}
+                          {isNext && <ArrowRight className="h-5 w-5 text-orange-600" />}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Próximo Departamento no Fluxo <span className="text-red-500">*</span>
-            </label>
-            {isLastDepartment ? (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-800 font-medium">
-                  ✓ Este processo está no último departamento do fluxo
-                </p>
-                <p className="text-green-600 text-sm mt-1">
-                  O processo pode ser finalizado ou arquivado
-                </p>
-              </div>
-            ) : availableDepartments.length === 0 ? (
-              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-yellow-800 font-medium">
-                  ⚠ Próximo departamento não encontrado
-                </p>
-                <p className="text-yellow-600 text-sm mt-1">
-                  Verifique se todos os departamentos estão configurados no sistema
-                </p>
-              </div>
-            ) : (
-              <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Confirme o próximo departamento" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableDepartments.map((department) => (
-                    <SelectItem key={department.id} value={department.id.toString()}>
-                      {department.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            {/* Área de confirmação */}
+            <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+              {isLastDepartment ? (
+                <div className="text-center">
+                  <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                  <p className="text-green-800 font-medium">
+                    Este processo está no último departamento do fluxo
+                  </p>
+                  <p className="text-green-600 text-sm mt-1">
+                    O processo pode ser finalizado ou arquivado
+                  </p>
+                </div>
+              ) : availableDepartments.length === 0 ? (
+                <div className="text-center">
+                  <p className="text-yellow-800 font-medium">
+                    Próximo departamento não encontrado
+                  </p>
+                  <p className="text-yellow-600 text-sm mt-1">
+                    Verifique se todos os departamentos estão configurados
+                  </p>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <p className="text-sm text-gray-600 mb-3">
+                    Confirme a transferência para o próximo departamento:
+                  </p>
+                  <button
+                    onClick={() => setSelectedDepartmentId(availableDepartments[0].id.toString())}
+                    className={`px-6 py-3 rounded-lg border-2 font-medium transition-all ${
+                      selectedDepartmentId 
+                        ? "bg-blue-500 border-blue-500 text-white" 
+                        : "bg-white border-orange-300 text-orange-800 hover:bg-orange-50"
+                    }`}
+                  >
+                    {selectedDepartmentId ? "✓ Confirmado" : `Transferir para ${availableDepartments[0].name}`}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex space-x-3">

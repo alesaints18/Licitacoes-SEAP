@@ -3,16 +3,37 @@ import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Process, BiddingModality, ResourceSource, User, ProcessStep } from "@shared/schema";
+import {
+  Process,
+  BiddingModality,
+  ResourceSource,
+  User,
+  ProcessStep,
+} from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StepChecklist from "@/components/bidding/StepChecklist";
 import BiddingFlowchart from "@/components/bidding/BiddingFlowchart";
-import { Edit, Trash, AlertCircle, Clock, CheckCircle, XCircle, Calendar, ArrowRight, ArrowLeft, FileText, Check } from "lucide-react";
+import {
+  Edit,
+  Trash,
+  AlertCircle,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Calendar,
+  ArrowRight,
+  ArrowLeft,
+  FileText,
+  Check,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getProcessStatusLabel, getProcessPriorityLabel } from "@/lib/utils/process";
+import {
+  getProcessStatusLabel,
+  getProcessPriorityLabel,
+} from "@/lib/utils/process";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -47,49 +68,56 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
   const parsedId = parseInt(id);
-  
+
   // Get process details
-  const { data: process, isLoading: processLoading, error } = useQuery<Process>({
+  const {
+    data: process,
+    isLoading: processLoading,
+    error,
+  } = useQuery<Process>({
     queryKey: [`/api/processes/${parsedId}`],
   });
-  
+
   // Get modality details
   const { data: modalities } = useQuery<BiddingModality[]>({
-    queryKey: ['/api/modalities'],
+    queryKey: ["/api/modalities"],
     enabled: !!process,
   });
-  
+
   // Get source details
   const { data: sources } = useQuery<ResourceSource[]>({
-    queryKey: ['/api/sources'],
+    queryKey: ["/api/sources"],
     enabled: !!process,
   });
-  
+
   // Get current user
   const { data: currentUser } = useQuery<User>({
-    queryKey: ['/api/auth/status'],
+    queryKey: ["/api/auth/status"],
   });
 
   // Get user details
   const { data: users } = useQuery<User[]>({
-    queryKey: ['/api/users'],
+    queryKey: ["/api/users"],
     enabled: !!process,
   });
-  
+
   // Get current modality
-  const modality = process && modalities 
-    ? modalities.find(m => m.id === process.modalityId) 
-    : undefined;
-  
+  const modality =
+    process && modalities
+      ? modalities.find((m) => m.id === process.modalityId)
+      : undefined;
+
   // Get source
-  const source = process && sources 
-    ? sources.find(s => s.id === process.sourceId) 
-    : undefined;
-  
+  const source =
+    process && sources
+      ? sources.find((s) => s.id === process.sourceId)
+      : undefined;
+
   // Get responsible user
-  const responsible = process && users 
-    ? users.find(u => u.id === process.responsibleId) 
-    : undefined;
+  const responsible =
+    process && users
+      ? users.find((u) => u.id === process.responsibleId)
+      : undefined;
 
   // Fetch process steps to get the next step
   const { data: steps } = useQuery<ProcessStep[]>({
@@ -121,28 +149,31 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         "Adjudicação do objeto",
         "Homologação do resultado",
         "Assinatura do contrato ou emissão da ordem",
-        "Publicação do extrato do contrato"
+        "Publicação do extrato do contrato",
       ];
 
       // Create steps in a single batch to avoid race conditions
       const createSteps = async () => {
         try {
-          const promises = defaultSteps.map(stepName => 
-            apiRequest('POST', `/api/processes/${parsedId}/steps`, {
+          const promises = defaultSteps.map((stepName) =>
+            apiRequest("POST", `/api/processes/${parsedId}/steps`, {
               stepName,
               departmentId: process.currentDepartmentId,
               isCompleted: false,
-            })
+            }),
           );
-          
+
           await Promise.all(promises);
-          
+
           // Refresh steps after creation
-          queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
-          
+          queryClient.invalidateQueries({
+            queryKey: [`/api/processes/${parsedId}/steps`],
+          });
+
           toast({
             title: "Checklist criado",
-            description: "As etapas do pregão eletrônico foram criadas automaticamente.",
+            description:
+              "As etapas do pregão eletrônico foram criadas automaticamente.",
           });
         } catch (error) {
           console.error("Erro ao criar etapas padrão:", error);
@@ -155,96 +186,165 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Fetch departments for step details
   const { data: departments } = useQuery<any[]>({
-    queryKey: ['/api/departments'],
+    queryKey: ["/api/departments"],
     enabled: !!process,
   });
 
   // Find the next incomplete step
-  const nextStep = steps?.find(step => !step.isCompleted);
-  const stepDepartment = nextStep && Array.isArray(departments) 
-    ? departments.find((d: any) => d.id === nextStep.departmentId)
-    : undefined;
+  const nextStep = steps?.find((step) => !step.isCompleted);
+  const stepDepartment =
+    nextStep && Array.isArray(departments)
+      ? departments.find((d: any) => d.id === nextStep.departmentId)
+      : undefined;
 
   // Get current department from process
-  const currentDepartment = process && Array.isArray(departments)
-    ? departments.find((d: any) => d.id === process.currentDepartmentId)
-    : undefined;
+  const currentDepartment =
+    process && Array.isArray(departments)
+      ? departments.find((d: any) => d.id === process.currentDepartmentId)
+      : undefined;
 
   // Mapeamento de departamentos por ID - usando nomes exatos do banco
   const departmentIdMap: { [key: string]: number } = {
-    "TI": 1,
+    TI: 1,
     "Setor Demandante": 1,
-    "Licitações": 2,
+    Licitações: 2,
     "Núcleo de Pesquisa de Preços – NPP": 2,
-    "Jurídico": 3,
+    Jurídico: 3,
     "Setor Jurídico": 3,
-    "Financeiro": 4,
+    Financeiro: 4,
     "Unidade de Orçamento e Finanças": 4,
-    "Administrativo": 5,
-    "Setor Administrativo": 5
+    Administrativo: 5,
+    "Setor Administrativo": 5,
   };
 
   // Function to get sector-specific steps
   const getSectorSteps = (userDepartment: string, modalityId: number) => {
     // Funciona para todas as modalidades de pregão
-    
+
     // Mapeamento dos nomes de departamentos do banco para os setores do fluxo
     const departmentToSectorMap: { [key: string]: string } = {
       "Setor Demandante": "TI",
-      "Divisão de Licitação": "Licitações", 
+      "Divisão de Licitação": "Licitações",
       "Unidade de  Orçamento e  Finanças": "Financeiro",
       "Procuradoria Geral do Estado - PGE": "Jurídico",
-      "Secretário de Estado da Administração  Penitenciária - SEAP": "Administrativo"
+      "Secretário de Estado da Administração  Penitenciária - SEAP":
+        "Administrativo",
     };
-    
+
     const sector = departmentToSectorMap[userDepartment] || userDepartment;
-    
-    const stepsBySector: { [key: string]: { name: string; phase: string; nextSector?: string }[] } = {
+
+    const stepsBySector: {
+      [key: string]: { name: string; phase: string; nextSector?: string }[];
+    } = {
       // TI - Setor Demandante (Fase de Iniciação)
-      "TI": [
-        { name: "Demanda identificada pela unidade requisitante", phase: "Iniciação" },
-        { name: "Elaboração dos estudos técnicos preliminares", phase: "Iniciação" },
-        { name: "Análise de viabilidade e adequação orçamentária", phase: "Iniciação" },
-        { name: "Elaboração do termo de referência ou projeto básico", phase: "Iniciação", nextSector: "Financeiro" },
+      TI: [
+        {
+          name: "Demanda identificada pela unidade requisitante",
+          phase: "Iniciação",
+        },
+        {
+          name: "Elaboração dos estudos técnicos preliminares",
+          phase: "Iniciação",
+        },
+        {
+          name: "Análise de viabilidade e adequação orçamentária",
+          phase: "Iniciação",
+        },
+        {
+          name: "Elaboração do termo de referência ou projeto básico",
+          phase: "Iniciação",
+          nextSector: "Financeiro",
+        },
       ],
-      
+
       // Licitações - Divisão de Licitação
-      "Licitações": [
-        { name: "Encaminhamento da demanda ao setor de licitações", phase: "Preparação" },
-        { name: "Designação do pregoeiro e equipe de apoio", phase: "Preparação" },
-        { name: "Elaboração do edital de licitação", phase: "Preparação", nextSector: "Jurídico" },
+      Licitações: [
+        {
+          name: "Encaminhamento da demanda ao setor de licitações",
+          phase: "Preparação",
+        },
+        {
+          name: "Designação do pregoeiro e equipe de apoio",
+          phase: "Preparação",
+        },
+        {
+          name: "Elaboração do edital de licitação",
+          phase: "Preparação",
+          nextSector: "Jurídico",
+        },
         { name: "Publicação do aviso de licitação", phase: "Execução" },
-        { name: "Disponibilização do edital aos interessados", phase: "Execução" },
+        {
+          name: "Disponibilização do edital aos interessados",
+          phase: "Execução",
+        },
         { name: "Período para envio de propostas", phase: "Execução" },
         { name: "Sessão pública do pregão eletrônico", phase: "Execução" },
         { name: "Análise e classificação das propostas", phase: "Execução" },
-        { name: "Habilitação dos licitantes", phase: "Execução", nextSector: "Financeiro" },
+        {
+          name: "Habilitação dos licitantes",
+          phase: "Execução",
+          nextSector: "Financeiro",
+        },
       ],
-      
+
       // Jurídico - Assessoria Jurídica
-      "Jurídico": [
-        { name: "Análise jurídica do edital", phase: "Preparação", nextSector: "Financeiro" },
+      Jurídico: [
+        {
+          name: "Análise jurídica do edital",
+          phase: "Preparação",
+          nextSector: "Financeiro",
+        },
         { name: "Análise de recursos administrativos", phase: "Execução" },
-        { name: "Elaboração da minuta do contrato", phase: "Finalização", nextSector: "Administrativo" },
+        {
+          name: "Elaboração da minuta do contrato",
+          phase: "Finalização",
+          nextSector: "Administrativo",
+        },
       ],
-      
+
       // Financeiro - Ordenador de Despesa
-      "Financeiro": [
-        { name: "Aprovação do termo de referência pela autoridade competente", phase: "Iniciação", nextSector: "Licitações" },
-        { name: "Aprovação do edital pela autoridade competente", phase: "Preparação", nextSector: "Licitações" },
-        { name: "Adjudicação do objeto", phase: "Finalização", nextSector: "Administrativo" },
-        { name: "Homologação do resultado", phase: "Finalização", nextSector: "Administrativo" },
-        { name: "Empenho da despesa", phase: "Finalização", nextSector: "Administrativo" },
+      Financeiro: [
+        {
+          name: "Aprovação do termo de referência pela autoridade competente",
+          phase: "Iniciação",
+          nextSector: "Licitações",
+        },
+        {
+          name: "Aprovação do edital pela autoridade competente",
+          phase: "Preparação",
+          nextSector: "Licitações",
+        },
+        {
+          name: "Adjudicação do objeto",
+          phase: "Finalização",
+          nextSector: "Administrativo",
+        },
+        {
+          name: "Homologação do resultado",
+          phase: "Finalização",
+          nextSector: "Administrativo",
+        },
+        {
+          name: "Empenho da despesa",
+          phase: "Finalização",
+          nextSector: "Administrativo",
+        },
       ],
-      
+
       // Administrativo - Gestão Contratual
-      "Administrativo": [
-        { name: "Assinatura do contrato ou emissão da ordem", phase: "Finalização" },
+      Administrativo: [
+        {
+          name: "Assinatura do contrato ou emissão da ordem",
+          phase: "Finalização",
+        },
         { name: "Publicação do extrato do contrato", phase: "Finalização" },
-        { name: "Fiscalização e acompanhamento contratual", phase: "Finalização" },
-      ]
+        {
+          name: "Fiscalização e acompanhamento contratual",
+          phase: "Finalização",
+        },
+      ],
     };
-    
+
     return stepsBySector[sector] || [];
   };
 
@@ -252,60 +352,61 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const getNextSectorForStep = (stepName: string) => {
     const allSteps = [
       ...getSectorSteps("TI", 1),
-      ...getSectorSteps("Licitações", 1), 
+      ...getSectorSteps("Licitações", 1),
       ...getSectorSteps("Jurídico", 1),
       ...getSectorSteps("Financeiro", 1),
-      ...getSectorSteps("Administrativo", 1)
+      ...getSectorSteps("Administrativo", 1),
     ];
-    
-    const step = allSteps.find(s => s.name === stepName);
+
+    const step = allSteps.find((s) => s.name === stepName);
     return step?.nextSector;
   };
 
   // Function to calculate deadlines by phase based on the bidding flowchart
   const getPhaseDeadlines = (processCreatedAt: Date) => {
     const createdDate = new Date(processCreatedAt);
-    
+
     return {
-      "Iniciação": {
+      Iniciação: {
         name: "Fase de Iniciação",
-        description: "Identificação da demanda até aprovação do termo de referência",
-        deadline: new Date(createdDate.getTime() + (15 * 24 * 60 * 60 * 1000)), // 15 dias
-        color: "blue"
+        description:
+          "Identificação da demanda até aprovação do termo de referência",
+        deadline: new Date(createdDate.getTime() + 15 * 24 * 60 * 60 * 1000), // 15 dias
+        color: "blue",
       },
-      "Preparação": {
-        name: "Fase de Preparação", 
+      Preparação: {
+        name: "Fase de Preparação",
         description: "Elaboração e aprovação do edital",
-        deadline: new Date(createdDate.getTime() + (25 * 24 * 60 * 60 * 1000)), // 25 dias
-        color: "yellow"
+        deadline: new Date(createdDate.getTime() + 25 * 24 * 60 * 60 * 1000), // 25 dias
+        color: "yellow",
       },
-      "Execução": {
+      Execução: {
         name: "Fase de Execução",
         description: "Publicação do edital até habilitação dos licitantes",
-        deadline: new Date(createdDate.getTime() + (45 * 24 * 60 * 60 * 1000)), // 45 dias
-        color: "orange"
+        deadline: new Date(createdDate.getTime() + 45 * 24 * 60 * 60 * 1000), // 45 dias
+        color: "orange",
       },
-      "Finalização": {
+      Finalização: {
         name: "Fase de Finalização",
         description: "Adjudicação até assinatura do contrato",
-        deadline: new Date(createdDate.getTime() + (60 * 24 * 60 * 60 * 1000)), // 60 dias
-        color: "green"
-      }
+        deadline: new Date(createdDate.getTime() + 60 * 24 * 60 * 60 * 1000), // 60 dias
+        color: "green",
+      },
     };
   };
 
   // Get current phase based on user department
   const getCurrentPhase = (userDepartment: string) => {
     const phaseMap: { [key: string]: string } = {
-      "TI": "Iniciação",
-      "Licitações": "Preparação",
-      "Jurídico": "Preparação", 
-      "Financeiro": "Iniciação",
-      "Administrativo": "Finalização"
+      TI: "Iniciação",
+      Licitações: "Preparação",
+      Jurídico: "Preparação",
+      Financeiro: "Iniciação",
+      Administrativo: "Finalização",
     };
     return phaseMap[userDepartment] || "Iniciação";
   };
-  
+
   // Handle edit process
   const handleEdit = () => {
     setLocation(`/processes/${id}/edit`);
@@ -332,16 +433,24 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     setIsSubmittingRejection(true);
 
     try {
-      const response = await apiRequest('PATCH', `/api/processes/${parsedId}/steps/${stepToReject.id}`, {
-        isCompleted: false,
-        observations: rejectionReason.trim(),
-        rejectedAt: new Date().toISOString(),
-      });
+      const response = await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepToReject.id}`,
+        {
+          isCompleted: false,
+          observations: rejectionReason.trim(),
+          rejectedAt: new Date().toISOString(),
+        },
+      );
 
       if (response.ok) {
-        await queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
-        await queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}`] });
-        
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}/steps`],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}`],
+        });
+
         toast({
           title: "Etapa rejeitada",
           description: "A etapa foi rejeitada com sucesso.",
@@ -367,60 +476,79 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   // Handle step toggle
   const handleStepToggle = async (stepId: number, isCompleted: boolean) => {
     try {
-      console.log(`Atualizando etapa ${stepId} para isCompleted: ${isCompleted}`);
-      
-      const step = steps?.find(s => s.id === stepId);
+      console.log(
+        `Atualizando etapa ${stepId} para isCompleted: ${isCompleted}`,
+      );
+
+      const step = steps?.find((s) => s.id === stepId);
       if (!step) return;
 
-      const response = await apiRequest('PATCH', `/api/processes/${parsedId}/steps/${stepId}`, {
-        isCompleted,
-      });
+      const response = await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepId}`,
+        {
+          isCompleted,
+        },
+      );
 
       if (response.ok) {
         console.log("Etapa atualizada com sucesso");
-        
+
         // Se a etapa foi marcada como concluída, verificar se precisa transferir o processo
         if (isCompleted && step.stepName) {
           const nextSector = getNextSectorForStep(step.stepName);
           console.log(`Etapa completada: ${step.stepName}`);
           console.log(`Próximo setor encontrado: ${nextSector}`);
-          
+
           if (nextSector && process && departments) {
             // Mapeamento direto por nome de setor usando nomes reais do banco
             const sectorToDepartmentMap: { [key: string]: string } = {
-              "Financeiro": "Unidade de  Orçamento e  Finanças",
-              "Licitações": "Divisão de Licitação", 
-              "Jurídico": "Procuradoria Geral do Estado - PGE",
-              "Administrativo": "Secretário de Estado da Administração  Penitenciária - SEAP",
-              "TI": "Setor Demandante"
+              Financeiro: "Unidade de  Orçamento e  Finanças",
+              Licitações: "Divisão de Licitação",
+              Jurídico: "Procuradoria Geral do Estado - PGE",
+              Administrativo:
+                "Secretário de Estado da Administração  Penitenciária - SEAP",
+              TI: "Setor Demandante",
             };
-            
-            const departmentName = sectorToDepartmentMap[nextSector] || nextSector;
-            const nextDepartment = departments.find((dept: any) => 
-              dept.name === departmentName
+
+            const departmentName =
+              sectorToDepartmentMap[nextSector] || nextSector;
+            const nextDepartment = departments.find(
+              (dept: any) => dept.name === departmentName,
             );
-            
+
             console.log(`Buscando departamento: ${departmentName}`);
             console.log(`Departamento encontrado:`, nextDepartment);
-            
-            if (nextDepartment && nextDepartment.id !== process.currentDepartmentId) {
+
+            if (
+              nextDepartment &&
+              nextDepartment.id !== process.currentDepartmentId
+            ) {
               try {
-                console.log(`Transferindo processo para o setor ${nextSector} (ID: ${nextDepartment.id})`);
-                await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-                  departmentId: nextDepartment.id,
-                });
-                
+                console.log(
+                  `Transferindo processo para o setor ${nextSector} (ID: ${nextDepartment.id})`,
+                );
+                await apiRequest(
+                  "POST",
+                  `/api/processes/${parsedId}/transfer`,
+                  {
+                    departmentId: nextDepartment.id,
+                  },
+                );
+
                 toast({
                   title: "Processo transferido automaticamente",
                   description: `Processo transferido para o setor ${nextSector}`,
                 });
 
                 // Invalidate process query to refresh department
-                queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}`] });
-                
+                queryClient.invalidateQueries({
+                  queryKey: [`/api/processes/${parsedId}`],
+                });
+
                 // Invalidar cache de processos antes do redirecionamento
-                queryClient.invalidateQueries({ queryKey: ['/api/processes'] });
-                
+                queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+
                 // Redirecionar para a lista de processos após transferência
                 setTimeout(() => {
                   setLocation("/processes");
@@ -429,19 +557,24 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 console.error("Erro na transferência:", transferError);
                 toast({
                   title: "Aviso",
-                  description: "Etapa concluída, mas houve problema na transferência automática",
+                  description:
+                    "Etapa concluída, mas houve problema na transferência automática",
                   variant: "destructive",
                 });
               }
             }
           }
         }
-        
+
         // Invalidate queries to refresh data
-        queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
+        queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}/steps`],
+        });
         toast({
           title: isCompleted ? "Etapa concluída" : "Etapa desmarcada",
-          description: isCompleted ? "A etapa foi marcada como concluída." : "A etapa foi desmarcada.",
+          description: isCompleted
+            ? "A etapa foi marcada como concluída."
+            : "A etapa foi desmarcada.",
         });
       } else {
         console.error("Erro na resposta:", response.status);
@@ -456,26 +589,26 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       });
     }
   };
-  
+
   // Handle delete process
   const handleDelete = async () => {
     try {
       await apiRequest("DELETE", `/api/processes/${parsedId}`, undefined);
-      
+
       // Show success toast
       toast({
         title: "Processo excluído",
         description: "O processo foi excluído com sucesso",
       });
-      
+
       // Redirect to processes list
       setLocation("/processes");
-      
+
       // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['/api/processes'] });
+      queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
     } catch (error) {
       console.error("Delete error:", error);
-      
+
       // Show error toast
       toast({
         title: "Erro ao excluir processo",
@@ -484,11 +617,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       });
     }
   };
-  
+
   // Handle status icon
   const getStatusIcon = () => {
     if (!process) return null;
-    
+
     switch (process.status) {
       case "draft":
         return <AlertCircle className="h-6 w-6 text-gray-500" />;
@@ -502,16 +635,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         return null;
     }
   };
-  
+
   if (processLoading) {
-    return <div className="p-8 text-center">Carregando detalhes do processo...</div>;
+    return (
+      <div className="p-8 text-center">Carregando detalhes do processo...</div>
+    );
   }
-  
+
   if (error || !process) {
     return (
       <div className="p-8 text-center">
         <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-4" />
-        <h2 className="text-xl font-semibold mb-2">Erro ao carregar processo</h2>
+        <h2 className="text-xl font-semibold mb-2">
+          Erro ao carregar processo
+        </h2>
         <p>Não foi possível carregar os detalhes do processo.</p>
         <Button onClick={() => setLocation("/processes")} className="mt-4">
           Voltar para Processos
@@ -519,7 +656,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       </div>
     );
   }
-  
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -532,28 +669,37 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             <p className="text-gray-600">{process.description}</p>
           </div>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
-          <Button variant="default" onClick={() => setLocation(`/processes/${process.id}/report`)}>
+          <Button
+            variant="default"
+            onClick={() => setLocation(`/processes/${process.id}/report`)}
+          >
             <FileText className="h-4 w-4 mr-2" />
             Gerar Relatório
           </Button>
-          
-          <Button variant="outline" onClick={() => setLocation(`/processes/${process.id}/transfer`)}>
+
+          <Button
+            variant="outline"
+            onClick={() => setLocation(`/processes/${process.id}/transfer`)}
+          >
             <ArrowRight className="h-4 w-4 mr-2" />
             Transferir
           </Button>
-          
-          <Button variant="outline" onClick={() => setLocation(`/processes/${process.id}/return`)}>
+
+          <Button
+            variant="outline"
+            onClick={() => setLocation(`/processes/${process.id}/return`)}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retornar
           </Button>
-          
+
           <Button variant="outline" onClick={handleEdit}>
             <Edit className="h-4 w-4 mr-2" />
             Editar
           </Button>
-          
+
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive">
@@ -565,25 +711,28 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               <AlertDialogHeader>
                 <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Tem certeza que deseja excluir este processo? Esta ação não pode ser desfeita.
+                  Tem certeza que deseja excluir este processo? Esta ação não
+                  pode ser desfeita.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
+                <AlertDialogAction onClick={handleDelete}>
+                  Excluir
+                </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </div>
       </div>
-      
+
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="checklist">Checklist de Etapas</TabsTrigger>
+
           <TabsTrigger value="flow">Fluxo</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="overview">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
@@ -592,104 +741,165 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <CardTitle>Informações Básicas</CardTitle>
                 </CardHeader>
                 <CardContent>
-                <dl className="divide-y divide-gray-200">
-                  <div className="py-3 grid grid-cols-3">
-                    <dt className="text-sm font-medium text-gray-500">PBDOC</dt>
-                    <dd className="text-sm text-gray-900 col-span-2">{process.pbdocNumber}</dd>
-                  </div>
-                  
-                  <div className="py-3 grid grid-cols-3">
-                    <dt className="text-sm font-medium text-gray-500">Descrição</dt>
-                    <dd className="text-sm text-gray-900 col-span-2">{process.description}</dd>
-                  </div>
-                  
-                  <div className="py-3 grid grid-cols-3">
-                    <dt className="text-sm font-medium text-gray-500">Modalidade</dt>
-                    <dd className="text-sm text-gray-900 col-span-2">{modality?.name || `Modalidade ${process.modalityId}`}</dd>
-                  </div>
-                  
-                  <div className="py-3 grid grid-cols-3">
-                    <dt className="text-sm font-medium text-gray-500">Fonte</dt>
-                    <dd className="text-sm text-gray-900 col-span-2">
-                      {source ? `Fonte ${source.code} - ${source.description}` : `Fonte ${process.sourceId}`}
-                    </dd>
-                  </div>
-                  
-                  <div className="py-3 grid grid-cols-3">
-                    <dt className="text-sm font-medium text-gray-500">Responsável</dt>
-                    <dd className="text-sm text-gray-900 col-span-2">
-                      {responsible?.fullName || `Usuário ${process.responsibleId}`}
-                      {process.responsibleSince && (
-                        <div className="mt-1 text-xs text-blue-600 flex items-center">
-                          <Clock className="h-3 w-3 mr-1" /> 
-                          Responsável desde {format(new Date(process.responsibleSince), "dd/MM/yyyy", { locale: ptBR })} 
-                          ({Math.ceil((new Date().getTime() - new Date(process.responsibleSince).getTime()) / (1000 * 60 * 60 * 24))} dias)
-                        </div>
-                      )}
-                    </dd>
-                  </div>
-                </dl>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Status e Prioridade</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <dl className="divide-y divide-gray-200">
-                  <div className="py-3 grid grid-cols-3">
-                    <dt className="text-sm font-medium text-gray-500">Status</dt>
-                    <dd className="text-sm text-gray-900 col-span-2">
-                      <span className={`status-badge status-badge-${process.status}`}>
-                        {getProcessStatusLabel(process.status)}
-                      </span>
-                    </dd>
-                  </div>
-                  
-                  <div className="py-3 grid grid-cols-3">
-                    <dt className="text-sm font-medium text-gray-500">Prioridade</dt>
-                    <dd className="text-sm text-gray-900 col-span-2">
-                      <span className={`priority-badge priority-badge-${process.priority}`}>
-                        {getProcessPriorityLabel(process.priority)}
-                      </span>
-                    </dd>
-                  </div>
-                  
-                  <div className="py-3 grid grid-cols-3">
-                    <dt className="text-sm font-medium text-gray-500">Data de Criação</dt>
-                    <dd className="text-sm text-gray-900 col-span-2">
-                      {format(new Date(process.createdAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </dd>
-                  </div>
-                  
-                  <div className="py-3 grid grid-cols-3">
-                    <dt className="text-sm font-medium text-gray-500">Última Atualização</dt>
-                    <dd className="text-sm text-gray-900 col-span-2">
-                      {format(new Date(process.updatedAt), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                    </dd>
-                  </div>
-                  
-                  {process.deadline && (
-                  <div className="py-3 grid grid-cols-3">
-                    <dt className="text-sm font-medium text-gray-500">Prazo de Entrega</dt>
-                    <dd className="text-sm text-gray-900 col-span-2 flex items-center">
-                      {format(new Date(process.deadline), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                      {new Date(process.deadline) < new Date() ? (
-                        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-                          Atrasado
+                  <dl className="divide-y divide-gray-200">
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        PBDOC
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {process.pbdocNumber}
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Descrição
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {process.description}
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Modalidade
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {modality?.name || `Modalidade ${process.modalityId}`}
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Fonte
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {source
+                          ? `Fonte ${source.code} - ${source.description}`
+                          : `Fonte ${process.sourceId}`}
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Responsável
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {responsible?.fullName ||
+                          `Usuário ${process.responsibleId}`}
+                        {process.responsibleSince && (
+                          <div className="mt-1 text-xs text-blue-600 flex items-center">
+                            <Clock className="h-3 w-3 mr-1" />
+                            Responsável desde{" "}
+                            {format(
+                              new Date(process.responsibleSince),
+                              "dd/MM/yyyy",
+                              { locale: ptBR },
+                            )}
+                            (
+                            {Math.ceil(
+                              (new Date().getTime() -
+                                new Date(process.responsibleSince).getTime()) /
+                                (1000 * 60 * 60 * 24),
+                            )}{" "}
+                            dias)
+                          </div>
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Status e Prioridade</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl className="divide-y divide-gray-200">
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Status
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        <span
+                          className={`status-badge status-badge-${process.status}`}
+                        >
+                          {getProcessStatusLabel(process.status)}
                         </span>
-                      ) : (
-                        <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                          {Math.ceil((new Date(process.deadline).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} dias restantes
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Prioridade
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        <span
+                          className={`priority-badge priority-badge-${process.priority}`}
+                        >
+                          {getProcessPriorityLabel(process.priority)}
                         </span>
-                      )}
-                    </dd>
-                  </div>
-                  )}
-                </dl>
-              </CardContent>
-            </Card>
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Data de Criação
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {format(
+                          new Date(process.createdAt),
+                          "dd 'de' MMMM 'de' yyyy",
+                          { locale: ptBR },
+                        )}
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Última Atualização
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {format(
+                          new Date(process.updatedAt),
+                          "dd 'de' MMMM 'de' yyyy",
+                          { locale: ptBR },
+                        )}
+                      </dd>
+                    </div>
+
+                    {process.deadline && (
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Prazo de Entrega
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2 flex items-center">
+                          {format(
+                            new Date(process.deadline),
+                            "dd 'de' MMMM 'de' yyyy",
+                            { locale: ptBR },
+                          )}
+                          {new Date(process.deadline) < new Date() ? (
+                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                              Atrasado
+                            </span>
+                          ) : (
+                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                              {Math.ceil(
+                                (new Date(process.deadline).getTime() -
+                                  new Date().getTime()) /
+                                  (1000 * 60 * 60 * 24),
+                              )}{" "}
+                              dias restantes
+                            </span>
+                          )}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                </CardContent>
+              </Card>
             </div>
 
             {/* Right Sidebar with Checklist */}
@@ -706,12 +916,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <CardContent>
                     <div className="space-y-3">
                       <div>
-                        <h4 className="font-medium text-gray-900 text-sm">{nextStep.stepName}</h4>
+                        <h4 className="font-medium text-gray-900 text-sm">
+                          {nextStep.stepName}
+                        </h4>
                         <p className="text-xs text-gray-500 mt-1">
-                          Setor Responsável: {currentDepartment?.name || 'Departamento não definido'}
+                          Setor Responsável:{" "}
+                          {currentDepartment?.name ||
+                            "Departamento não definido"}
                         </p>
                       </div>
-                      
+
                       {nextStep.dueDate && (
                         <div className="flex items-center text-xs text-orange-600">
                           <Clock className="h-3 w-3 mr-1" />
@@ -721,12 +935,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
                       <div className="flex items-center justify-between">
                         <span className="text-xs text-gray-500">
-                          Progresso: {steps?.filter(s => s.isCompleted).length || 0} de {steps?.length || 0}
+                          Progresso:{" "}
+                          {steps?.filter((s) => s.isCompleted).length || 0} de{" "}
+                          {steps?.length || 0}
                         </span>
                         <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-blue-600 h-1.5 rounded-full" 
-                            style={{ width: `${((steps?.filter(s => s.isCompleted).length || 0) / (steps?.length || 1)) * 100}%` }}
+                          <div
+                            className="bg-blue-600 h-1.5 rounded-full"
+                            style={{
+                              width: `${((steps?.filter((s) => s.isCompleted).length || 0) / (steps?.length || 1)) * 100}%`,
+                            }}
                           />
                         </div>
                       </div>
@@ -736,41 +954,72 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
                             <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                            Checklist do Setor {currentDepartment?.name || 'Atual'}
+                            Checklist do Setor{" "}
+                            {currentDepartment?.name || "Atual"}
                           </h4>
-                          
+
                           {/* Sector Steps */}
                           <div className="space-y-2">
                             {(() => {
-                              const sectorSteps = getSectorSteps(currentDepartment?.name || currentUser.department, process?.modalityId || 1);
+                              const sectorSteps = getSectorSteps(
+                                currentDepartment?.name ||
+                                  currentUser.department,
+                                process?.modalityId || 1,
+                              );
                               console.log("Sector steps:", sectorSteps);
-                              console.log("Current department:", currentDepartment?.name);
-                              console.log("Current user department:", currentUser.department);
-                              console.log("Process current department ID:", process?.currentDepartmentId);
+                              console.log(
+                                "Current department:",
+                                currentDepartment?.name,
+                              );
+                              console.log(
+                                "Current user department:",
+                                currentUser.department,
+                              );
+                              console.log(
+                                "Process current department ID:",
+                                process?.currentDepartmentId,
+                              );
                               return sectorSteps;
-                            })()
-                              .map((sectorStep, index) => {
-                              const existingStep = steps?.find(s => s.stepName === sectorStep.name);
-                              const isCompleted = existingStep?.isCompleted || false;
-                              
+                            })().map((sectorStep, index) => {
+                              const existingStep = steps?.find(
+                                (s) => s.stepName === sectorStep.name,
+                              );
+                              const isCompleted =
+                                existingStep?.isCompleted || false;
+
                               // Só mostrar se o usuário atual pertence ao departamento do processo
-                              const userCanEdit = currentUser.department === currentDepartment?.name || currentUser.role === 'admin';
-                              
-                              console.log(`Step ${sectorStep.name}: userCanEdit=${userCanEdit}, existingStep=${!!existingStep}, isCompleted=${isCompleted}`);
-                              
+                              const userCanEdit =
+                                currentUser.department ===
+                                  currentDepartment?.name ||
+                                currentUser.role === "admin";
+
+                              console.log(
+                                `Step ${sectorStep.name}: userCanEdit=${userCanEdit}, existingStep=${!!existingStep}, isCompleted=${isCompleted}`,
+                              );
+
                               return (
-                                <div key={index} className="flex items-center space-x-3 p-3 bg-white rounded border border-gray-200">
+                                <div
+                                  key={index}
+                                  className="flex items-center space-x-3 p-3 bg-white rounded border border-gray-200"
+                                >
                                   <div className="flex items-center space-x-2">
                                     {/* Botão de Aprovar */}
                                     <button
                                       className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                                        isCompleted 
-                                          ? "bg-green-600 border-green-600 hover:bg-green-700" 
-                                          : userCanEdit 
+                                        isCompleted
+                                          ? "bg-green-600 border-green-600 hover:bg-green-700"
+                                          : userCanEdit
                                             ? "border-green-400 hover:border-green-600 bg-white hover:bg-green-50"
                                             : "border-gray-300 bg-gray-100"
                                       }`}
-                                      onClick={() => userCanEdit && existingStep && handleStepToggle(existingStep.id, !isCompleted)}
+                                      onClick={() =>
+                                        userCanEdit &&
+                                        existingStep &&
+                                        handleStepToggle(
+                                          existingStep.id,
+                                          !isCompleted,
+                                        )
+                                      }
                                       disabled={!userCanEdit}
                                       title="Aprovar etapa"
                                     >
@@ -780,24 +1029,30 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                         <Check className="h-4 w-4 text-green-600" />
                                       )}
                                     </button>
-                                    
+
                                     {/* Botão de Rejeitar */}
                                     <button
                                       className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                                        userCanEdit 
+                                        userCanEdit
                                           ? "border-red-400 hover:border-red-600 bg-white hover:bg-red-50"
                                           : "border-gray-300 bg-gray-100"
                                       }`}
-                                      onClick={() => userCanEdit && existingStep && handleStepReject(existingStep)}
+                                      onClick={() =>
+                                        userCanEdit &&
+                                        existingStep &&
+                                        handleStepReject(existingStep)
+                                      }
                                       disabled={!userCanEdit}
                                       title="Rejeitar etapa"
                                     >
                                       <XCircle className="h-4 w-4 text-red-600" />
                                     </button>
                                   </div>
-                                  
+
                                   <div className="flex-1">
-                                    <p className={`text-sm font-medium ${isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                                    <p
+                                      className={`text-sm font-medium ${isCompleted ? "line-through text-gray-500" : "text-gray-900"}`}
+                                    >
                                       {sectorStep.name}
                                     </p>
                                     <p className="text-xs text-gray-500">
@@ -805,7 +1060,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                     </p>
                                     {existingStep?.observations && (
                                       <p className="text-xs text-red-600 mt-1 bg-red-50 p-2 rounded">
-                                        <strong>Motivo da rejeição:</strong> {existingStep.observations}
+                                        <strong>Motivo da rejeição:</strong>{" "}
+                                        {existingStep.observations}
                                       </p>
                                     )}
                                   </div>
@@ -817,7 +1073,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       )}
 
                       {/* Current Step Action */}
-                      {nextStep && (
+                      {/* {nextStep && (
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
                             <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
@@ -849,7 +1105,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           </div>
                         </div>
                       )}
-
+       /*}
                       {/* Prazo de Finalização por Fase */}
                       {currentUser && process && (
                         <div className="mt-6 pt-4 border-t border-gray-200">
@@ -857,40 +1113,66 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                             <Calendar className="h-4 w-4 mr-2 text-orange-600" />
                             Prazos de Finalização - Fluxograma Oficial
                           </h4>
-                          
+
                           {(() => {
-                            const currentPhase = getCurrentPhase(currentUser.department);
-                            const phaseDeadlines = getPhaseDeadlines(new Date(process.createdAt));
-                            const currentPhaseInfo = phaseDeadlines[currentPhase as keyof typeof phaseDeadlines];
-                            
+                            const currentPhase = getCurrentPhase(
+                              currentUser.department,
+                            );
+                            const phaseDeadlines = getPhaseDeadlines(
+                              new Date(process.createdAt),
+                            );
+                            const currentPhaseInfo =
+                              phaseDeadlines[
+                                currentPhase as keyof typeof phaseDeadlines
+                              ];
+
                             if (!currentPhaseInfo) return null;
-                            
-                            const daysRemaining = Math.ceil((currentPhaseInfo.deadline.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+
+                            const daysRemaining = Math.ceil(
+                              (currentPhaseInfo.deadline.getTime() -
+                                new Date().getTime()) /
+                                (1000 * 60 * 60 * 24),
+                            );
                             const isOverdue = daysRemaining < 0;
-                            const isUrgent = daysRemaining <= 3 && daysRemaining >= 0;
-                            
+                            const isUrgent =
+                              daysRemaining <= 3 && daysRemaining >= 0;
+
                             return (
-                              <div className={`p-3 rounded-lg border-2 ${
-                                isOverdue ? 'bg-red-50 border-red-200' :
-                                isUrgent ? 'bg-yellow-50 border-yellow-200' :
-                                'bg-green-50 border-green-200'
-                              }`}>
+                              <div
+                                className={`p-3 rounded-lg border-2 ${
+                                  isOverdue
+                                    ? "bg-red-50 border-red-200"
+                                    : isUrgent
+                                      ? "bg-yellow-50 border-yellow-200"
+                                      : "bg-green-50 border-green-200"
+                                }`}
+                              >
                                 <div className="flex items-center justify-between mb-2">
-                                  <h5 className={`font-medium text-sm ${
-                                    isOverdue ? 'text-red-800' :
-                                    isUrgent ? 'text-yellow-800' :
-                                    'text-green-800'
-                                  }`}>
+                                  <h5
+                                    className={`font-medium text-sm ${
+                                      isOverdue
+                                        ? "text-red-800"
+                                        : isUrgent
+                                          ? "text-yellow-800"
+                                          : "text-green-800"
+                                    }`}
+                                  >
                                     {currentPhaseInfo.name}
                                   </h5>
-                                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                    isOverdue ? 'bg-red-200 text-red-800' :
-                                    isUrgent ? 'bg-yellow-200 text-yellow-800' :
-                                    'bg-green-200 text-green-800'
-                                  }`}>
-                                    {isOverdue ? `${Math.abs(daysRemaining)} dias em atraso` :
-                                     daysRemaining === 0 ? 'Vence hoje' :
-                                     `${daysRemaining} dias restantes`}
+                                  <span
+                                    className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                      isOverdue
+                                        ? "bg-red-200 text-red-800"
+                                        : isUrgent
+                                          ? "bg-yellow-200 text-yellow-800"
+                                          : "bg-green-200 text-green-800"
+                                    }`}
+                                  >
+                                    {isOverdue
+                                      ? `${Math.abs(daysRemaining)} dias em atraso`
+                                      : daysRemaining === 0
+                                        ? "Vence hoje"
+                                        : `${daysRemaining} dias restantes`}
                                   </span>
                                 </div>
                                 <p className="text-xs text-gray-600 mb-2">
@@ -898,27 +1180,48 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                 </p>
                                 <div className="flex items-center text-xs text-gray-500">
                                   <Clock className="h-3 w-3 mr-1" />
-                                  Prazo final: {format(currentPhaseInfo.deadline, "dd/MM/yyyy", { locale: ptBR })}
+                                  Prazo final:{" "}
+                                  {format(
+                                    currentPhaseInfo.deadline,
+                                    "dd/MM/yyyy",
+                                    { locale: ptBR },
+                                  )}
                                 </div>
                               </div>
                             );
                           })()}
-                          
+
                           {/* Resumo de todas as fases */}
                           <div className="mt-3 grid grid-cols-2 gap-2">
-                            {process && Object.entries(getPhaseDeadlines(new Date(process.createdAt))).map(([phase, info]) => {
-                              const daysFromStart = Math.ceil((info.deadline.getTime() - new Date(process.createdAt).getTime()) / (1000 * 60 * 60 * 24));
-                              const isPast = new Date() > info.deadline;
-                              
-                              return (
-                                <div key={phase} className={`p-2 rounded text-xs border ${
-                                  isPast ? 'bg-gray-100 border-gray-300 text-gray-500' : 'bg-white border-gray-200'
-                                }`}>
-                                  <div className="font-medium">{info.name}</div>
-                                  <div className="text-gray-500">{daysFromStart} dias</div>
-                                </div>
-                              );
-                            })}
+                            {process &&
+                              Object.entries(
+                                getPhaseDeadlines(new Date(process.createdAt)),
+                              ).map(([phase, info]) => {
+                                const daysFromStart = Math.ceil(
+                                  (info.deadline.getTime() -
+                                    new Date(process.createdAt).getTime()) /
+                                    (1000 * 60 * 60 * 24),
+                                );
+                                const isPast = new Date() > info.deadline;
+
+                                return (
+                                  <div
+                                    key={phase}
+                                    className={`p-2 rounded text-xs border ${
+                                      isPast
+                                        ? "bg-gray-100 border-gray-300 text-gray-500"
+                                        : "bg-white border-gray-200"
+                                    }`}
+                                  >
+                                    <div className="font-medium">
+                                      {info.name}
+                                    </div>
+                                    <div className="text-gray-500">
+                                      {daysFromStart} dias
+                                    </div>
+                                  </div>
+                                );
+                              })}
                           </div>
                         </div>
                       )}
@@ -929,7 +1232,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             </div>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="checklist">
           <div className="space-y-6">
             <Card>
@@ -941,21 +1244,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               </CardHeader>
               <CardContent>
                 <p className="text-gray-600 mb-6">
-                  Use os botões abaixo para aprovar ou rejeitar cada etapa do processo. 
-                  Para rejeitar uma etapa, é obrigatório fornecer uma explicação com pelo menos 100 caracteres.
+                  Use os botões abaixo para aprovar ou rejeitar cada etapa do
+                  processo. Para rejeitar uma etapa, é obrigatório fornecer uma
+                  explicação com pelo menos 100 caracteres.
                 </p>
                 {process && currentUser && (
-                  <StepChecklist 
-                    processId={process.id} 
-                    modalityId={process.modalityId} 
-                    userDepartment={currentUser.department} 
+                  <StepChecklist
+                    processId={process.id}
+                    modalityId={process.modalityId}
+                    userDepartment={currentUser.department}
                   />
                 )}
               </CardContent>
             </Card>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="flow">
           <div className="space-y-6">
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border">
@@ -963,19 +1267,24 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 Fluxograma do Pregão Eletrônico - SEAP/PB
               </h2>
               <p className="text-gray-600">
-                Baseado na Lei nº 14.133/2021 - Nova Lei de Licitações e Contratos
+                Baseado na Lei nº 14.133/2021 - Nova Lei de Licitações e
+                Contratos
               </p>
             </div>
 
             {/* Fase 1: Iniciação */}
             <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
               <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
-                <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">1</span>
+                <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  1
+                </span>
                 FASE DE INICIAÇÃO
               </h3>
               <div className="grid gap-3">
                 <div className="bg-white p-4 rounded border-l-2 border-blue-300">
-                  <h4 className="font-medium text-gray-800">Setor Demandante</h4>
+                  <h4 className="font-medium text-gray-800">
+                    Setor Demandante
+                  </h4>
                   <ul className="text-sm text-gray-600 mt-2 space-y-1">
                     <li>• Documento de Formalização da Demanda (DFD)</li>
                     <li>• Estudo Técnico Preliminar (ETP)</li>
@@ -984,8 +1293,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   </ul>
                 </div>
                 <div className="bg-white p-4 rounded border-l-2 border-orange-300">
-                  <h4 className="font-medium text-gray-800">Ordenador de Despesa</h4>
-                  <p className="text-sm text-gray-600 mt-2">• Autorização (Prazo: 10 dias)</p>
+                  <h4 className="font-medium text-gray-800">
+                    Ordenador de Despesa
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Autorização (Prazo: 10 dias)
+                  </p>
                 </div>
               </div>
             </div>
@@ -993,16 +1306,24 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             {/* Fase 2: Preparação */}
             <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-r-lg">
               <h3 className="text-lg font-semibold text-yellow-800 mb-4 flex items-center gap-2">
-                <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">2</span>
+                <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  2
+                </span>
                 FASE DE PREPARAÇÃO
               </h3>
               <div className="grid gap-3">
                 <div className="bg-white p-4 rounded border-l-2 border-yellow-300">
-                  <h4 className="font-medium text-gray-800">Divisão de Licitação</h4>
-                  <p className="text-sm text-gray-600 mt-2">• Criar Processo no Órgão (Prazo: 2 dias)</p>
+                  <h4 className="font-medium text-gray-800">
+                    Divisão de Licitação
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Criar Processo no Órgão (Prazo: 2 dias)
+                  </p>
                 </div>
                 <div className="bg-white p-4 rounded border-l-2 border-green-300">
-                  <h4 className="font-medium text-gray-800">Núcleo de Pesquisa de Preços</h4>
+                  <h4 className="font-medium text-gray-800">
+                    Núcleo de Pesquisa de Preços
+                  </h4>
                   <ul className="text-sm text-gray-600 mt-2 space-y-1">
                     <li>• Fazer Pesquisa de Preços (Prazo: 2 dias)</li>
                     <li>• Elaborar Mapa Comparativo (Prazo: 10 dias)</li>
@@ -1010,9 +1331,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   </ul>
                 </div>
                 <div className="bg-white p-4 rounded border-l-2 border-purple-300">
-                  <h4 className="font-medium text-gray-800">Orçamento e Finanças</h4>
+                  <h4 className="font-medium text-gray-800">
+                    Orçamento e Finanças
+                  </h4>
                   <ul className="text-sm text-gray-600 mt-2 space-y-1">
-                    <li>• Consultar Disponibilidade Orçamentária (Prazo: 1 dia)</li>
+                    <li>
+                      • Consultar Disponibilidade Orçamentária (Prazo: 1 dia)
+                    </li>
                     <li>• Emitir Reserva Orçamentária (Prazo: 1 dia)</li>
                   </ul>
                 </div>
@@ -1022,16 +1347,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             {/* Fase 3: Execução */}
             <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
               <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center gap-2">
-                <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">3</span>
+                <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  3
+                </span>
                 FASE DE EXECUÇÃO
               </h3>
               <div className="grid gap-3">
                 <div className="bg-white p-4 rounded border-l-2 border-red-300">
                   <h4 className="font-medium text-gray-800">Secretário SEAP</h4>
-                  <p className="text-sm text-gray-600 mt-2">• Autorização Final</p>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Autorização Final
+                  </p>
                 </div>
                 <div className="bg-white p-4 rounded border-l-2 border-green-300">
-                  <h4 className="font-medium text-gray-800">Divisão de Licitação</h4>
+                  <h4 className="font-medium text-gray-800">
+                    Divisão de Licitação
+                  </h4>
                   <ul className="text-sm text-gray-600 mt-2 space-y-1">
                     <li>• Elaborar Edital e Anexos (Prazo: 10 dias)</li>
                     <li>• Consultar Comitê Gestor (Prazo: 2 dias)</li>
@@ -1041,8 +1372,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   </ul>
                 </div>
                 <div className="bg-white p-4 rounded border-l-2 border-blue-300">
-                  <h4 className="font-medium text-gray-800">Assessoria Jurídica</h4>
-                  <p className="text-sm text-gray-600 mt-2">• Elaboração de Nota Técnica (Prazo: 1 dia)</p>
+                  <h4 className="font-medium text-gray-800">
+                    Assessoria Jurídica
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Elaboração de Nota Técnica (Prazo: 1 dia)
+                  </p>
                 </div>
               </div>
             </div>
@@ -1050,38 +1385,58 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             {/* Fase 4: Finalização */}
             <div className="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-lg">
               <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center gap-2">
-                <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">4</span>
+                <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  4
+                </span>
                 FASE DE FINALIZAÇÃO
               </h3>
               <div className="grid gap-3">
                 <div className="bg-white p-4 rounded border-l-2 border-purple-300">
-                  <h4 className="font-medium text-gray-800">Divisão de Licitação</h4>
-                  <p className="text-sm text-gray-600 mt-2">• Adjudicação e Homologação</p>
+                  <h4 className="font-medium text-gray-800">
+                    Divisão de Licitação
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Adjudicação e Homologação
+                  </p>
                 </div>
                 <div className="bg-white p-4 rounded border-l-2 border-blue-300">
-                  <h4 className="font-medium text-gray-800">Assessoria Jurídica</h4>
-                  <p className="text-sm text-gray-600 mt-2">• Elaboração do Contrato</p>
+                  <h4 className="font-medium text-gray-800">
+                    Assessoria Jurídica
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Elaboração do Contrato
+                  </p>
                 </div>
                 <div className="bg-white p-4 rounded border-l-2 border-red-300">
                   <h4 className="font-medium text-gray-800">Secretário SEAP</h4>
-                  <p className="text-sm text-gray-600 mt-2">• Assinatura do Contrato</p>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Assinatura do Contrato
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg border">
-              <h4 className="font-medium text-gray-800 mb-2">Observações Importantes:</h4>
+              <h4 className="font-medium text-gray-800 mb-2">
+                Observações Importantes:
+              </h4>
               <ul className="text-sm text-gray-600 space-y-1">
-                <li>• Este fluxograma segue rigorosamente a Lei nº 14.133/2021</li>
-                <li>• Os prazos indicados são obrigatórios conforme legislação</li>
-                <li>• Cada fase deve ser concluída antes do início da próxima</li>
-                <li>• A documentação de cada etapa deve ser arquivada no processo</li>
+                <li>
+                  • Este fluxograma segue rigorosamente a Lei nº 14.133/2021
+                </li>
+                <li>
+                  • Os prazos indicados são obrigatórios conforme legislação
+                </li>
+                <li>
+                  • Cada fase deve ser concluída antes do início da próxima
+                </li>
+                <li>
+                  • A documentação de cada etapa deve ser arquivada no processo
+                </li>
               </ul>
             </div>
           </div>
         </TabsContent>
-        
-
       </Tabs>
 
       {/* Modal de Rejeição */}
@@ -1095,17 +1450,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             <DialogDescription>
               {stepToReject && (
                 <>
-                  Você está rejeitando a etapa: <strong>{stepToReject.stepName}</strong>
-                  <br />
-                  É obrigatório fornecer um motivo detalhado com pelo menos 100 caracteres.
+                  Você está rejeitando a etapa:{" "}
+                  <strong>{stepToReject.stepName}</strong>
+                  <br />É obrigatório fornecer um motivo detalhado com pelo
+                  menos 100 caracteres.
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
-              <label htmlFor="rejection-reason" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="rejection-reason"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Motivo da Rejeição *
               </label>
               <Textarea
@@ -1116,7 +1475,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 className="min-h-[120px]"
                 disabled={isSubmittingRejection}
               />
-              <div className={`text-xs mt-1 ${rejectionReason.length < 100 ? 'text-red-600' : 'text-green-600'}`}>
+              <div
+                className={`text-xs mt-1 ${rejectionReason.length < 100 ? "text-red-600" : "text-green-600"}`}
+              >
                 {rejectionReason.length}/100 caracteres (mínimo 100)
               </div>
             </div>
@@ -1132,7 +1493,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             </Button>
             <Button
               onClick={submitStepRejection}
-              disabled={rejectionReason.trim().length < 100 || isSubmittingRejection}
+              disabled={
+                rejectionReason.trim().length < 100 || isSubmittingRejection
+              }
               className="bg-red-600 hover:bg-red-700 text-white"
             >
               {isSubmittingRejection ? "Rejeitando..." : "Rejeitar Etapa"}
