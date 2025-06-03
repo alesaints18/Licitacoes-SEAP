@@ -89,8 +89,6 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     queryKey: [`/api/processes/${parsedId}/steps`],
   });
 
-  const currentDepartment = departments?.find(d => d.id === process.currentDepartmentId);
-  
   // Definir a ordem do fluxo dos departamentos
   const departmentFlow = [
     1, // Setor de Solicitação
@@ -104,19 +102,55 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   // Encontrar o índice do departamento atual no fluxo
   const currentIndex = departmentFlow.findIndex(id => id === process.currentDepartmentId);
   
+  // Importar função para obter etapas do setor
+  const getSectorSteps = (departmentName: string, modalityId: number) => {
+    // Lógica das etapas baseada no departamento e modalidade
+    const stepsByDepartment: Record<string, any[]> = {
+      "Setor Demandante": [
+        { name: "Demanda identificada pela unidade requisitante", phase: "Iniciação" },
+        { name: "Elaboração dos estudos técnicos preliminares", phase: "Iniciação" },
+        { name: "Análise de viabilidade e adequação orçamentária", phase: "Iniciação" },
+        { name: "Elaboração do termo de referência ou projeto básico", phase: "Iniciação", nextSector: "Financeiro" }
+      ],
+      "Divisão de Licitação": [
+        { name: "Encaminhamento da demanda ao setor de licitações", phase: "Preparação" },
+        { name: "Designação do pregoeiro e equipe de apoio", phase: "Preparação" },
+        { name: "Elaboração do edital de licitação", phase: "Preparação", nextSector: "Jurídico" },
+        { name: "Publicação do aviso de licitação", phase: "Execução" },
+        { name: "Disponibilização do edital aos interessados", phase: "Execução" },
+        { name: "Período para envio de propostas", phase: "Execução" },
+        { name: "Sessão pública do pregão eletrônico", phase: "Execução" },
+        { name: "Análise e classificação das propostas", phase: "Execução" },
+        { name: "Habilitação dos licitantes", phase: "Execução", nextSector: "Financeiro" }
+      ]
+    };
+    return stepsByDepartment[departmentName] || [];
+  };
+
   // Verificar se todas as etapas do setor atual estão concluídas
-  const currentDepartmentSteps = steps?.filter(step => step.departmentId === process.currentDepartmentId) || [];
+  const currentDepartment = departments?.find(d => d.id === process.currentDepartmentId);
+  const currentDepartmentName = currentDepartment?.name || "";
+  const expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
+  
+  // Filtrar etapas baseado nos nomes esperados para o setor atual
+  const currentDepartmentSteps = steps?.filter(step => 
+    expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
+  ) || [];
+  
   const incompleteSteps = currentDepartmentSteps.filter(step => !step.isCompleted);
-  const allStepsCompleted = currentDepartmentSteps.length > 0 && incompleteSteps.length === 0;
+  const allStepsCompleted = expectedSteps.length > 0 && currentDepartmentSteps.length >= expectedSteps.length && incompleteSteps.length === 0;
   
   // Debug temporário
   console.log("Transfer validation debug:", {
     currentDepartmentId: process.currentDepartmentId,
-    totalSteps: steps?.length || 0,
-    currentDepartmentSteps: currentDepartmentSteps.length,
+    currentDepartmentName,
+    modalityId: process.modalityId,
+    expectedStepsCount: expectedSteps.length,
+    foundStepsCount: currentDepartmentSteps.length,
     incompleteSteps: incompleteSteps.length,
     allStepsCompleted,
-    currentDepartmentStepsDetail: currentDepartmentSteps.map(s => ({ 
+    expectedSteps: expectedSteps.map(s => s.name),
+    foundSteps: currentDepartmentSteps.map(s => ({ 
       name: s.stepName, 
       departmentId: s.departmentId, 
       isCompleted: s.isCompleted 
