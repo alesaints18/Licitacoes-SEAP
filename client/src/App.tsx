@@ -10,6 +10,9 @@ import Processes from "@/pages/Processes";
 import ProcessDetail from "@/pages/ProcessDetail";
 import ProcessCreate from "@/pages/ProcessCreate";
 import ProcessEdit from "@/pages/ProcessEdit";
+import ProcessTransfer from "@/pages/ProcessTransfer";
+import ProcessReturn from "@/pages/ProcessReturn";
+import ProcessReport from "@/pages/ProcessReport";
 import BiddingFlow from "@/pages/BiddingFlow";
 import BiddingFlowchart from "@/pages/BiddingFlowchart";
 import Reports from "@/pages/Reports";
@@ -240,6 +243,30 @@ function Router() {
         {params => (
           <Layout>
             <ProcessEdit id={params.id} />
+          </Layout>
+        )}
+      </Route>
+      
+      <Route path="/processes/:id/transfer">
+        {params => (
+          <Layout>
+            <ProcessTransfer id={params.id} />
+          </Layout>
+        )}
+      </Route>
+      
+      <Route path="/processes/:id/return">
+        {params => (
+          <Layout>
+            <ProcessReturn id={params.id} />
+          </Layout>
+        )}
+      </Route>
+      
+      <Route path="/processes/:id/report">
+        {params => (
+          <Layout>
+            <ProcessReport id={params.id} />
           </Layout>
         )}
       </Route>
