@@ -742,18 +742,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           {/* Sector Steps */}
                           <div className="space-y-2">
                             {getSectorSteps(currentDepartment?.name || currentUser.department, process?.modalityId || 1)
-                              .filter((sectorStep) => {
-                                // Apenas mostrar etapas que ainda não existem no banco OU que pertencem ao departamento atual
-                                const existingStep = steps?.find(s => s.stepName === sectorStep.name);
-                                
-                                if (!existingStep) {
-                                  // Etapa não existe, pode ser criada
-                                  return true;
-                                }
-                                
-                                // Se a etapa existe e pertence ao departamento atual do processo, mostrar
-                                return existingStep.departmentId === process?.currentDepartmentId;
-                              })
                               .map((sectorStep, index) => {
                               const existingStep = steps?.find(s => s.stepName === sectorStep.name);
                               const isCompleted = existingStep?.isCompleted || false;
