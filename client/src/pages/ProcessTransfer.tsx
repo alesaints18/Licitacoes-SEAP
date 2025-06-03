@@ -109,6 +109,20 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   const incompleteSteps = currentDepartmentSteps.filter(step => !step.isCompleted);
   const allStepsCompleted = currentDepartmentSteps.length > 0 && incompleteSteps.length === 0;
   
+  // Debug temporário
+  console.log("Transfer validation debug:", {
+    currentDepartmentId: process.currentDepartmentId,
+    totalSteps: steps?.length || 0,
+    currentDepartmentSteps: currentDepartmentSteps.length,
+    incompleteSteps: incompleteSteps.length,
+    allStepsCompleted,
+    currentDepartmentStepsDetail: currentDepartmentSteps.map(s => ({ 
+      name: s.stepName, 
+      departmentId: s.departmentId, 
+      isCompleted: s.isCompleted 
+    }))
+  });
+  
   // Determinar os departamentos disponíveis (apenas o próximo no fluxo)
   const availableDepartments = [];
   if (currentIndex !== -1 && currentIndex < departmentFlow.length - 1) {
