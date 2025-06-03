@@ -515,6 +515,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="checklist">Checklist de Etapas</TabsTrigger>
           <TabsTrigger value="flow">Fluxo</TabsTrigger>
         </TabsList>
         
@@ -840,6 +841,32 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 </Card>
               )}
             </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="checklist">
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  Checklist de Aprovação/Rejeição de Etapas
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-600 mb-6">
+                  Use os botões abaixo para aprovar ou rejeitar cada etapa do processo. 
+                  Para rejeitar uma etapa, é obrigatório fornecer uma explicação com pelo menos 100 caracteres.
+                </p>
+                {process && currentUser && (
+                  <StepChecklist 
+                    processId={process.id} 
+                    modalityId={process.modalityId} 
+                    userDepartment={currentUser.department} 
+                  />
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
         
