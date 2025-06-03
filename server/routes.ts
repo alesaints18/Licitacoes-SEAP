@@ -1078,6 +1078,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao atualizar meta mensal", error });
     }
   });
+
+  // Rota para geração de relatório de processo em PDF
+  app.get('/api/processes/:id/report', isAuthenticated, async (req, res) => {
+    try {
+      const processId = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      
+      // Verificar se o processo existe e se o usuário tem acesso
+      const process = await storage.getProcess(processId, userId);
+      if (!process) {
+        return res.status(404).json({ message: "Processo não encontrado ou acesso negado" });
+      }
+      
+      // Buscar dados relacionados
+      const modalities = await storage.getBiddingModalities();
+      const sources = await storage.getResourceSources();
+      const users = await storage.getUsers();
+      const departments = await storage.getDepartments();
+      const steps = await storage.getProcessSteps(processId);
+      
+      const modality = modalities.find(m => m.id === process.modalityId);
+      const source = sources.find(s => s.id === process.sourceId);
+      const responsible = users.find(u => u.id === process.responsibleId);
+      const currentDepartment = departments.find(d => d.id === process.currentDepartmentId);
+      
+      // Gerar HTML do relatório
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>Relatório do Processo ${process.pbdocNumber}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
+            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1e40af; padding-bottom: 20px; }
+            .header h1 { color: #1e40af; margin-bottom: 5px; }
+            .header h2 { color: #1e40af; font-size: 24px; }
+            .section { margin-bottom: 25px; }
+            .section-title { color: #1e40af; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; margin-bottom: 15px; }
+            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+            .info-item { margin-bottom: 8px; }
+            .info-label { font-weight: bold; color: #374151; }
+            .description { background: #f9fafb; padding: 15px; border-radius: 5px; border-left: 4px solid #1e40af; }
+            .steps { margin-top: 15px; }
+            .step { border: 1px solid #e5e7eb; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
+            .step.completed { background: #f0fdf4; border-left: 4px solid #10b981; }
+            .step.pending { background: #fefce8; border-left: 4px solid #f59e0b; }
+            .return-comments { background: #fef2f2; padding: 15px; border-radius: 5px; border-left: 4px solid #dc2626; }
+            .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 15px; }
+            @media print { body { margin: 0; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>SEAP - Secretaria de Estado da Administração Penitenciária</h1>
+            <p>Relatório de Processo Licitatório</p>
+            <h2>Processo Nº ${process.pbdocNumber}</h2>
+          </div>
+          
+          <div class="section">
+            <h3 class="section-title">Informações Básicas</h3>
+            <div class="info-grid">
+              <div class="info-item"><span class="info-label">Número PBDOC:</span> ${process.pbdocNumber}</div>
+              <div class="info-item"><span class="info-label">Status:</span> ${process.status}</div>
+              <div class="info-item"><span class="info-label">Modalidade:</span> ${modality?.name || "Não informado"}</div>
+              <div class="info-item"><span class="info-label">Prioridade:</span> ${process.priority}</div>
+              <div class="info-item"><span class="info-label">Fonte de Recurso:</span> ${source ? `${source.code} - ${source.description}` : "Não informado"}</div>
+              <div class="info-item"><span class="info-label">Responsável:</span> ${responsible?.fullName || "Não informado"}</div>
+              <div class="info-item"><span class="info-label">Departamento Atual:</span> ${currentDepartment?.name || "Não informado"}</div>
+              <div class="info-item"><span class="info-label">Central de Compras:</span> ${process.centralDeCompras || "Não informado"}</div>
+            </div>
+          </div>
+          
+          <div class="section">
+            <h3 class="section-title">Objeto</h3>
+            <div class="description">${process.description}</div>
+          </div>
+          
+          <div class="section">
+            <h3 class="section-title">Cronograma</h3>
+            <div class="info-grid">
+              <div class="info-item"><span class="info-label">Data de Criação:</span> ${new Date(process.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+              <div class="info-item"><span class="info-label">Última Atualização:</span> ${new Date(process.updatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+              <div class="info-item"><span class="info-label">Prazo de Entrega:</span> ${process.deadline ? new Date(process.deadline).toLocaleDateString('pt-BR') : "Não definido"}</div>
+            </div>
+          </div>
+          
+          ${process.returnComments ? `
+          <div class="section">
+            <h3 class="section-title">Comentários de Retorno</h3>
+            <div class="return-comments">${process.returnComments}</div>
+          </div>
+          ` : ''}
+          
+          ${steps && steps.length > 0 ? `
+          <div class="section">
+            <h3 class="section-title">Histórico de Etapas</h3>
+            <div class="steps">
+              ${steps.map((step, index) => {
+                const stepDepartment = departments.find(d => d.id === step.departmentId);
+                const completedBy = users.find(u => u.id === step.completedBy);
+                return `
+                  <div class="step ${step.isCompleted ? 'completed' : 'pending'}">
+                    <h4>${index + 1}. ${step.stepName}</h4>
+                    <p><span class="info-label">Departamento:</span> ${stepDepartment?.name || "Não informado"}</p>
+                    ${step.completedBy ? `<p><span class="info-label">Responsável:</span> ${completedBy?.fullName || "Não informado"}</p>` : ''}
+                    ${step.completedAt ? `<p><span class="info-label">Data de Conclusão:</span> ${new Date(step.completedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>` : ''}
+                    ${step.observations ? `<p><span class="info-label">Observações:</span> ${step.observations}</p>` : ''}
+                    <p><span class="info-label">Status:</span> ${step.isCompleted ? 'Concluída' : 'Em andamento'}</p>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+          ` : ''}
+          
+          <div class="footer">
+            <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+            <p>SEAP - Secretaria de Estado da Administração Penitenciária da Paraíba</p>
+          </div>
+        </body>
+        </html>
+      `;
+      
+      // Retornar HTML formatado para impressão/conversão em PDF
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.send(htmlContent);
+      
+    } catch (error) {
+      console.error("Erro ao gerar relatório:", error);
+      res.status(500).json({ message: "Erro ao gerar relatório", error });
+    }
+  });
   
   const httpServer = createServer(app);
   // Configurar WebSocket Server para atualizações em tempo real
