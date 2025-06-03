@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StepChecklist from "@/components/bidding/StepChecklist";
 import BiddingFlowchart from "@/components/bidding/BiddingFlowchart";
-import { Edit, Trash, AlertCircle, Clock, CheckCircle, XCircle, Calendar, ArrowRight, ArrowLeft, FileText } from "lucide-react";
+import { Edit, Trash, AlertCircle, Clock, CheckCircle, XCircle, Calendar, ArrowRight, ArrowLeft, FileText, Check } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getProcessStatusLabel, getProcessPriorityLabel } from "@/lib/utils/process";
@@ -24,6 +24,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 interface ProcessDetailProps {
   id: string;
@@ -34,6 +42,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
   const parsedId = parseInt(id);
   
   // Get process details
@@ -297,6 +309,59 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   // Handle edit process
   const handleEdit = () => {
     setLocation(`/processes/${id}/edit`);
+  };
+
+  // Handle step rejection
+  const handleStepReject = async (step: ProcessStep) => {
+    setStepToReject(step);
+    setRejectionReason("");
+    setRejectModalOpen(true);
+  };
+
+  // Submit step rejection
+  const submitStepRejection = async () => {
+    if (!stepToReject || rejectionReason.trim().length < 100) {
+      toast({
+        title: "Erro",
+        description: "O motivo da rejeição deve ter pelo menos 100 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmittingRejection(true);
+
+    try {
+      const response = await apiRequest('PATCH', `/api/processes/${parsedId}/steps/${stepToReject.id}`, {
+        isCompleted: false,
+        observations: rejectionReason.trim(),
+        rejectedAt: new Date().toISOString(),
+      });
+
+      if (response.ok) {
+        await queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
+        await queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}`] });
+        
+        toast({
+          title: "Etapa rejeitada",
+          description: "A etapa foi rejeitada com sucesso.",
+        });
+
+        setRejectModalOpen(false);
+        setStepToReject(null);
+        setRejectionReason("");
+      } else {
+        throw new Error("Erro ao rejeitar etapa");
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível rejeitar a etapa. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingRejection(false);
+    }
   };
 
   // Handle step toggle
@@ -697,24 +762,43 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                               const userCanEdit = currentUser.department === currentDepartment?.name || currentUser.role === 'admin';
                               
                               return (
-                                <div key={index} className="flex items-center space-x-3 p-2 bg-white rounded border border-gray-200">
-                                  <button
-                                    className={`h-6 w-6 rounded-full border-2 flex items-center justify-center transition-all ${
-                                      isCompleted 
-                                        ? "bg-green-600 border-green-600 hover:bg-green-700" 
-                                        : userCanEdit 
-                                          ? "border-blue-400 hover:border-green-400 bg-white hover:bg-green-50"
+                                <div key={index} className="flex items-center space-x-3 p-3 bg-white rounded border border-gray-200">
+                                  <div className="flex items-center space-x-2">
+                                    {/* Botão de Aprovar */}
+                                    <button
+                                      className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                        isCompleted 
+                                          ? "bg-green-600 border-green-600 hover:bg-green-700" 
+                                          : userCanEdit 
+                                            ? "border-green-400 hover:border-green-600 bg-white hover:bg-green-50"
+                                            : "border-gray-300 bg-gray-100"
+                                      }`}
+                                      onClick={() => userCanEdit && existingStep && handleStepToggle(existingStep.id, !isCompleted)}
+                                      disabled={!userCanEdit}
+                                      title="Aprovar etapa"
+                                    >
+                                      {isCompleted ? (
+                                        <Check className="h-4 w-4 text-white" />
+                                      ) : (
+                                        <Check className="h-4 w-4 text-green-600" />
+                                      )}
+                                    </button>
+                                    
+                                    {/* Botão de Rejeitar */}
+                                    <button
+                                      className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                        userCanEdit 
+                                          ? "border-red-400 hover:border-red-600 bg-white hover:bg-red-50"
                                           : "border-gray-300 bg-gray-100"
-                                    }`}
-                                    onClick={() => userCanEdit && existingStep && handleStepToggle(existingStep.id, !isCompleted)}
-                                    disabled={!userCanEdit}
-                                  >
-                                    {isCompleted ? (
-                                      <CheckCircle className="h-3 w-3 text-white" />
-                                    ) : (
-                                      <span className="text-xs text-blue-600 font-medium">✓</span>
-                                    )}
-                                  </button>
+                                      }`}
+                                      onClick={() => userCanEdit && existingStep && handleStepReject(existingStep)}
+                                      disabled={!userCanEdit}
+                                      title="Rejeitar etapa"
+                                    >
+                                      <XCircle className="h-4 w-4 text-red-600" />
+                                    </button>
+                                  </div>
+                                  
                                   <div className="flex-1">
                                     <p className={`text-sm font-medium ${isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                                       {sectorStep.name}
@@ -722,6 +806,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                     <p className="text-xs text-gray-500">
                                       Fase: {sectorStep.phase}
                                     </p>
+                                    {existingStep?.observations && (
+                                      <p className="text-xs text-red-600 mt-1 bg-red-50 p-2 rounded">
+                                        <strong>Motivo da rejeição:</strong> {existingStep.observations}
+                                      </p>
+                                    )}
                                   </div>
                                 </div>
                               );
@@ -997,6 +1086,63 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         
 
       </Tabs>
+
+      {/* Modal de Rejeição */}
+      <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <XCircle className="h-5 w-5" />
+              Rejeitar Etapa
+            </DialogTitle>
+            <DialogDescription>
+              {stepToReject && (
+                <>
+                  Você está rejeitando a etapa: <strong>{stepToReject.stepName}</strong>
+                  <br />
+                  É obrigatório fornecer um motivo detalhado com pelo menos 100 caracteres.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="rejection-reason" className="block text-sm font-medium text-gray-700 mb-2">
+                Motivo da Rejeição *
+              </label>
+              <Textarea
+                id="rejection-reason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Descreva detalhadamente o motivo da rejeição desta etapa..."
+                className="min-h-[120px]"
+                disabled={isSubmittingRejection}
+              />
+              <div className={`text-xs mt-1 ${rejectionReason.length < 100 ? 'text-red-600' : 'text-green-600'}`}>
+                {rejectionReason.length}/100 caracteres (mínimo 100)
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setRejectModalOpen(false)}
+              disabled={isSubmittingRejection}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={submitStepRejection}
+              disabled={rejectionReason.trim().length < 100 || isSubmittingRejection}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isSubmittingRejection ? "Rejeitando..." : "Rejeitar Etapa"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
