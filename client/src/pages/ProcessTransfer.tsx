@@ -85,7 +85,32 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   }
 
   const currentDepartment = departments?.find(d => d.id === process.currentDepartmentId);
-  const availableDepartments = departments?.filter(d => d.id !== process.currentDepartmentId) || [];
+  
+  // Definir a ordem do fluxo dos departamentos
+  const departmentFlow = [
+    1, // Setor de Solicitação
+    2, // Divisão de Licitação
+    3, // Coordenação de Licitação
+    4, // Direção de Administração
+    5, // Gabinete do Secretário
+    6  // Arquivo/Finalização
+  ];
+  
+  // Encontrar o índice do departamento atual no fluxo
+  const currentIndex = departmentFlow.findIndex(id => id === process.currentDepartmentId);
+  
+  // Determinar os departamentos disponíveis (apenas o próximo no fluxo)
+  const availableDepartments = [];
+  if (currentIndex !== -1 && currentIndex < departmentFlow.length - 1) {
+    const nextDepartmentId = departmentFlow[currentIndex + 1];
+    const nextDepartment = departments?.find(d => d.id === nextDepartmentId);
+    if (nextDepartment) {
+      availableDepartments.push(nextDepartment);
+    }
+  }
+  
+  // Se não há departamento seguinte, o processo pode estar concluído
+  const isLastDepartment = currentIndex === departmentFlow.length - 1;
 
   return (
     <div className="max-w-2xl mx-auto">
@@ -111,20 +136,40 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
 
           <div>
             <label className="block text-sm font-medium mb-2">
-              Transferir para <span className="text-red-500">*</span>
+              Próximo Departamento no Fluxo <span className="text-red-500">*</span>
             </label>
-            <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o departamento de destino" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableDepartments.map((department) => (
-                  <SelectItem key={department.id} value={department.id.toString()}>
-                    {department.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            {isLastDepartment ? (
+              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                <p className="text-green-800 font-medium">
+                  ✓ Este processo está no último departamento do fluxo
+                </p>
+                <p className="text-green-600 text-sm mt-1">
+                  O processo pode ser finalizado ou arquivado
+                </p>
+              </div>
+            ) : availableDepartments.length === 0 ? (
+              <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-yellow-800 font-medium">
+                  ⚠ Próximo departamento não encontrado
+                </p>
+                <p className="text-yellow-600 text-sm mt-1">
+                  Verifique se todos os departamentos estão configurados no sistema
+                </p>
+              </div>
+            ) : (
+              <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Confirme o próximo departamento" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableDepartments.map((department) => (
+                    <SelectItem key={department.id} value={department.id.toString()}>
+                      {department.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="flex space-x-3">
@@ -136,13 +181,15 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Cancelar
             </Button>
-            <Button
-              onClick={handleTransfer}
-              disabled={!selectedDepartmentId || transferMutation.isPending}
-              className="flex-1"
-            >
-              {transferMutation.isPending ? "Transferindo..." : "Confirmar Transferência"}
-            </Button>
+            {!isLastDepartment && availableDepartments.length > 0 && (
+              <Button
+                onClick={handleTransfer}
+                disabled={!selectedDepartmentId || transferMutation.isPending}
+                className="flex-1"
+              >
+                {transferMutation.isPending ? "Transferindo..." : "Confirmar Transferência"}
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
