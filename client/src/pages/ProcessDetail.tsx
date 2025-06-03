@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import StepChecklist from "@/components/bidding/StepChecklist";
 import BiddingFlowchart from "@/components/bidding/BiddingFlowchart";
-import { Edit, Trash, AlertCircle, Clock, CheckCircle, XCircle, Calendar } from "lucide-react";
+import { Edit, Trash, AlertCircle, Clock, CheckCircle, XCircle, Calendar, ArrowRight, ArrowLeft, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { getProcessStatusLabel, getProcessPriorityLabel } from "@/lib/utils/process";
@@ -468,7 +468,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           </div>
         </div>
         
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="default" onClick={() => setLocation(`/processes/${process.id}/report`)}>
+            <FileText className="h-4 w-4 mr-2" />
+            Gerar Relatório
+          </Button>
+          
+          <Button variant="outline" onClick={() => setLocation(`/processes/${process.id}/transfer`)}>
+            <ArrowRight className="h-4 w-4 mr-2" />
+            Transferir
+          </Button>
+          
+          <Button variant="outline" onClick={() => setLocation(`/processes/${process.id}/return`)}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Retornar
+          </Button>
+          
           <Button variant="outline" onClick={handleEdit}>
             <Edit className="h-4 w-4 mr-2" />
             Editar
