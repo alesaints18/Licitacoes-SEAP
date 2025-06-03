@@ -324,29 +324,17 @@ const ProcessForm = ({ defaultValues, initialData, onSubmit, isSubmitting }: Pro
                   )}
                 />
                 
-                <FormField
-                  control={form.control}
-                  name="deadline"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="flex">
-                        Prazo de Entrega <span className="text-red-500 ml-1">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="date"
-                          placeholder="Data limite para conclusão" 
-                          {...field} 
-                          value={field.value || ''}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Defina a data limite para conclusão do processo (obrigatório)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="font-medium text-blue-800 mb-2">Prazo Automático</h4>
+                  <p className="text-sm text-blue-600">
+                    O prazo será calculado automaticamente baseado na modalidade selecionada:
+                  </p>
+                  <ul className="text-sm text-blue-600 mt-2 ml-4 list-disc">
+                    <li>Pregão Eletrônico: 3 dias</li>
+                    <li>Concorrência: 5 dias</li>
+                    <li>Dispensa/Inexigibilidade: 7 dias</li>
+                  </ul>
+                </div>
               </div>
 
               <FormField
