@@ -741,13 +741,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           
                           {/* Sector Steps */}
                           <div className="space-y-2">
-                            {getSectorSteps(currentDepartment?.name || currentUser.department, process?.modalityId || 1)
+                            {(() => {
+                              const sectorSteps = getSectorSteps(currentDepartment?.name || currentUser.department, process?.modalityId || 1);
+                              console.log("Sector steps:", sectorSteps);
+                              console.log("Current department:", currentDepartment?.name);
+                              console.log("Current user department:", currentUser.department);
+                              console.log("Process current department ID:", process?.currentDepartmentId);
+                              return sectorSteps;
+                            })()
                               .map((sectorStep, index) => {
                               const existingStep = steps?.find(s => s.stepName === sectorStep.name);
                               const isCompleted = existingStep?.isCompleted || false;
                               
                               // Só mostrar se o usuário atual pertence ao departamento do processo
                               const userCanEdit = currentUser.department === currentDepartment?.name || currentUser.role === 'admin';
+                              
+                              console.log(`Step ${sectorStep.name}: userCanEdit=${userCanEdit}, existingStep=${!!existingStep}, isCompleted=${isCompleted}`);
                               
                               return (
                                 <div key={index} className="flex items-center space-x-3 p-3 bg-white rounded border border-gray-200">
