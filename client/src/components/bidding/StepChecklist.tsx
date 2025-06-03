@@ -8,6 +8,14 @@ import { ProcessStep } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { XCircle, Check } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface StepChecklistProps {
   processId: number;
@@ -20,6 +28,10 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   const queryClient = useQueryClient();
   const [activeStep, setActiveStep] = useState<ProcessStep | null>(null);
   const [observation, setObservation] = useState("");
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
   
   // Fetch process steps
   const { data: steps, isLoading, error } = useQuery<ProcessStep[]>({
@@ -245,6 +257,55 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
       });
     }
   };
+
+  const handleRejectStep = (step: ProcessStep) => {
+    setStepToReject(step);
+    setRejectionReason("");
+    setRejectModalOpen(true);
+  };
+
+  const submitRejection = async () => {
+    if (!stepToReject || rejectionReason.trim().length < 100) {
+      toast({
+        title: "Motivo insuficiente",
+        description: "O motivo da rejeição deve ter pelo menos 100 caracteres",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmittingRejection(true);
+
+    try {
+      // Marcar etapa como rejeitada através das observações
+      await apiRequest("PATCH", `/api/processes/${processId}/steps/${stepToReject.id}`, {
+        isCompleted: false,
+        observations: `REJEITADA: ${rejectionReason.trim()}`
+      });
+      
+      // Refetch steps after updating
+      queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
+      
+      toast({
+        title: "Etapa rejeitada",
+        description: `Etapa "${stepToReject.stepName}" foi rejeitada com sucesso`,
+        variant: "destructive",
+      });
+
+      // Fechar modal
+      setRejectModalOpen(false);
+      setStepToReject(null);
+      setRejectionReason("");
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível rejeitar a etapa",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingRejection(false);
+    }
+  };
   
   if (isLoading) {
     return (
@@ -339,7 +400,11 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                           <div className="grid gap-1.5 leading-none flex-1">
                             <Label
                               htmlFor={`step-${step.id}`}
-                              className={`text-sm font-medium ${step.isCompleted ? "line-through text-gray-500" : "text-gray-800"}`}
+                              className={`text-sm font-medium ${
+                                step.isCompleted ? "line-through text-gray-500" : 
+                                step.observations && step.observations.startsWith("REJEITADA:") ? "text-red-600" :
+                                "text-gray-800"
+                              }`}
                             >
                               {step.stepName}
                             </Label>
@@ -361,6 +426,36 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                                 ✓ Concluído em: {new Date(step.completedAt).toLocaleDateString('pt-BR')}
                               </p>
                             )}
+                            {step.observations && step.observations.startsWith("REJEITADA:") && (
+                              <p className="text-xs text-red-600 font-medium">
+                                ✗ Rejeitada: {step.observations.replace("REJEITADA: ", "")}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <Button
+                              size="sm"
+                              variant={step.isCompleted ? "secondary" : "default"}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleToggleStep(step);
+                              }}
+                              className="h-7 w-7 p-0"
+                            >
+                              <Check className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRejectStep(step);
+                              }}
+                              className="h-7 w-7 p-0"
+                              disabled={step.isCompleted}
+                            >
+                              <XCircle className="h-3 w-3" />
+                            </Button>
                           </div>
                         </div>
                       ))}
@@ -394,6 +489,63 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
           </CardContent>
         </Card>
       )}
+
+      {/* Modal de Rejeição */}
+      <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <XCircle className="h-5 w-5" />
+              Rejeitar Etapa
+            </DialogTitle>
+            <DialogDescription>
+              Você está rejeitando a etapa: <strong>{stepToReject?.stepName}</strong>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Motivo da Rejeição <span className="text-red-500">*</span>
+              </label>
+              <Textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Descreva detalhadamente o motivo da rejeição (mínimo 100 caracteres)"
+                rows={4}
+                className={rejectionReason.length < 100 ? "border-red-300" : "border-green-300"}
+              />
+              <div className="flex justify-between mt-1">
+                <span className={`text-xs ${rejectionReason.length < 100 ? "text-red-500" : "text-green-600"}`}>
+                  {rejectionReason.length < 100 ? "Insuficiente" : "Suficiente"}
+                </span>
+                <span className="text-xs text-gray-500">
+                  {rejectionReason.length}/100 caracteres
+                </span>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => setRejectModalOpen(false)}
+                disabled={isSubmittingRejection}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={submitRejection}
+                disabled={rejectionReason.length < 100 || isSubmittingRejection}
+                className="flex-1"
+              >
+                {isSubmittingRejection ? "Rejeitando..." : "Confirmar Rejeição"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
