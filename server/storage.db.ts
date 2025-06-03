@@ -359,6 +359,61 @@ export class DatabaseStorage implements IStorage {
       throw error;
     }
   }
+  
+  async returnProcess(processId: number, returnComment: string, userId: number): Promise<Process | undefined> {
+    try {
+      // 1. Obter o processo atual
+      const process = await this.getProcess(processId);
+      if (!process) {
+        throw new Error("Processo não encontrado");
+      }
+
+      // 2. Obter o departamento anterior (último step antes do atual)
+      const previousSteps = await db
+        .select()
+        .from(processSteps)
+        .where(eq(processSteps.processId, processId))
+        .orderBy(desc(processSteps.id))
+        .limit(2);
+        
+      if (previousSteps.length < 2) {
+        throw new Error("Não há departamento anterior para retornar o processo");
+      }
+      
+      const previousDepartmentId = previousSteps[1].departmentId;
+      console.log(`Retornando processo ${processId} para o departamento ${previousDepartmentId}`);
+
+      // 3. Atualizar o processo com comentário de retorno
+      const [updatedProcess] = await db
+        .update(processes)
+        .set({
+          currentDepartmentId: previousDepartmentId,
+          returnComments: returnComment,
+          updatedAt: new Date(),
+        })
+        .where(eq(processes.id, processId))
+        .returning();
+      
+      // 4. Registrar o retorno no histórico
+      await db
+        .insert(processSteps)
+        .values({
+          processId,
+          stepName: "Processo Retornado",
+          departmentId: previousDepartmentId,
+          isCompleted: false,
+          observations: `Retornado com comentário: ${returnComment}`,
+          completedBy: userId,
+          completedAt: new Date(),
+          dueDate: null,
+        });
+      
+      return updatedProcess;
+    } catch (error) {
+      console.error("Erro ao retornar processo:", error);
+      throw error;
+    }
+  }
 
   // Process steps operations
   async getProcessSteps(processId: number): Promise<ProcessStep[]> {

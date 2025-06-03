@@ -53,6 +53,9 @@ export interface IStorage {
   
   // Transferência entre setores
   transferProcessToDepartment(processId: number, departmentId: number, userId: number): Promise<Process | undefined>;
+  
+  // Funcionalidade de retorno de processo
+  returnProcess(processId: number, returnComment: string, userId: number): Promise<Process | undefined>;
   createProcess(process: InsertProcess): Promise<Process>;
   updateProcess(id: number, processData: Partial<InsertProcess>): Promise<Process | undefined>;
   deleteProcess(id: number): Promise<boolean>;
@@ -173,12 +176,12 @@ export class MemStorage implements IStorage {
       role: "common"
     });
     
-    // Create bidding modalities
+    // Create bidding modalities with automatic deadline days
     const modalities = [
-      { name: "Pregão Eletrônico", description: "Modalidade de licitação para aquisição de bens e serviços comuns" },
-      { name: "Concorrência", description: "Modalidade de licitação entre quaisquer interessados que comprovem possuir os requisitos mínimos" },
-      { name: "Dispensa", description: "Contratação direta sem licitação" },
-      { name: "Inexigibilidade", description: "Contratação direta quando há inviabilidade de competição" }
+      { name: "Pregão Eletrônico", description: "Modalidade de licitação para aquisição de bens e serviços comuns", deadlineDays: 3 },
+      { name: "Concorrência", description: "Modalidade de licitação entre quaisquer interessados que comprovem possuir os requisitos mínimos", deadlineDays: 5 },
+      { name: "Dispensa", description: "Contratação direta sem licitação", deadlineDays: 7 },
+      { name: "Inexigibilidade", description: "Contratação direta quando há inviabilidade de competição", deadlineDays: 7 }
     ];
     
     modalities.forEach(mod => this.createBiddingModality(mod));

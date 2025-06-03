@@ -474,10 +474,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Verificar enum de status
-      if (processData.status && !['draft', 'in_progress', 'completed', 'canceled'].includes(processData.status)) {
+      if (processData.status && !['draft', 'in_progress', 'completed', 'canceled', 'overdue'].includes(processData.status)) {
         return res.status(400).json({
           message: 'Dados inválidos',
-          error: 'Status deve ser draft, in_progress, completed ou canceled'
+          error: 'Status deve ser draft, in_progress, completed, canceled ou overdue'
         });
       }
       
@@ -738,6 +738,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Rota para retornar processo ao departamento anterior
+  app.post('/api/processes/:id/return', isAuthenticated, async (req, res) => {
+    try {
+      const processId = parseInt(req.params.id);
+      const { returnComment } = req.body;
+      const userId = req.user?.id;
+
+      if (!userId) {
+        return res.status(401).json({ message: "Usuário não autenticado" });
+      }
+
+      if (!returnComment || returnComment.trim() === '') {
+        return res.status(400).json({ message: "Comentário de retorno é obrigatório" });
+      }
+
+      console.log(`Usuário ${userId} retornando processo ${processId} com comentário: ${returnComment}`);
+
+      const updatedProcess = await storage.returnProcess(processId, returnComment.trim(), userId);
+      
+      if (!updatedProcess) {
+        return res.status(404).json({ message: "Processo não encontrado" });
+      }
+
+      // Notificar via WebSocket sobre o retorno
+      broadcast({
+        type: 'process_returned',
+        processId: processId,
+        returnComment: returnComment.trim(),
+        returnedBy: userId,
+        timestamp: new Date().toISOString()
+      });
+
+      res.json(updatedProcess);
+    } catch (error: any) {
+      console.error('Erro ao retornar processo:', error);
+      res.status(500).json({ 
+        message: "Erro interno do servidor ao retornar processo",
+        error: error.message 
+      });
+    }
+  });
+
   // Rota para transferir processo entre departamentos/setores
   app.post('/api/processes/:id/transfer', isAuthenticated, async (req, res) => {
     try {
