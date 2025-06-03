@@ -494,82 +494,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       if (response.ok) {
         console.log("Etapa atualizada com sucesso");
 
-        // Se a etapa foi marcada como concluída, verificar se precisa transferir o processo
-        if (isCompleted && step.stepName) {
-          const nextSector = getNextSectorForStep(step.stepName);
-          console.log(`Etapa completada: ${step.stepName}`);
-          console.log(`Próximo setor encontrado: ${nextSector}`);
-
-          if (nextSector && process && departments) {
-            // Mapeamento direto por nome de setor usando nomes reais do banco
-            const sectorToDepartmentMap: { [key: string]: string } = {
-              Financeiro: "Unidade de  Orçamento e  Finanças",
-              Licitações: "Divisão de Licitação",
-              Jurídico: "Procuradoria Geral do Estado - PGE",
-              Administrativo:
-                "Secretário de Estado da Administração  Penitenciária - SEAP",
-              TI: "Setor Demandante",
-            };
-
-            const departmentName =
-              sectorToDepartmentMap[nextSector] || nextSector;
-            const nextDepartment = departments.find(
-              (dept: any) => dept.name === departmentName,
-            );
-
-            console.log(`Buscando departamento: ${departmentName}`);
-            console.log(`Departamento encontrado:`, nextDepartment);
-
-            if (
-              nextDepartment &&
-              nextDepartment.id !== process.currentDepartmentId
-            ) {
-              try {
-                console.log(
-                  `Transferindo processo para o setor ${nextSector} (ID: ${nextDepartment.id})`,
-                );
-                await apiRequest(
-                  "POST",
-                  `/api/processes/${parsedId}/transfer`,
-                  {
-                    departmentId: nextDepartment.id,
-                  },
-                );
-
-                toast({
-                  title: "Processo transferido automaticamente",
-                  description: `Processo transferido para o setor ${nextSector}`,
-                });
-
-                // Invalidate process query to refresh department
-                queryClient.invalidateQueries({
-                  queryKey: [`/api/processes/${parsedId}`],
-                });
-
-                // Invalidar cache de processos antes do redirecionamento
-                queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
-
-                // Redirecionar para a lista de processos após transferência
-                setTimeout(() => {
-                  setLocation("/processes");
-                }, 2000);
-              } catch (transferError) {
-                console.error("Erro na transferência:", transferError);
-                toast({
-                  title: "Aviso",
-                  description:
-                    "Etapa concluída, mas houve problema na transferência automática",
-                  variant: "destructive",
-                });
-              }
-            }
-          }
-        }
-
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({
           queryKey: [`/api/processes/${parsedId}/steps`],
         });
+        
         toast({
           title: isCompleted ? "Etapa concluída" : "Etapa desmarcada",
           description: isCompleted
