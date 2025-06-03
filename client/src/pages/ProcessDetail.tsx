@@ -186,7 +186,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Function to get sector-specific steps
   const getSectorSteps = (userDepartment: string, modalityId: number) => {
-    if (modalityId !== 1) return []; // Apenas para Pregão Eletrônico
+    // Funciona para todas as modalidades de pregão
     
     // Mapeamento dos nomes de departamentos do banco para os setores do fluxo
     const departmentToSectorMap: { [key: string]: string } = {
