@@ -84,6 +84,11 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     );
   }
 
+  // Get process steps to check completion
+  const { data: steps } = useQuery({
+    queryKey: [`/api/processes/${parsedId}/steps`],
+  });
+
   const currentDepartment = departments?.find(d => d.id === process.currentDepartmentId);
   
   // Definir a ordem do fluxo dos departamentos
@@ -98,6 +103,11 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   
   // Encontrar o índice do departamento atual no fluxo
   const currentIndex = departmentFlow.findIndex(id => id === process.currentDepartmentId);
+  
+  // Verificar se todas as etapas do setor atual estão concluídas
+  const currentDepartmentSteps = steps?.filter(step => step.departmentId === process.currentDepartmentId) || [];
+  const incompleteSteps = currentDepartmentSteps.filter(step => !step.isCompleted);
+  const allStepsCompleted = currentDepartmentSteps.length > 0 && incompleteSteps.length === 0;
   
   // Determinar os departamentos disponíveis (apenas o próximo no fluxo)
   const availableDepartments = [];
@@ -178,43 +188,101 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
             </div>
 
             {/* Área de confirmação */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
-              {isLastDepartment ? (
-                <div className="text-center">
-                  <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                  <p className="text-green-800 font-medium">
-                    Este processo está no último departamento do fluxo
-                  </p>
-                  <p className="text-green-600 text-sm mt-1">
-                    O processo pode ser finalizado ou arquivado
-                  </p>
-                </div>
-              ) : availableDepartments.length === 0 ? (
-                <div className="text-center">
-                  <p className="text-yellow-800 font-medium">
-                    Próximo departamento não encontrado
-                  </p>
-                  <p className="text-yellow-600 text-sm mt-1">
-                    Verifique se todos os departamentos estão configurados
-                  </p>
-                </div>
-              ) : (
-                <div className="text-center">
-                  <p className="text-sm text-gray-600 mb-3">
-                    Confirme a transferência para o próximo departamento:
-                  </p>
-                  <button
-                    onClick={() => setSelectedDepartmentId(availableDepartments[0].id.toString())}
-                    className={`px-6 py-3 rounded-lg border-2 font-medium transition-all ${
-                      selectedDepartmentId 
-                        ? "bg-blue-500 border-blue-500 text-white" 
-                        : "bg-white border-orange-300 text-orange-800 hover:bg-orange-50"
-                    }`}
-                  >
-                    {selectedDepartmentId ? "✓ Confirmado" : `Transferir para ${availableDepartments[0].name}`}
-                  </button>
+            <div className="mt-6 space-y-4">
+              {/* Status das etapas do setor atual */}
+              {currentDepartmentSteps.length > 0 && (
+                <div className={`p-4 rounded-lg border ${
+                  allStepsCompleted 
+                    ? "bg-green-50 border-green-200" 
+                    : "bg-red-50 border-red-200"
+                }`}>
+                  <div className="flex items-start space-x-3">
+                    {allStepsCompleted ? (
+                      <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                    ) : (
+                      <div className="h-5 w-5 bg-red-500 rounded-full mt-0.5 flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">!</span>
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <p className={`font-medium ${
+                        allStepsCompleted ? "text-green-800" : "text-red-800"
+                      }`}>
+                        {allStepsCompleted 
+                          ? "Todas as etapas do setor foram concluídas" 
+                          : "Etapas pendentes no setor atual"
+                        }
+                      </p>
+                      {!allStepsCompleted && (
+                        <div className="mt-2">
+                          <p className="text-red-600 text-sm mb-2">
+                            É necessário concluir todas as etapas antes de transferir:
+                          </p>
+                          <ul className="text-sm text-red-700 space-y-1">
+                            {incompleteSteps.map((step, index) => (
+                              <li key={index} className="flex items-center space-x-2">
+                                <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                                <span>{step.stepName}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               )}
+
+              {/* Confirmação da transferência */}
+              <div className="p-4 bg-gray-50 rounded-lg border">
+                {isLastDepartment ? (
+                  <div className="text-center">
+                    <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                    <p className="text-green-800 font-medium">
+                      Este processo está no último departamento do fluxo
+                    </p>
+                    <p className="text-green-600 text-sm mt-1">
+                      O processo pode ser finalizado ou arquivado
+                    </p>
+                  </div>
+                ) : availableDepartments.length === 0 ? (
+                  <div className="text-center">
+                    <p className="text-yellow-800 font-medium">
+                      Próximo departamento não encontrado
+                    </p>
+                    <p className="text-yellow-600 text-sm mt-1">
+                      Verifique se todos os departamentos estão configurados
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <p className="text-sm text-gray-600 mb-3">
+                      {allStepsCompleted 
+                        ? "Confirme a transferência para o próximo departamento:" 
+                        : "Complete todas as etapas antes de transferir:"
+                      }
+                    </p>
+                    <button
+                      onClick={() => setSelectedDepartmentId(availableDepartments[0].id.toString())}
+                      disabled={!allStepsCompleted}
+                      className={`px-6 py-3 rounded-lg border-2 font-medium transition-all ${
+                        !allStepsCompleted
+                          ? "bg-gray-100 border-gray-300 text-gray-400 cursor-not-allowed"
+                          : selectedDepartmentId 
+                            ? "bg-blue-500 border-blue-500 text-white" 
+                            : "bg-white border-orange-300 text-orange-800 hover:bg-orange-50"
+                      }`}
+                    >
+                      {!allStepsCompleted
+                        ? "Transferência bloqueada"
+                        : selectedDepartmentId 
+                          ? "✓ Confirmado" 
+                          : `Transferir para ${availableDepartments[0].name}`
+                      }
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 
@@ -230,10 +298,15 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
             {!isLastDepartment && availableDepartments.length > 0 && (
               <Button
                 onClick={handleTransfer}
-                disabled={!selectedDepartmentId || transferMutation.isPending}
+                disabled={!selectedDepartmentId || transferMutation.isPending || !allStepsCompleted}
                 className="flex-1"
               >
-                {transferMutation.isPending ? "Transferindo..." : "Confirmar Transferência"}
+                {transferMutation.isPending 
+                  ? "Transferindo..." 
+                  : !allStepsCompleted 
+                    ? "Complete todas as etapas primeiro"
+                    : "Confirmar Transferência"
+                }
               </Button>
             )}
           </div>
