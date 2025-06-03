@@ -78,6 +78,22 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
             />
           </div>
 
+          <div>
+            <label
+              htmlFor="filter-central-compras"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
+              Central de Compras
+            </label>
+            <Input
+              id="filter-central-compras"
+              value={centralcompras}
+              onChange={(e) => setCentralcompras(e.target.value)}
+              placeholder="Número da Central de Compras"
+              className="w-25%"
+            />
+          </div>
+
           <div className="w-[100%]">
             <label
               htmlFor="filter-modalidade"
@@ -124,22 +140,7 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
               </SelectContent>
             </Select>
           </div>
-          <div>
-            <label
-              htmlFor="filter-central-compras"
-              className="block text-sm font-medium text-gray-700 mb-1"
-            >
-              Central de Compras
-            </label>
-            <Input
-              id="filter-central-compras"
-              value={centralcompras}
-              onChange={(e) => setCentralcompras(e.target.value)}
-              placeholder="Número da Central de Compras"
-              className="w-25%"
-            />
-          </div>
-          
+
           <div className="w-[100%]">
             <label
               htmlFor="filter-prazo"
@@ -155,7 +156,9 @@ const DashboardFilters = ({ onApplyFilters }: DashboardFiltersProps) => {
                 <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="urgent">Urgentes (até 5 dias)</SelectItem>
                 <SelectItem value="soon">Próximos (até 10 dias)</SelectItem>
-                <SelectItem value="future">Futuros (mais de 10 dias)</SelectItem>
+                <SelectItem value="future">
+                  Futuros (mais de 10 dias)
+                </SelectItem>
                 <SelectItem value="expired">Vencidos</SelectItem>
               </SelectContent>
             </Select>

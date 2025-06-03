@@ -515,10 +515,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Definir a data em que o responsável assumiu o processo
       validatedData.responsibleSince = new Date();
       
-      // Converter prazo de entrega para formato de data se existir
-      if (validatedData.deadline && typeof validatedData.deadline === 'string') {
-        validatedData.deadline = new Date(validatedData.deadline);
-        console.log(`Prazo de entrega definido: ${validatedData.deadline}`);
+      // Calcular prazo automaticamente baseado na modalidade
+      const modality = await storage.getBiddingModality(validatedData.modalityId);
+      if (modality) {
+        const deadlineDays = modality.deadlineDays || 7; // Default 7 dias se não especificado
+        const deadline = new Date();
+        deadline.setDate(deadline.getDate() + deadlineDays);
+        validatedData.deadline = deadline;
+        console.log(`Prazo de entrega calculado automaticamente: ${deadlineDays} dias - ${validatedData.deadline}`);
       }
       
       console.log('Dados validados para criação de processo:', validatedData);

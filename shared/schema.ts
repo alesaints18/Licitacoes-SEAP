@@ -4,7 +4,7 @@ import { z } from "zod";
 
 // Enum definitions
 export const roleEnum = pgEnum('role', ['common', 'admin']);
-export const processStatusEnum = pgEnum('process_status', ['draft', 'in_progress', 'completed', 'canceled']);
+export const processStatusEnum = pgEnum('process_status', ['draft', 'in_progress', 'completed', 'canceled', 'overdue']);
 export const priorityEnum = pgEnum('priority', ['low', 'medium', 'high']);
 
 // Users table
@@ -31,6 +31,7 @@ export const biddingModalities = pgTable('bidding_modalities', {
   id: serial('id').primaryKey(),
   name: text('name').notNull().unique(),
   description: text('description'),
+  deadlineDays: integer('deadline_days').notNull().default(7), // Prazo em dias para esta modalidade
 });
 
 // Resource sources table
@@ -56,6 +57,7 @@ export const processes = pgTable('processes', {
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
   responsibleSince: timestamp('responsible_since'), // Data em que o responsável assumiu o processo
   deadline: timestamp('deadline'), // Prazo de entrega do processo
+  returnComments: text('return_comments'), // Comentários de retorno do processo
 });
 
 // Process steps table

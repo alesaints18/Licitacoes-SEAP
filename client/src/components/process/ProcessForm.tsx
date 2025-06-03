@@ -43,9 +43,6 @@ const processFormSchema = insertProcessSchema.extend({
   pbdocNumber: z.string().min(1, "Número PBDOC é obrigatório"),
   description: z.string().min(1, "Objeto é obrigatório"),
   centralDeCompras: z.string().min(1, "Central de Compras é obrigatória"),
-  deadline: z.string().min(1, "Prazo de entrega é obrigatório").refine(val => /^\d{4}-\d{2}-\d{2}$/.test(val), {
-    message: "Formato inválido de data (use AAAA-MM-DD)"
-  }),
   modalityId: z.number({
     required_error: "Por favor, selecione a modalidade",
   }).refine(val => val > 0, "Modalidade é obrigatória"),
