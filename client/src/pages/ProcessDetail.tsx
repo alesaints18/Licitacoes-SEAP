@@ -941,14 +941,42 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                             ? "border-green-400 hover:border-green-600 bg-white hover:bg-green-50"
                                             : "border-gray-300 bg-gray-100"
                                       }`}
-                                      onClick={() =>
-                                        userCanEdit &&
-                                        existingStep &&
-                                        handleStepToggle(
-                                          existingStep.id,
-                                          !isCompleted,
-                                        )
-                                      }
+                                      onClick={async () => {
+                                        if (!userCanEdit) return;
+                                        
+                                        if (existingStep) {
+                                          // Etapa existe, apenas atualizar
+                                          handleStepToggle(existingStep.id, !isCompleted);
+                                        } else {
+                                          // Etapa não existe, criar primeiro
+                                          try {
+                                            const response = await apiRequest("POST", `/api/processes/${process.id}/steps`, {
+                                              stepName: sectorStep.name,
+                                              departmentId: process.currentDepartmentId,
+                                              isCompleted: true,
+                                              observations: null
+                                            });
+                                            
+                                            if (response.ok) {
+                                              // Recarregar etapas
+                                              queryClient.invalidateQueries({
+                                                queryKey: [`/api/processes/${process.id}/steps`],
+                                              });
+                                              
+                                              toast({
+                                                title: "Etapa criada e concluída",
+                                                description: `Etapa "${sectorStep.name}" foi criada e marcada como concluída`,
+                                              });
+                                            }
+                                          } catch (error) {
+                                            toast({
+                                              title: "Erro",
+                                              description: "Não foi possível criar a etapa",
+                                              variant: "destructive",
+                                            });
+                                          }
+                                        }
+                                      }}
                                       disabled={!userCanEdit}
                                       title="Aprovar etapa"
                                     >
@@ -966,11 +994,36 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                           ? "border-red-400 hover:border-red-600 bg-white hover:bg-red-50"
                                           : "border-gray-300 bg-gray-100"
                                       }`}
-                                      onClick={() =>
-                                        userCanEdit &&
-                                        existingStep &&
-                                        handleStepReject(existingStep)
-                                      }
+                                      onClick={async () => {
+                                        if (!userCanEdit) return;
+                                        
+                                        if (existingStep) {
+                                          // Etapa existe, apenas rejeitar
+                                          handleStepReject(existingStep);
+                                        } else {
+                                          // Etapa não existe, criar primeiro para poder rejeitar
+                                          try {
+                                            const response = await apiRequest("POST", `/api/processes/${process.id}/steps`, {
+                                              stepName: sectorStep.name,
+                                              departmentId: process.currentDepartmentId,
+                                              isCompleted: false,
+                                              observations: null
+                                            });
+                                            
+                                            if (response.ok) {
+                                              const newStep = await response.json();
+                                              // Rejeitar a etapa criada
+                                              handleStepReject(newStep);
+                                            }
+                                          } catch (error) {
+                                            toast({
+                                              title: "Erro",
+                                              description: "Não foi possível criar a etapa para rejeição",
+                                              variant: "destructive",
+                                            });
+                                          }
+                                        }
+                                      }}
                                       disabled={!userCanEdit}
                                       title="Rejeitar etapa"
                                     >
