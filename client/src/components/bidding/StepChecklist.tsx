@@ -213,18 +213,39 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   
   const handleToggleStep = async (step: ProcessStep) => {
     try {
-      await apiRequest("PATCH", `/api/processes/${processId}/steps/${step.id}`, {
-        isCompleted: !step.isCompleted,
-        observations: step.observations
-      });
-      
-      // Refetch steps after updating
-      queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
-      
-      toast({
-        title: step.isCompleted ? "Etapa desmarcada" : "Etapa concluída",
-        description: `Etapa "${step.stepName}" ${step.isCompleted ? "desmarcada" : "marcada como concluída"}`,
-      });
+      // Se a etapa não existe, criar primeiro
+      if (!step.id) {
+        const createResponse = await apiRequest("POST", `/api/processes/${processId}/steps`, {
+          stepName: step.stepName,
+          departmentId: step.departmentId,
+          isCompleted: true,
+          observations: null
+        });
+        
+        if (createResponse.ok) {
+          // Refetch steps after creating
+          queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
+          
+          toast({
+            title: "Etapa criada e concluída",
+            description: `Etapa "${step.stepName}" foi criada e marcada como concluída`,
+          });
+        }
+      } else {
+        // Atualizar etapa existente
+        await apiRequest("PATCH", `/api/processes/${processId}/steps/${step.id}`, {
+          isCompleted: !step.isCompleted,
+          observations: step.observations
+        });
+        
+        // Refetch steps after updating
+        queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
+        
+        toast({
+          title: step.isCompleted ? "Etapa desmarcada" : "Etapa concluída",
+          description: `Etapa "${step.stepName}" ${step.isCompleted ? "desmarcada" : "marcada como concluída"}`,
+        });
+      }
     } catch (error) {
       toast({
         title: "Erro",
