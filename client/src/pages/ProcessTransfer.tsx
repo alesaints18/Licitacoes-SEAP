@@ -107,10 +107,10 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     // Lógica das etapas baseada no departamento e modalidade
     const stepsByDepartment: Record<string, any[]> = {
       "Setor Demandante": [
-        { name: "Demanda identificada pela unidade requisitante", phase: "Iniciação" },
-        { name: "Elaboração dos estudos técnicos preliminares", phase: "Iniciação" },
-        { name: "Análise de viabilidade e adequação orçamentária", phase: "Iniciação" },
-        { name: "Elaboração do termo de referência ou projeto básico", phase: "Iniciação", nextSector: "Financeiro" }
+        { name: "Documento de Formalização da Demanda - DFD", phase: "Iniciação" },
+        { name: "Estudo Técnico Preliminar - ETP", phase: "Iniciação" },
+        { name: "Mapa de Risco - MR", phase: "Iniciação" },
+        { name: "Termo de Referência - TR", phase: "Iniciação" }
       ],
       "Divisão de Licitação": [
         { name: "Encaminhamento da demanda ao setor de licitações", phase: "Preparação" },
