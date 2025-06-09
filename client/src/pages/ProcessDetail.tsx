@@ -923,7 +923,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                 process?.currentDepartmentId,
                               );
                               return sectorSteps;
-                            })().map((sectorStep, index) => {
+                            })()
+                            .filter((sectorStep) => {
+                              // Mostrar apenas etapas pendentes (não concluídas)
+                              const existingStep = steps?.find(
+                                (s) => s.stepName === sectorStep.name,
+                              );
+                              return !existingStep?.isCompleted;
+                            })
+                            .map((sectorStep, index) => {
                               const existingStep = steps?.find(
                                 (s) => s.stepName === sectorStep.name,
                               );

@@ -162,10 +162,12 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     ];
   };
   
-  // Filtrar etapas pelo setor atual
+  // Filtrar etapas pelo setor atual e mostrar apenas as pendentes
   const filteredSteps = steps?.filter(step => {
     const sectorSteps = getSectorSpecificSteps();
-    return sectorSteps.some(sectorStep => step.stepName === sectorStep.name);
+    const isFromCurrentSector = sectorSteps.some(sectorStep => step.stepName === sectorStep.name);
+    // Mostrar apenas etapas do setor atual que NÃO estão concluídas
+    return isFromCurrentSector && !step.isCompleted;
   }) || [];
 
   // Create initial steps if none exist
@@ -396,6 +398,25 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
             <p>Nenhuma etapa cadastrada para este processo</p>
           ) : (
             <div className="space-y-6">
+              {/* Resumo de etapas concluídas */}
+              {(() => {
+                const completedSteps = steps.filter(step => step.isCompleted && getSectorSpecificSteps().some(sectorStep => step.stepName === sectorStep.name));
+                if (completedSteps.length > 0) {
+                  return (
+                    <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-green-800">
+                          ✓ {completedSteps.length} etapas já concluídas
+                        </span>
+                        <span className="text-xs text-green-600">
+                          (ocultas da visualização)
+                        </span>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
               {phaseOrder.map((phase) => {
                 const phaseSteps = stepsByPhase[phase] || [];
                 if (phaseSteps.length === 0) return null;
