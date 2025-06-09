@@ -162,6 +162,13 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   // Determinar os departamentos disponíveis baseado no fluxo específico
   const availableDepartments = [];
   
+  console.log("Transfer flow debug:", {
+    currentDepartmentId: process.currentDepartmentId,
+    currentDepartmentName,
+    allStepsCompleted,
+    departments: departments?.map(d => ({ id: d.id, name: d.name }))
+  });
+  
   // Fluxo customizado baseado no departamento atual
   if (process.currentDepartmentId === 1) {
     // Setor Demandante → Divisão de Licitação
@@ -174,6 +181,7 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   } else if (process.currentDepartmentId === 3) {
     // NPP → Divisão de Licitação (retorno)
     const nextDepartment = departments?.find(d => d.id === 2);
+    console.log("NPP to Divisão lookup:", { nextDepartment, allDepartments: departments });
     if (nextDepartment) availableDepartments.push(nextDepartment);
   } else {
     // Fluxo sequencial padrão para outros departamentos
@@ -185,6 +193,8 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
       }
     }
   }
+  
+  console.log("Available departments result:", availableDepartments);
   
   // Se não há departamento seguinte, o processo pode estar concluído
   const isLastDepartment = currentIndex === departmentFlow.length - 1;
