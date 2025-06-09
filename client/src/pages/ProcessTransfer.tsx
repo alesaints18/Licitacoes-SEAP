@@ -159,13 +159,30 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     }))
   });
   
-  // Determinar os departamentos disponíveis (apenas o próximo no fluxo)
+  // Determinar os departamentos disponíveis baseado no fluxo específico
   const availableDepartments = [];
-  if (currentIndex !== -1 && currentIndex < departmentFlow.length - 1) {
-    const nextDepartmentId = departmentFlow[currentIndex + 1];
-    const nextDepartment = departments?.find(d => d.id === nextDepartmentId);
-    if (nextDepartment) {
-      availableDepartments.push(nextDepartment);
+  
+  // Fluxo customizado baseado no departamento atual
+  if (process.currentDepartmentId === 1) {
+    // Setor Demandante → Divisão de Licitação
+    const nextDepartment = departments?.find(d => d.id === 2);
+    if (nextDepartment) availableDepartments.push(nextDepartment);
+  } else if (process.currentDepartmentId === 2) {
+    // Divisão de Licitação → NPP
+    const nextDepartment = departments?.find(d => d.id === 3);
+    if (nextDepartment) availableDepartments.push(nextDepartment);
+  } else if (process.currentDepartmentId === 3) {
+    // NPP → Divisão de Licitação (retorno)
+    const nextDepartment = departments?.find(d => d.id === 2);
+    if (nextDepartment) availableDepartments.push(nextDepartment);
+  } else {
+    // Fluxo sequencial padrão para outros departamentos
+    if (currentIndex !== -1 && currentIndex < departmentFlow.length - 1) {
+      const nextDepartmentId = departmentFlow[currentIndex + 1];
+      const nextDepartment = departments?.find(d => d.id === nextDepartmentId);
+      if (nextDepartment) {
+        availableDepartments.push(nextDepartment);
+      }
     }
   }
   
