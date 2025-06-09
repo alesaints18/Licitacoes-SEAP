@@ -271,6 +271,18 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           name: "Solicitar Pesquisa de Preços",
           phase: "Preparação",
         },
+        {
+          name: "Inserir Pesquisa no Sistema",
+          phase: "Execução",
+        },
+        {
+          name: "Solicitar Análise Orçamentária",
+          phase: "Execução",
+        },
+        {
+          name: "Solicitar Autorização ao O.D.",
+          phase: "Execução",
+        },
       ],
 
       // NPP - Núcleo de Pesquisa de Preços

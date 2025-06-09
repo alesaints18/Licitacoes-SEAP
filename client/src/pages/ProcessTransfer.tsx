@@ -116,6 +116,9 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
         { name: "Criar Processo - Órgão", phase: "Preparação" },
         { name: "Fazer Pesquisa de Preço - Órgão", phase: "Preparação" },
         { name: "Solicitar Pesquisa de Preços", phase: "Preparação" },
+        { name: "Inserir Pesquisa no Sistema", phase: "Execução" },
+        { name: "Solicitar Análise Orçamentária", phase: "Execução" },
+        { name: "Solicitar Autorização ao O.D.", phase: "Execução" },
       ],
       "Núcleo de Pesquisa de Preços – NPP": [
         { name: "Pesquisa de Preços", phase: "Preparação" },
