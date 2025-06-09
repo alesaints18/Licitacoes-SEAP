@@ -239,21 +239,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       // TI - Setor Demandante (Fase de Iniciação)
       TI: [
         {
-          name: "Demanda identificada pela unidade requisitante",
+          name: "Documento de Formalização da Demanda - DFD",
           phase: "Iniciação",
         },
         {
-          name: "Elaboração dos estudos técnicos preliminares",
+          name: "Estudo Técnico Preliminar - ETP",
           phase: "Iniciação",
         },
         {
-          name: "Análise de viabilidade e adequação orçamentária",
+          name: "Mapa de Risco - MR",
           phase: "Iniciação",
         },
         {
-          name: "Elaboração do termo de referência ou projeto básico",
+          name: "Termo de Referência - TR",
           phase: "Iniciação",
-          nextSector: "Financeiro",
         },
       ],
 
