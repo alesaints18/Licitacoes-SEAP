@@ -113,15 +113,14 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
         { name: "Termo de Referência - TR", phase: "Iniciação" }
       ],
       "Divisão de Licitação": [
-        { name: "Encaminhamento da demanda ao setor de licitações", phase: "Preparação" },
-        { name: "Designação do pregoeiro e equipe de apoio", phase: "Preparação" },
-        { name: "Elaboração do edital de licitação", phase: "Preparação", nextSector: "Jurídico" },
-        { name: "Publicação do aviso de licitação", phase: "Execução" },
-        { name: "Disponibilização do edital aos interessados", phase: "Execução" },
-        { name: "Período para envio de propostas", phase: "Execução" },
-        { name: "Sessão pública do pregão eletrônico", phase: "Execução" },
-        { name: "Análise e classificação das propostas", phase: "Execução" },
-        { name: "Habilitação dos licitantes", phase: "Execução", nextSector: "Financeiro" }
+        { name: "Criar Processo - Órgão", phase: "Preparação" },
+        { name: "Fazer Pesquisa de Preço - Órgão", phase: "Preparação" },
+        { name: "Solicitar Pesquisa de Preços", phase: "Preparação" },
+      ],
+      "Núcleo de Pesquisa de Preços – NPP": [
+        { name: "Pesquisa de Preços", phase: "Preparação" },
+        { name: "Mapa Comparativo de Preços", phase: "Preparação" },
+        { name: "Metodologia da Pesquisa de Preços", phase: "Preparação" }
       ]
     };
     return stepsByDepartment[departmentName] || [];

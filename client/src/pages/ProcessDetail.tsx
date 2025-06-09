@@ -225,6 +225,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     const departmentToSectorMap: { [key: string]: string } = {
       "Setor Demandante": "TI",
       "Divisão de Licitação": "Licitações",
+      "Núcleo de Pesquisa de Preços – NPP": "NPP",
       "Unidade de  Orçamento e  Finanças": "Financeiro",
       "Procuradoria Geral do Estado - PGE": "Jurídico",
       "Secretário de Estado da Administração  Penitenciária - SEAP":
@@ -259,30 +260,32 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       // Licitações - Divisão de Licitação
       Licitações: [
         {
-          name: "Encaminhamento da demanda ao setor de licitações",
+          name: "Criar Processo - Órgão",
           phase: "Preparação",
         },
         {
-          name: "Designação do pregoeiro e equipe de apoio",
+          name: "Fazer Pesquisa de Preço - Órgão",
           phase: "Preparação",
         },
         {
-          name: "Elaboração do edital de licitação",
+          name: "Solicitar Pesquisa de Preços",
           phase: "Preparação",
-          nextSector: "Jurídico",
         },
-        { name: "Publicação do aviso de licitação", phase: "Execução" },
+      ],
+
+      // NPP - Núcleo de Pesquisa de Preços
+      NPP: [
         {
-          name: "Disponibilização do edital aos interessados",
-          phase: "Execução",
+          name: "Pesquisa de Preços",
+          phase: "Preparação",
         },
-        { name: "Período para envio de propostas", phase: "Execução" },
-        { name: "Sessão pública do pregão eletrônico", phase: "Execução" },
-        { name: "Análise e classificação das propostas", phase: "Execução" },
         {
-          name: "Habilitação dos licitantes",
-          phase: "Execução",
-          nextSector: "Financeiro",
+          name: "Mapa Comparativo de Preços",
+          phase: "Preparação",
+        },
+        {
+          name: "Metodologia da Pesquisa de Preços",
+          phase: "Preparação",
         },
       ],
 
