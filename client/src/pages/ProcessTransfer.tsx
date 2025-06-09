@@ -162,13 +162,6 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   // Determinar os departamentos disponíveis baseado no fluxo específico
   const availableDepartments = [];
   
-  console.log("Transfer flow debug:", {
-    currentDepartmentId: process.currentDepartmentId,
-    currentDepartmentName,
-    allStepsCompleted,
-    departments: departments?.map(d => ({ id: d.id, name: d.name }))
-  });
-  
   // Fluxo customizado baseado no departamento atual
   if (process.currentDepartmentId === 1) {
     // Setor Demandante → Divisão de Licitação
@@ -181,7 +174,6 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   } else if (process.currentDepartmentId === 3) {
     // NPP → Divisão de Licitação (retorno)
     const nextDepartment = departments?.find(d => d.id === 2);
-    console.log("NPP to Divisão lookup:", { nextDepartment, allDepartments: departments });
     if (nextDepartment) availableDepartments.push(nextDepartment);
   } else {
     // Fluxo sequencial padrão para outros departamentos
@@ -193,8 +185,6 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
       }
     }
   }
-  
-  console.log("Available departments result:", availableDepartments);
   
   // Se não há departamento seguinte, o processo pode estar concluído
   const isLastDepartment = currentIndex === departmentFlow.length - 1;
@@ -219,6 +209,52 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
             
             {/* Visualização do fluxo de departamentos */}
             <div className="space-y-4">
+              {/* Mostrar departamento atual */}
+              <div className="flex items-center space-x-3">
+                <div className="flex-1 p-4 rounded-lg border-2 bg-blue-50 border-blue-400 text-blue-800">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium">{currentDepartmentName}</h4>
+                      <p className="text-sm opacity-75">Atual</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs bg-blue-200 text-blue-800 px-2 py-1 rounded">
+                        Departamento Atual
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Seta indicando transferência */}
+              {availableDepartments.length > 0 && (
+                <div className="flex justify-center">
+                  <ArrowRight className="h-6 w-6 text-orange-500" />
+                </div>
+              )}
+
+              {/* Mostrar próximo departamento disponível */}
+              {availableDepartments.map((dept) => (
+                <div key={dept.id} className="flex items-center space-x-3">
+                  <div className="flex-1 p-4 rounded-lg border-2 bg-orange-50 border-orange-300 text-orange-800 border-dashed">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-medium">{dept.name}</h4>
+                        <p className="text-sm opacity-75">Próximo</p>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded">
+                          Destino
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Fluxo sequencial padrão (oculto, mantido apenas para referência) */}
+            <div className="hidden space-y-4">
               {departmentFlow.map((deptId, index) => {
                 const dept = departments?.find(d => d.id === deptId);
                 if (!dept) return null;
