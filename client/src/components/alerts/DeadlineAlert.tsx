@@ -63,7 +63,8 @@ export function DeadlineAlert() {
     end.setHours(0, 0, 0, 0);
 
     while (current <= end) {
-      if (isBusinessDay(current)) {
+      // Verifica se é dia útil (não é fim de semana)
+      if (current.getDay() !== 0 && current.getDay() !== 6) {
         count++;
       }
       current.setDate(current.getDate() + 1);
@@ -74,9 +75,7 @@ export function DeadlineAlert() {
 
   const getUrgencyColor = (process: ProcessWithDeadline) => {
     if (process.isOverdue) return "destructive";
-    if (process.daysUntilDeadline <= 1) return "destructive";
-    if (process.daysUntilDeadline <= 2) return "default";
-    return "secondary";
+    return "default"; // Yellow/amber for all deadline alerts
   };
 
   const getUrgencyText = (process: ProcessWithDeadline) => {
@@ -94,8 +93,8 @@ export function DeadlineAlert() {
     <Dialog open={showAlert} onOpenChange={setShowAlert}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-amber-600">
-            <AlertTriangle className="h-5 w-5" />
+          <DialogTitle className="flex items-center gap-2 text-yellow-600">
+            <AlertTriangle className="h-5 w-5 text-yellow-600" />
             Processos com Prazo Próximo ao Vencimento
           </DialogTitle>
           <DialogDescription>
@@ -105,8 +104,8 @@ export function DeadlineAlert() {
 
         <div className="space-y-3">
           {processesNearDeadline.map((process) => (
-            <Alert key={process.id} className="border-l-4 border-l-amber-500">
-              <Clock className="h-4 w-4" />
+            <Alert key={process.id} className="border-l-4 border-l-yellow-500 bg-yellow-50">
+              <Clock className="h-4 w-4 text-yellow-600" />
               <AlertDescription className="flex items-center justify-between">
                 <div className="flex-1">
                   <div className="font-medium">{process.pbdocNumber}</div>
@@ -117,7 +116,7 @@ export function DeadlineAlert() {
                     Prazo: {new Date(process.deadline!).toLocaleDateString('pt-BR')}
                   </div>
                 </div>
-                <Badge variant={getUrgencyColor(process)} className="ml-2">
+                <Badge variant={getUrgencyColor(process)} className="ml-2 bg-yellow-200 text-yellow-800 border-yellow-300">
                   {getUrgencyText(process)}
                 </Badge>
               </AlertDescription>
