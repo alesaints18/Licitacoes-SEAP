@@ -823,7 +823,7 @@ export class DatabaseStorage implements IStorage {
       return result.rowCount !== null && result.rowCount > 0;
     } catch (error) {
       console.error("Erro ao excluir processo permanentemente:", error);
-      throw error;
+      return false;
     }
   }
 

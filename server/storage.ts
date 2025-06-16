@@ -91,7 +91,7 @@ export interface IStorage {
   deleteProcess(id: number, userId: number): Promise<boolean>;
   
   // Lixeira eletrônica
-  getDeletedProcesses(): Promise<Process[]>;
+  getDeletedProcesses(): Promise<any[]>;
   restoreProcess(id: number, userId: number): Promise<Process | undefined>;
   permanentlyDeleteProcess(id: number): Promise<boolean>;
 
