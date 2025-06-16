@@ -44,6 +44,7 @@ export interface IStorage {
     status?: string;
     currentDepartmentId?: number; // Filtrar por departamento atual do processo
     userId?: number; // Adicionado userId para filtrar por participante
+    includeDeleted?: boolean; // Incluir processos excluídos
   }): Promise<Process[]>;
   
   // Process participant operations
@@ -58,7 +59,12 @@ export interface IStorage {
   returnProcess(processId: number, returnComment: string, userId: number): Promise<Process | undefined>;
   createProcess(process: InsertProcess): Promise<Process>;
   updateProcess(id: number, processData: Partial<InsertProcess>): Promise<Process | undefined>;
-  deleteProcess(id: number): Promise<boolean>;
+  deleteProcess(id: number, userId: number): Promise<boolean>;
+  
+  // Lixeira eletrônica
+  getDeletedProcesses(): Promise<Process[]>;
+  restoreProcess(id: number, userId: number): Promise<Process | undefined>;
+  permanentlyDeleteProcess(id: number): Promise<boolean>;
 
   // Process step operations
   getProcessSteps(processId: number): Promise<ProcessStep[]>;
@@ -314,6 +320,11 @@ export class MemStorage implements IStorage {
   }): Promise<Process[]> {
     let processes = Array.from(this.processes.values());
     
+    // Por padrão, filtrar processos excluídos (soft delete)
+    if (!filters?.includeDeleted) {
+      processes = processes.filter(p => p.deletedAt === null || p.deletedAt === undefined);
+    }
+    
     if (filters) {
       if (filters.pbdocNumber) {
         processes = processes.filter(p => p.pbdocNumber.includes(filters.pbdocNumber!));
@@ -399,7 +410,42 @@ export class MemStorage implements IStorage {
     return updatedProcess;
   }
 
-  async deleteProcess(id: number): Promise<boolean> {
+  async deleteProcess(id: number, userId: number): Promise<boolean> {
+    const process = this.processes.get(id);
+    if (!process) return false;
+    
+    // Soft delete - marca como excluído
+    const updatedProcess: Process = {
+      ...process,
+      deletedAt: new Date(),
+      deletedBy: userId,
+      updatedAt: new Date(),
+    };
+    
+    this.processes.set(id, updatedProcess);
+    return true;
+  }
+
+  async getDeletedProcesses(): Promise<Process[]> {
+    return Array.from(this.processes.values()).filter(p => p.deletedAt !== null);
+  }
+
+  async restoreProcess(id: number, userId: number): Promise<Process | undefined> {
+    const process = this.processes.get(id);
+    if (!process || !process.deletedAt) return undefined;
+    
+    const restoredProcess: Process = {
+      ...process,
+      deletedAt: null,
+      deletedBy: null,
+      updatedAt: new Date(),
+    };
+    
+    this.processes.set(id, restoredProcess);
+    return restoredProcess;
+  }
+
+  async permanentlyDeleteProcess(id: number): Promise<boolean> {
     return this.processes.delete(id);
   }
 

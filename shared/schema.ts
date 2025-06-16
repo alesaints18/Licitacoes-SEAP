@@ -58,6 +58,8 @@ export const processes = pgTable('processes', {
   responsibleSince: timestamp('responsible_since'), // Data em que o responsável assumiu o processo
   deadline: timestamp('deadline'), // Prazo de entrega do processo
   returnComments: text('return_comments'), // Comentários de retorno do processo
+  deletedAt: timestamp('deleted_at'), // Data de exclusão (soft delete)
+  deletedBy: integer('deleted_by'), // ID do usuário que excluiu
 });
 
 // Process steps table
