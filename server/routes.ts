@@ -337,6 +337,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Process routes
+  // Rotas da lixeira eletrônica (devem vir antes das rotas com parâmetros)
+  app.get('/api/processes/deleted', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      console.log("Buscando processos excluídos...");
+      const deletedProcesses = await storage.getDeletedProcesses();
+      console.log(`Encontrados ${deletedProcesses.length} processos excluídos`);
+      res.json(deletedProcesses);
+    } catch (error) {
+      console.error("Erro ao buscar processos excluídos:", error);
+      res.status(500).json({ message: "Erro ao buscar processos excluídos", error });
+    }
+  });
+
   app.get('/api/processes', isAuthenticated, async (req, res) => {
     try {
       const { pbdoc, modality, source, responsible, status } = req.query;
@@ -644,18 +657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Rotas da lixeira eletrônica
-  app.get('/api/processes/deleted', isAuthenticated, isAdmin, async (req, res) => {
-    try {
-      console.log("Buscando processos excluídos...");
-      const deletedProcesses = await storage.getDeletedProcesses();
-      console.log(`Encontrados ${deletedProcesses.length} processos excluídos`);
-      res.json(deletedProcesses);
-    } catch (error) {
-      console.error("Erro ao buscar processos excluídos:", error);
-      res.status(500).json({ message: "Erro ao buscar processos excluídos", error });
-    }
-  });
+
 
   app.post('/api/processes/:id/restore', isAuthenticated, isAdmin, async (req, res) => {
     try {
