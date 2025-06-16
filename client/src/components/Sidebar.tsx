@@ -11,6 +11,7 @@ import {
   FileSpreadsheet,
   ChevronDown,
   ChevronRight,
+  Trash2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -68,7 +69,12 @@ const Sidebar = () => {
         label: "Relatórios",
         adminOnly: true,
       },
-
+      {
+        path: "/trash",
+        icon: <Trash2 className="h-5 w-5 mr-3" />,
+        label: "Lixeira",
+        adminOnly: true,
+      },
       {
         path: "/users",
         icon: <Users className="h-5 w-5 mr-3" />,

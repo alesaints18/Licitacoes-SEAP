@@ -23,6 +23,7 @@ import TermsOfUse from "@/pages/TermsOfUse";
 import Convenios from "@/pages/Convenios";
 import FRP from "@/pages/FRP";
 import ReportExport from "@/pages/ReportExport";
+import Trash from "@/pages/Trash";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -288,6 +289,14 @@ function Router() {
         <Layout>
           <AdminProtectedRoute>
             <Reports />
+          </AdminProtectedRoute>
+        </Layout>
+      </Route>
+      
+      <Route path="/trash">
+        <Layout>
+          <AdminProtectedRoute>
+            <Trash />
           </AdminProtectedRoute>
         </Layout>
       </Route>

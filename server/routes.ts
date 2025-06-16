@@ -623,15 +623,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/processes/:id', isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const deleted = await storage.deleteProcess(id);
+      const userId = (req.user as any).id;
+      const deleted = await storage.deleteProcess(id, userId);
       
       if (!deleted) {
         return res.status(404).json({ message: "Processo não encontrado" });
       }
       
+      // Notificar exclusão via WebSocket
+      broadcast({
+        type: 'process_deleted',
+        processId: id,
+        message: `Processo movido para a lixeira`,
+        timestamp: new Date().toISOString()
+      });
+      
       res.json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Erro ao deletar processo", error });
+    }
+  });
+
+  // Rotas da lixeira eletrônica
+  app.get('/api/processes/deleted', isAdmin, async (req, res) => {
+    try {
+      const deletedProcesses = await storage.getDeletedProcesses();
+      res.json(deletedProcesses);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao buscar processos excluídos", error });
+    }
+  });
+
+  app.post('/api/processes/:id/restore', isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const userId = (req.user as any).id;
+      const restoredProcess = await storage.restoreProcess(id, userId);
+      
+      if (!restoredProcess) {
+        return res.status(404).json({ message: "Processo não encontrado na lixeira" });
+      }
+      
+      // Notificar restauração via WebSocket
+      broadcast({
+        type: 'process_restored',
+        processId: id,
+        message: `Processo ${restoredProcess.pbdocNumber} foi restaurado`,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.json(restoredProcess);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao restaurar processo", error });
+    }
+  });
+
+  app.delete('/api/processes/:id/permanent', isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = await storage.permanentlyDeleteProcess(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ message: "Processo não encontrado" });
+      }
+      
+      // Notificar exclusão permanente via WebSocket
+      broadcast({
+        type: 'process_permanently_deleted',
+        processId: id,
+        message: `Processo excluído permanentemente`,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao excluir processo permanentemente", error });
     }
   });
   
