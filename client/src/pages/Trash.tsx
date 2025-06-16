@@ -12,13 +12,15 @@ import { Process } from "@shared/schema";
 const Trash = () => {
   const { toast } = useToast();
 
-  // Buscar processos excluídos
+  // Buscar processos excluídos com refresh automático
   const { data: deletedProcesses = [], isLoading } = useQuery<Process[]>({
     queryKey: ["/api/processes/deleted"],
     queryFn: async () => {
       const response = await apiRequest("GET", "/api/processes/deleted");
       return response.json();
     },
+    refetchInterval: 5000, // Atualiza a cada 5 segundos
+    refetchIntervalInBackground: true, // Continua atualizando mesmo quando a aba não está ativa
   });
 
   // WebSocket para atualizações em tempo real
