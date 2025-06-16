@@ -66,16 +66,28 @@ const FRP = () => {
     },
   });
 
-  // Consulta FRP do backend
-  const { data: frps = [] } = useQuery({
+  // Estado local para FRPs enquanto não há backend
+  const [localFRPs, setLocalFRPs] = useState<FRP[]>([]);
+
+  // Consulta FRP do backend (usando estado local temporariamente)
+  const { data: frps = [] } = useQuery<FRP[]>({
     queryKey: ["/api/frps"],
-    queryFn: () => Promise.resolve([]), // Retorna array vazio até implementar backend
+    queryFn: () => Promise.resolve(localFRPs),
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertFRP) => {
-      // Em produção: await apiRequest("POST", "/api/frps", data);
-      return Promise.resolve({ id: Date.now(), ...data, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+      const newFRP: FRP = {
+        id: Date.now(),
+        ...data,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      // Adicionar ao estado local
+      setLocalFRPs(prev => [...prev, newFRP]);
+      
+      return newFRP;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/frps"] });
@@ -97,8 +109,17 @@ const FRP = () => {
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: InsertFRP }) => {
-      // Em produção: await apiRequest("PUT", `/api/frps/${id}`, data);
-      return Promise.resolve({ id, ...data, updatedAt: new Date().toISOString() });
+      const updatedFRP: FRP = {
+        id,
+        ...data,
+        createdAt: localFRPs.find(f => f.id === id)?.createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      // Atualizar no estado local
+      setLocalFRPs(prev => prev.map(frp => frp.id === id ? updatedFRP : frp));
+      
+      return updatedFRP;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/frps"] });
@@ -121,7 +142,9 @@ const FRP = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      // Em produção: await apiRequest("DELETE", `/api/frps/${id}`);
+      // Remover do estado local
+      setLocalFRPs(prev => prev.filter(frp => frp.id !== id));
+      
       return Promise.resolve();
     },
     onSuccess: () => {
