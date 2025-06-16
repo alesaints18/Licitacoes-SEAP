@@ -645,16 +645,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Rotas da lixeira eletrônica
-  app.get('/api/processes/deleted', isAdmin, async (req, res) => {
+  app.get('/api/processes/deleted', isAuthenticated, isAdmin, async (req, res) => {
     try {
+      console.log("Buscando processos excluídos...");
       const deletedProcesses = await storage.getDeletedProcesses();
+      console.log(`Encontrados ${deletedProcesses.length} processos excluídos`);
       res.json(deletedProcesses);
     } catch (error) {
+      console.error("Erro ao buscar processos excluídos:", error);
       res.status(500).json({ message: "Erro ao buscar processos excluídos", error });
     }
   });
 
-  app.post('/api/processes/:id/restore', isAdmin, async (req, res) => {
+  app.post('/api/processes/:id/restore', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = (req.user as any).id;
@@ -678,7 +681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/processes/:id/permanent', isAdmin, async (req, res) => {
+  app.delete('/api/processes/:id/permanent', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const deleted = await storage.permanentlyDeleteProcess(id);
