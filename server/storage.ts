@@ -197,7 +197,8 @@ export class MemStorage implements IStorage {
       fullName: "Administrador Sistema",
       email: "admin@seap.pb.gov.br",
       department: "Planejamento",
-      role: "admin"
+      role: "admin",
+      isActive: true
     });
     
     // Create common user
@@ -207,7 +208,8 @@ export class MemStorage implements IStorage {
       fullName: "Gabriel Lucas de Oliveira Silva",
       email: "gabriel@seap.pb.gov.br",
       department: "Licitação",
-      role: "common"
+      role: "common",
+      isActive: true
     });
     
     // Create bidding modalities with automatic deadline days
