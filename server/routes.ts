@@ -548,6 +548,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Criando processo: ${process.id}, departamento: ${currentDepartmentId}`);
       
+      // Criar etapas padrão baseadas na modalidade
+      await createDefaultSteps(process.id, process.modalityId);
+      
       // Adicionar o criador como participante do processo (role: owner)
       await storage.addProcessParticipant({
         processId: process.id,
