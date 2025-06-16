@@ -28,6 +28,63 @@ function broadcast(data: any) {
   });
 }
 
+// Função para criar etapas padrão baseadas na modalidade
+async function createDefaultSteps(processId: number, modalityId: number) {
+  const defaultSteps = [
+    // FASE 1: INICIAÇÃO (Setor Demandante)
+    { name: "Demanda identificada e documentada", departmentId: 1, phase: "Iniciação" },
+    { name: "Estudo Técnico Preliminar - ETP", departmentId: 1, phase: "Iniciação" },
+    { name: "Mapa de Risco - MR", departmentId: 1, phase: "Iniciação" },
+    { name: "Termo de Referência - TR", departmentId: 1, phase: "Iniciação" },
+    
+    // DECISÃO: Ordenador de Despesa
+    { name: "Autorização pelo Ordenador de Despesa", departmentId: 4, phase: "Iniciação" },
+    
+    // FASE 2: PREPARAÇÃO (Divisão de Licitação)
+    { name: "Criar Processo no Órgão", departmentId: 2, phase: "Preparação" },
+    { name: "Fazer Pesquisa de Preços", departmentId: 2, phase: "Preparação" },
+    { name: "Elaborar Mapa Comparativo de Preços", departmentId: 2, phase: "Preparação" },
+    { name: "Metodologia da Pesquisa de Preços", departmentId: 2, phase: "Preparação" },
+    
+    // Orçamento e Finanças
+    { name: "Consultar Disponibilidade Orçamentária", departmentId: 4, phase: "Preparação" },
+    { name: "Emitir Reserva Orçamentária - R.O.", departmentId: 4, phase: "Preparação" },
+    
+    // FASE 3: AUTORIZAÇÃO (Secretário SEAP)
+    { name: "Autorização Final pelo Secretário SEAP", departmentId: 5, phase: "Execução" },
+    
+    // FASE 4: EXECUÇÃO (Divisão de Licitação)
+    { name: "Elaborar Edital e seus Anexos", departmentId: 2, phase: "Execução" },
+    { name: "Consultar Comitê Gestor de Gasto Público", departmentId: 2, phase: "Execução" },
+    { name: "Solicitar Elaboração de Nota Técnica", departmentId: 3, phase: "Execução" },
+    
+    // FASE 5: PUBLICAÇÃO E SESSÃO
+    { name: "Publicar Edital", departmentId: 2, phase: "Execução" },
+    { name: "Realizar Sessão Pública de Lances", departmentId: 2, phase: "Execução" },
+    { name: "Análise de Documentação dos Licitantes", departmentId: 2, phase: "Execução" },
+    { name: "Adjudicação e Homologação", departmentId: 2, phase: "Finalização" },
+    
+    // FASE 6: FINALIZAÇÃO
+    { name: "Assinatura do Contrato", departmentId: 5, phase: "Finalização" },
+    { name: "Publicação do Contrato", departmentId: 5, phase: "Finalização" }
+  ];
+
+  // Criar todas as etapas para o processo
+  for (const step of defaultSteps) {
+    await storage.createProcessStep({
+      processId: processId,
+      stepName: step.name,
+      departmentId: step.departmentId,
+      isCompleted: false,
+      observations: null,
+      completedBy: null,
+      dueDate: null
+    });
+  }
+  
+  console.log(`Criadas ${defaultSteps.length} etapas padrão para o processo ${processId}`);
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Configuração para servir arquivos estáticos da pasta de downloads
   app.use('/downloads', express.static(path.join(process.cwd(), 'public', 'downloads'), {
@@ -193,6 +250,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     res.status(403).json({ message: "Acesso proibido" });
   };
+
+
 
   // User routes
   app.get('/api/users', isAuthenticated, async (req, res) => {
