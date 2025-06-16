@@ -9,6 +9,34 @@ import {
 import { compareSync, hashSync } from "bcrypt";
 
 // Storage interface with CRUD operations
+// Temporary type definitions for missing types
+type ProcessParticipant = {
+  id: number;
+  processId: number;
+  userId: number;
+  role?: string;
+  isActive?: boolean;
+  departmentId?: number | null;
+  addedAt: Date;
+};
+
+type InsertProcessParticipant = Omit<ProcessParticipant, 'id' | 'addedAt'>;
+
+type Convenio = {
+  id: number;
+  numero: string;
+  objeto: string;
+  valor: number;
+  dataInicio: Date;
+  dataFim: Date;
+  status: string;
+  observacoes?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type InsertConvenio = Omit<Convenio, 'id' | 'createdAt' | 'updatedAt'>;
+
 export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
@@ -714,7 +742,7 @@ export class MemStorage implements IStorage {
 // O método deleteUser agora está implementado diretamente na classe MemStorage
 
 // Import DatabaseStorage implementation
-import { DatabaseStorage } from './storage.db';
+// import { DatabaseStorage } from './storage.db';
 
-// Use DatabaseStorage for persistent storage with PostgreSQL
-export const storage = new DatabaseStorage();
+// Use MemStorage for development/testing
+export const storage = new MemStorage();
