@@ -476,7 +476,16 @@ export class MemStorage implements IStorage {
   }
 
   async getDeletedProcesses(): Promise<Process[]> {
-    return Array.from(this.processes.values()).filter(p => p.deletedAt !== null);
+    const allProcesses = Array.from(this.processes.values());
+    console.log(`Total de processos no storage: ${allProcesses.length}`);
+    
+    const deletedProcesses = allProcesses.filter(p => {
+      console.log(`Processo ${p.id}: deletedAt = ${p.deletedAt}, deletedBy = ${p.deletedBy}`);
+      return p.deletedAt !== null;
+    });
+    
+    console.log(`Processos excluídos encontrados: ${deletedProcesses.length}`);
+    return deletedProcesses;
   }
 
   async restoreProcess(id: number, userId: number): Promise<Process | undefined> {
@@ -671,31 +680,7 @@ export class MemStorage implements IStorage {
     return this.users.delete(id);
   }
 
-  // Lixeira eletrônica
-  async getDeletedProcesses(): Promise<Process[]> {
-    return Array.from(this.processes.values()).filter(p => p.deletedAt !== null);
-  }
 
-  async restoreProcess(id: number, userId: number): Promise<Process | undefined> {
-    const process = this.processes.get(id);
-    if (!process || process.deletedAt === null) {
-      return undefined;
-    }
-
-    const restoredProcess: Process = {
-      ...process,
-      deletedAt: null,
-      deletedBy: null,
-      updatedAt: new Date(),
-    };
-
-    this.processes.set(id, restoredProcess);
-    return restoredProcess;
-  }
-
-  async permanentlyDeleteProcess(id: number): Promise<boolean> {
-    return this.processes.delete(id);
-  }
 
   // Métodos de participantes do processo (stubs para compatibilidade)
   async getProcessParticipants(processId: number): Promise<ProcessParticipant[]> {
