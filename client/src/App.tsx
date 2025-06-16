@@ -21,6 +21,7 @@ import Settings from "@/pages/Settings";
 import Download from "@/pages/Download";
 import TermsOfUse from "@/pages/TermsOfUse";
 import Convenios from "@/pages/Convenios";
+import FRP from "@/pages/FRP";
 import ReportExport from "@/pages/ReportExport";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
@@ -305,7 +306,17 @@ function Router() {
       
       <Route path="/conv">
         <Layout>
-          <Convenios />
+          <AdminProtectedRoute>
+            <Convenios />
+          </AdminProtectedRoute>
+        </Layout>
+      </Route>
+      
+      <Route path="/frp">
+        <Layout>
+          <AdminProtectedRoute>
+            <FRP />
+          </AdminProtectedRoute>
         </Layout>
       </Route>
       

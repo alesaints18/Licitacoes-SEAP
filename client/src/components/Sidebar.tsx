@@ -9,10 +9,12 @@ import {
   LogOut,
   Workflow,
   FileSpreadsheet,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { ThemeToggle } from "./theme-toggle";
@@ -22,6 +24,7 @@ const Sidebar = () => {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const isMobile = useIsMobile();
+  const [instrumentoRepasseOpen, setInstrumentoRepasseOpen] = useState(false);
 
   // Get current user data
   const { data: user } = useQuery<User>({
@@ -65,12 +68,7 @@ const Sidebar = () => {
         label: "Relatórios",
         adminOnly: true,
       },
-      {
-        path: "/conv",
-        icon: <FileSpreadsheet className="h-5 w-5 mr-3" />,
-        label: "Convênios",
-        adminOnly: true,
-      },
+
       {
         path: "/users",
         icon: <Users className="h-5 w-5 mr-3" />,
@@ -150,6 +148,56 @@ const Sidebar = () => {
                 </Link>
               </li>
             ))}
+            
+            {/* Instrumento de repasse (dropdown) - only for admin */}
+            {user?.role === "admin" && (
+              <li className="px-2">
+                <button
+                  onClick={() => setInstrumentoRepasseOpen(!instrumentoRepasseOpen)}
+                  className="flex items-center justify-between w-full px-4 py-3 rounded-md group transition-colors text-white dark:hover:bg-[#020035] hover:bg-[#5892c2]"
+                >
+                  <div className="flex items-center">
+                    <FileSpreadsheet className="h-5 w-5 mr-3" />
+                    <span>Instrumento de repasse</span>
+                  </div>
+                  {instrumentoRepasseOpen ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </button>
+                
+                {/* Submenu */}
+                {instrumentoRepasseOpen && (
+                  <ul className="ml-8 mt-1 space-y-1">
+                    <li>
+                      <Link
+                        href="/conv"
+                        className={`flex items-center px-4 py-2 rounded-md group transition-colors text-sm ${
+                          location === "/conv"
+                            ? "text-white dark:bg-[#01001A] bg-[#396a9c] font-medium"
+                            : "text-white dark:hover:bg-[#020035] hover:bg-[#5892c2]"
+                        }`}
+                      >
+                        <span>Convênios</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link
+                        href="/frp"
+                        className={`flex items-center px-4 py-2 rounded-md group transition-colors text-sm ${
+                          location === "/frp"
+                            ? "text-white dark:bg-[#01001A] bg-[#396a9c] font-medium"
+                            : "text-white dark:hover:bg-[#020035] hover:bg-[#5892c2]"
+                        }`}
+                      >
+                        <span>FRP</span>
+                      </Link>
+                    </li>
+                  </ul>
+                )}
+              </li>
+            )}
           </ul>
         </nav>
 
