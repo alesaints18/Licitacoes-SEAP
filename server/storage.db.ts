@@ -6,7 +6,8 @@ import {
   resourceSources, type ResourceSource, type InsertResourceSource,
   processes, type Process, type InsertProcess,
   processSteps, type ProcessStep, type InsertProcessStep,
-  processParticipants, type ProcessParticipant, type InsertProcessParticipant
+  processParticipants, type ProcessParticipant, type InsertProcessParticipant,
+  convenios, type Convenio, type InsertConvenio
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { eq, and, or, count, sql, inArray, desc } from "drizzle-orm";
@@ -711,5 +712,158 @@ export class DatabaseStorage implements IStorage {
         total,
         completed: completedByResponsible.get(responsibleId) || 0
       }));
+  }
+
+  // Trash functionality methods
+  async getDeletedProcesses(): Promise<Process[]> {
+    try {
+      const deletedProcesses = await db
+        .select()
+        .from(processes)
+        .where(sql`${processes.deletedAt} IS NOT NULL`)
+        .orderBy(desc(processes.deletedAt));
+      
+      return deletedProcesses;
+    } catch (error) {
+      console.error("Erro ao buscar processos excluídos:", error);
+      throw error;
+    }
+  }
+
+  async restoreProcess(id: number, userId: number): Promise<Process | undefined> {
+    try {
+      const [restoredProcess] = await db
+        .update(processes)
+        .set({
+          deletedAt: null,
+          deletedBy: null,
+          updatedAt: new Date(),
+        })
+        .where(and(
+          eq(processes.id, id),
+          sql`${processes.deletedAt} IS NOT NULL`
+        ))
+        .returning();
+      
+      return restoredProcess;
+    } catch (error) {
+      console.error("Erro ao restaurar processo:", error);
+      throw error;
+    }
+  }
+
+  async permanentlyDeleteProcess(id: number): Promise<boolean> {
+    try {
+      // First delete related process steps
+      await db.delete(processSteps).where(eq(processSteps.processId, id));
+      
+      // Then delete the process
+      const result = await db.delete(processes).where(eq(processes.id, id));
+      
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (error) {
+      console.error("Erro ao excluir processo permanentemente:", error);
+      throw error;
+    }
+  }
+
+  // Process participants methods
+  async getProcessParticipants(processId: number): Promise<ProcessParticipant[]> {
+    try {
+      const participants = await db
+        .select()
+        .from(processParticipants)
+        .where(eq(processParticipants.processId, processId));
+      
+      return participants;
+    } catch (error) {
+      console.error("Erro ao buscar participantes do processo:", error);
+      return [];
+    }
+  }
+
+  async addProcessParticipant(participant: InsertProcessParticipant): Promise<ProcessParticipant> {
+    try {
+      const [newParticipant] = await db
+        .insert(processParticipants)
+        .values(participant)
+        .returning();
+      
+      return newParticipant;
+    } catch (error) {
+      console.error("Erro ao adicionar participante:", error);
+      throw error;
+    }
+  }
+
+  async removeProcessParticipant(processId: number, userId: number): Promise<boolean> {
+    try {
+      const result = await db
+        .delete(processParticipants)
+        .where(and(
+          eq(processParticipants.processId, processId),
+          eq(processParticipants.userId, userId)
+        ));
+      
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (error) {
+      console.error("Erro ao remover participante:", error);
+      return false;
+    }
+  }
+
+  // Convenios methods (stubs for now)
+  async getConvenios(): Promise<Convenio[]> {
+    try {
+      return await db.select().from(convenios);
+    } catch (error) {
+      console.error("Erro ao buscar convênios:", error);
+      return [];
+    }
+  }
+
+  async getConvenio(id: number): Promise<Convenio | undefined> {
+    try {
+      const [convenio] = await db.select().from(convenios).where(eq(convenios.id, id));
+      return convenio;
+    } catch (error) {
+      console.error("Erro ao buscar convênio:", error);
+      return undefined;
+    }
+  }
+
+  async createConvenio(convenio: InsertConvenio): Promise<Convenio> {
+    try {
+      const [newConvenio] = await db.insert(convenios).values(convenio).returning();
+      return newConvenio;
+    } catch (error) {
+      console.error("Erro ao criar convênio:", error);
+      throw error;
+    }
+  }
+
+  async updateConvenio(id: number, convenioData: Partial<InsertConvenio>): Promise<Convenio | undefined> {
+    try {
+      const [updatedConvenio] = await db
+        .update(convenios)
+        .set(convenioData)
+        .where(eq(convenios.id, id))
+        .returning();
+      
+      return updatedConvenio;
+    } catch (error) {
+      console.error("Erro ao atualizar convênio:", error);
+      return undefined;
+    }
+  }
+
+  async deleteConvenio(id: number): Promise<boolean> {
+    try {
+      const result = await db.delete(convenios).where(eq(convenios.id, id));
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (error) {
+      console.error("Erro ao excluir convênio:", error);
+      return false;
+    }
   }
 }

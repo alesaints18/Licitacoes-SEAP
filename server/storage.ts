@@ -621,6 +621,94 @@ export class MemStorage implements IStorage {
     
     return this.users.delete(id);
   }
+
+  // Lixeira eletrônica
+  async getDeletedProcesses(): Promise<Process[]> {
+    return Array.from(this.processes.values()).filter(p => p.deletedAt !== null);
+  }
+
+  async restoreProcess(id: number, userId: number): Promise<Process | undefined> {
+    const process = this.processes.get(id);
+    if (!process || process.deletedAt === null) {
+      return undefined;
+    }
+
+    const restoredProcess: Process = {
+      ...process,
+      deletedAt: null,
+      deletedBy: null,
+      updatedAt: new Date(),
+    };
+
+    this.processes.set(id, restoredProcess);
+    return restoredProcess;
+  }
+
+  async permanentlyDeleteProcess(id: number): Promise<boolean> {
+    return this.processes.delete(id);
+  }
+
+  // Métodos de participantes do processo (stubs para compatibilidade)
+  async getProcessParticipants(processId: number): Promise<ProcessParticipant[]> {
+    return [];
+  }
+
+  async addProcessParticipant(participant: InsertProcessParticipant): Promise<ProcessParticipant> {
+    throw new Error("Not implemented in MemStorage");
+  }
+
+  async removeProcessParticipant(processId: number, userId: number): Promise<boolean> {
+    return false;
+  }
+
+  async transferProcessToDepartment(processId: number, departmentId: number, userId: number): Promise<Process | undefined> {
+    const process = this.processes.get(processId);
+    if (!process) return undefined;
+
+    const updatedProcess: Process = {
+      ...process,
+      currentDepartmentId: departmentId,
+      updatedAt: new Date(),
+    };
+
+    this.processes.set(processId, updatedProcess);
+    return updatedProcess;
+  }
+
+  async returnProcess(processId: number, returnComment: string, userId: number): Promise<Process | undefined> {
+    const process = this.processes.get(processId);
+    if (!process) return undefined;
+
+    const updatedProcess: Process = {
+      ...process,
+      returnComments: returnComment,
+      updatedAt: new Date(),
+    };
+
+    this.processes.set(processId, updatedProcess);
+    return updatedProcess;
+  }
+
+  // Métodos de convênios (stubs para compatibilidade)
+  async getConvenios(): Promise<Convenio[]> {
+    return [];
+  }
+
+  async getConvenio(id: number): Promise<Convenio | undefined> {
+    return undefined;
+  }
+
+  async createConvenio(convenio: InsertConvenio): Promise<Convenio> {
+    throw new Error("Not implemented in MemStorage");
+  }
+
+  async updateConvenio(id: number, convenioData: Partial<InsertConvenio>): Promise<Convenio | undefined> {
+    return undefined;
+  }
+
+  async deleteConvenio(id: number): Promise<boolean> {
+    return false;
+  }
 }
 
 // O método deleteUser agora está implementado diretamente na classe MemStorage
