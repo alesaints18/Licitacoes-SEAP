@@ -7,6 +7,7 @@ import {
   processSteps, type ProcessStep, type InsertProcessStep
 } from "@shared/schema";
 import { compareSync, hashSync } from "bcrypt";
+import { addBusinessDays } from "./business-days";
 
 // Storage interface with CRUD operations
 // Temporary type definitions for missing types
@@ -415,11 +416,29 @@ export class MemStorage implements IStorage {
   async createProcess(process: InsertProcess): Promise<Process> {
     const id = this.currentProcessId++;
     const now = new Date();
+    
+    // Busca a modalidade para calcular o prazo
+    const modality = this.biddingModalities.get(process.modalityId);
+    let deadline: Date | null = null;
+    
+    if (modality && modality.deadlineDays) {
+      // Calcula o prazo usando apenas dias úteis
+      deadline = addBusinessDays(now, modality.deadlineDays);
+    }
+    
     const newProcess: Process = { 
       ...process, 
       id,
       createdAt: now,
-      updatedAt: now
+      updatedAt: now,
+      status: process.status || "draft",
+      priority: process.priority || "medium",
+      currentDepartmentId: process.currentDepartmentId || null,
+      centralDeCompras: process.centralDeCompras || null,
+      returnComments: process.returnComments || null,
+      deadline: deadline,
+      deletedAt: null,
+      deletedBy: null,
     };
     
     this.processes.set(id, newProcess);
@@ -684,7 +703,18 @@ export class MemStorage implements IStorage {
   }
 
   async addProcessParticipant(participant: InsertProcessParticipant): Promise<ProcessParticipant> {
-    throw new Error("Not implemented in MemStorage");
+    // Para o MemStorage, vamos apenas retornar um participante fake
+    // Na prática, este sistema não usa participantes múltiplos
+    const newParticipant: ProcessParticipant = {
+      id: Date.now(),
+      processId: participant.processId,
+      userId: participant.userId,
+      role: participant.role,
+      isActive: participant.isActive ?? true,
+      departmentId: participant.departmentId,
+      addedAt: new Date(),
+    };
+    return newParticipant;
   }
 
   async removeProcessParticipant(processId: number, userId: number): Promise<boolean> {
