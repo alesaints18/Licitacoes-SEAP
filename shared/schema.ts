@@ -163,3 +163,30 @@ export type InsertProcessParticipant = z.infer<typeof insertProcessParticipantSc
 
 export type Convenio = typeof convenios.$inferSelect;
 export type InsertConvenio = z.infer<typeof insertConvenioSchema>;
+
+// Tabela para processos excluídos (lixeira)
+export const deletedProcesses = pgTable('deleted_processes', {
+  id: serial('id').primaryKey(),
+  originalProcessId: integer('original_process_id').notNull(),
+  pbdocNumber: text('pbdoc_number').notNull(),
+  description: text('description').notNull(),
+  modalityId: integer('modality_id').notNull(),
+  sourceId: integer('source_id').notNull(),
+  responsibleId: integer('responsible_id').notNull(),
+  currentDepartmentId: integer('current_department_id'),
+  centralDeCompras: text('central_de_compras'),
+  priority: priorityEnum('priority').notNull(),
+  status: processStatusEnum('status').notNull(),
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull(),
+  responsibleSince: timestamp('responsible_since'),
+  deadline: timestamp('deadline'),
+  returnComments: text('return_comments'),
+  deletedAt: timestamp('deleted_at').notNull().defaultNow(),
+  deletedBy: integer('deleted_by').notNull(),
+  deletionReason: text('deletion_reason')
+});
+
+export const insertDeletedProcessSchema = createInsertSchema(deletedProcesses);
+export type DeletedProcess = typeof deletedProcesses.$inferSelect;
+export type InsertDeletedProcess = z.infer<typeof insertDeletedProcessSchema>;

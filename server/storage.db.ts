@@ -7,7 +7,8 @@ import {
   processes, type Process, type InsertProcess,
   processSteps, type ProcessStep, type InsertProcessStep,
   processParticipants, type ProcessParticipant, type InsertProcessParticipant,
-  convenios, type Convenio, type InsertConvenio
+  convenios, type Convenio, type InsertConvenio,
+  deletedProcesses, type DeletedProcess, type InsertDeletedProcess
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { eq, and, or, count, sql, inArray, desc } from "drizzle-orm";
@@ -283,9 +284,47 @@ export class DatabaseStorage implements IStorage {
     return updatedProcess;
   }
 
-  async deleteProcess(id: number): Promise<boolean> {
-    const result = await db.delete(processes).where(eq(processes.id, id));
-    return result.rowCount !== null && result.rowCount > 0;
+  async deleteProcess(id: number, userId: number): Promise<boolean> {
+    try {
+      // Buscar o processo antes de excluí-lo
+      const [processToDelete] = await db
+        .select()
+        .from(processes)
+        .where(eq(processes.id, id));
+
+      if (!processToDelete) {
+        return false;
+      }
+
+      // Mover processo para tabela deleted_processes
+      await db.insert(deletedProcesses).values({
+        originalProcessId: processToDelete.id,
+        pbdocNumber: processToDelete.pbdocNumber,
+        description: processToDelete.description,
+        modalityId: processToDelete.modalityId,
+        sourceId: processToDelete.sourceId,
+        responsibleId: processToDelete.responsibleId,
+        currentDepartmentId: processToDelete.currentDepartmentId,
+        centralDeCompras: processToDelete.centralDeCompras,
+        priority: processToDelete.priority,
+        status: processToDelete.status,
+        createdAt: processToDelete.createdAt,
+        updatedAt: processToDelete.updatedAt,
+        responsibleSince: processToDelete.responsibleSince,
+        deadline: processToDelete.deadline,
+        returnComments: processToDelete.returnComments,
+        deletedBy: userId,
+        deletionReason: null
+      });
+
+      // Remover o processo da tabela principal
+      const result = await db.delete(processes).where(eq(processes.id, id));
+      
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (error) {
+      console.error("Erro ao excluir processo:", error);
+      return false;
+    }
   }
 
   // Process participants operations
@@ -715,15 +754,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Trash functionality methods
-  async getDeletedProcesses(): Promise<Process[]> {
+  async getDeletedProcesses(): Promise<DeletedProcess[]> {
     try {
-      const deletedProcesses = await db
+      console.log("Buscando processos excluídos...");
+      const deletedProcessesList = await db
         .select()
-        .from(processes)
-        .where(sql`${processes.deletedAt} IS NOT NULL`)
-        .orderBy(desc(processes.deletedAt));
+        .from(deletedProcesses)
+        .orderBy(desc(deletedProcesses.deletedAt));
       
-      return deletedProcesses;
+      console.log(`Encontrados ${deletedProcessesList.length} processos excluídos`);
+      return deletedProcessesList;
     } catch (error) {
       console.error("Erro ao buscar processos excluídos:", error);
       throw error;
@@ -732,18 +772,41 @@ export class DatabaseStorage implements IStorage {
 
   async restoreProcess(id: number, userId: number): Promise<Process | undefined> {
     try {
+      // Buscar o processo excluído
+      const [deletedProcess] = await db
+        .select()
+        .from(deletedProcesses)
+        .where(eq(deletedProcesses.id, id));
+
+      if (!deletedProcess) {
+        return undefined;
+      }
+
+      // Restaurar o processo na tabela principal
       const [restoredProcess] = await db
-        .update(processes)
-        .set({
-          deletedAt: null,
-          deletedBy: null,
+        .insert(processes)
+        .values({
+          pbdocNumber: deletedProcess.pbdocNumber,
+          description: deletedProcess.description,
+          modalityId: deletedProcess.modalityId,
+          sourceId: deletedProcess.sourceId,
+          responsibleId: deletedProcess.responsibleId,
+          currentDepartmentId: deletedProcess.currentDepartmentId,
+          centralDeCompras: deletedProcess.centralDeCompras,
+          priority: deletedProcess.priority,
+          status: deletedProcess.status,
+          createdAt: deletedProcess.createdAt,
           updatedAt: new Date(),
+          responsibleSince: deletedProcess.responsibleSince,
+          deadline: deletedProcess.deadline,
+          returnComments: deletedProcess.returnComments,
+          deletedAt: null,
+          deletedBy: null
         })
-        .where(and(
-          eq(processes.id, id),
-          sql`${processes.deletedAt} IS NOT NULL`
-        ))
         .returning();
+
+      // Remover da lixeira
+      await db.delete(deletedProcesses).where(eq(deletedProcesses.id, id));
       
       return restoredProcess;
     } catch (error) {
@@ -754,11 +817,8 @@ export class DatabaseStorage implements IStorage {
 
   async permanentlyDeleteProcess(id: number): Promise<boolean> {
     try {
-      // First delete related process steps
-      await db.delete(processSteps).where(eq(processSteps.processId, id));
-      
-      // Then delete the process
-      const result = await db.delete(processes).where(eq(processes.id, id));
+      // Remover permanentemente da lixeira
+      const result = await db.delete(deletedProcesses).where(eq(deletedProcesses.id, id));
       
       return result.rowCount !== null && result.rowCount > 0;
     } catch (error) {
