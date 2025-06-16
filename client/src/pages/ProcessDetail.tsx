@@ -224,15 +224,24 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     // Mapeamento dos nomes de departamentos do banco para os setores do fluxo
     const departmentToSectorMap: { [key: string]: string } = {
       "Setor Demandante": "TI",
-      "Divisão de Licitação": "Licitações",
+      "Divisão de Licitação": "Licitações", 
+      "Licitação": "Licitações", // Nome do departamento atual no banco
       "Núcleo de Pesquisa de Preços – NPP": "NPP",
       "Unidade de  Orçamento e  Finanças": "Financeiro",
       "Procuradoria Geral do Estado - PGE": "Jurídico",
-      "Secretário de Estado da Administração  Penitenciária - SEAP":
-        "Administrativo",
+      "Secretário de Estado da Administração  Penitenciária - SEAP": "Administrativo",
+      "Planejamento": "TI", // Mapeamento para o departamento atual do usuário admin
+      "TI": "TI",
+      "Licitações": "Licitações",
+      "Jurídico": "Jurídico",
+      "Financeiro": "Financeiro",
+      "Administrativo": "Administrativo",
     };
 
     const sector = departmentToSectorMap[userDepartment] || userDepartment;
+    
+    console.log("getSectorSteps - Input:", { userDepartment, modalityId });
+    console.log("getSectorSteps - Mapped sector:", sector);
 
     const stepsBySector: {
       [key: string]: { name: string; phase: string; nextSector?: string }[];
@@ -359,7 +368,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       ],
     };
 
-    return stepsBySector[sector] || [];
+    const result = stepsBySector[sector] || [];
+    console.log("getSectorSteps - stepsBySector keys:", Object.keys(stepsBySector));
+    console.log("getSectorSteps - Final result:", result);
+    return result;
   };
 
   // Function to get next sector for a step
