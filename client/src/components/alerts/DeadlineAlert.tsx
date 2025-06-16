@@ -15,6 +15,7 @@ interface ProcessWithDeadline extends Process {
 export function DeadlineAlert() {
   const [showAlert, setShowAlert] = useState(false);
   const [processesNearDeadline, setProcessesNearDeadline] = useState<ProcessWithDeadline[]>([]);
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<number>>(new Set());
 
   const { data: processes = [] } = useQuery<Process[]>({
     queryKey: ['/api/processes'],
@@ -48,11 +49,12 @@ export function DeadlineAlert() {
 
     setProcessesNearDeadline(urgentProcesses);
     
-    // Mostra o popup se há processos urgentes e ainda não foi mostrado
-    if (urgentProcesses.length > 0 && !showAlert) {
+    // Mostra o popup se há processos urgentes e não foram dispensados
+    const hasUndismissedProcesses = urgentProcesses.some(p => !dismissedAlerts.has(p.id));
+    if (urgentProcesses.length > 0 && hasUndismissedProcesses && !showAlert) {
       setShowAlert(true);
     }
-  }, [processes, showAlert]);
+  }, [processes, dismissedAlerts, showAlert]);
 
   // Função para calcular dias úteis entre duas datas
   const getBusinessDaysBetween = (startDate: Date, endDate: Date): number => {
@@ -89,8 +91,16 @@ export function DeadlineAlert() {
     return null;
   }
 
+  const handleClose = () => {
+    // Marca todos os processos atualmente exibidos como dispensados
+    const currentProcessIds = processesNearDeadline.map(p => p.id);
+    setDismissedAlerts(prev => new Set([...prev, ...currentProcessIds]));
+    setShowAlert(false);
+    console.log('Alerta de prazo fechado para processos:', currentProcessIds);
+  };
+
   return (
-    <Dialog open={showAlert} onOpenChange={setShowAlert}>
+    <Dialog open={showAlert} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-yellow-600">
@@ -128,7 +138,11 @@ export function DeadlineAlert() {
           <div className="text-sm text-muted-foreground">
             {processesNearDeadline.length} processo{processesNearDeadline.length !== 1 ? 's' : ''} com prazo urgente
           </div>
-          <Button onClick={() => setShowAlert(false)} size="sm">
+          <Button 
+            onClick={handleClose}
+            size="sm"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white"
+          >
             <X className="h-4 w-4 mr-1" />
             Entendi
           </Button>
