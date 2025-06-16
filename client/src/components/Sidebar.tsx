@@ -75,12 +75,6 @@ const Sidebar = () => {
         label: "Usuários",
         adminOnly: true,
       },
-      {
-        path: "/trash",
-        icon: <Trash2 className="h-5 w-5 mr-3" />,
-        label: "Lixeira",
-        adminOnly: true,
-      },
     ],
     [],
   );
@@ -157,7 +151,7 @@ const Sidebar = () => {
 
             {/* Instrumento de repasse (dropdown) - only for admin */}
             {user?.role === "admin" && (
-              <li className="px-1">
+              <li className="px-2">
                 <button
                   onClick={() =>
                     setInstrumentoRepasseOpen(!instrumentoRepasseOpen)
@@ -165,8 +159,8 @@ const Sidebar = () => {
                   className="flex items-center justify-between w-full px-4 py-3 rounded-md group transition-colors text-white dark:hover:bg-[#020035] hover:bg-[#5892c2]"
                 >
                   <div className="flex items-center">
-                    <FileSpreadsheet className="h-4 w-4 mr-3" />
-                    <span>Instrumento de repasse</span>
+                    <FileSpreadsheet className="h-5 w-5 mr-3" />
+                    <span className="text-sm">Instrumento de repasse</span>
                   </div>
                   {instrumentoRepasseOpen ? (
                     <ChevronDown className="h-4 w-4" />
@@ -204,6 +198,23 @@ const Sidebar = () => {
                     </li>
                   </ul>
                 )}
+              </li>
+            )}
+
+            {/* Lixeira - only for admin */}
+            {user?.role === "admin" && (
+              <li className="px-2">
+                <Link
+                  href="/trash"
+                  className={`flex items-center px-4 py-3 rounded-md group transition-colors ${
+                    location === "/trash"
+                      ? "text-white dark:bg-[#01001A] bg-[#396a9c] font-medium"
+                      : "text-white dark:hover:bg-[#020035] hover:bg-[#5892c2]"
+                  }`}
+                >
+                  <Trash2 className="h-5 w-5 mr-3" />
+                  <span>Lixeira</span>
+                </Link>
               </li>
             )}
           </ul>

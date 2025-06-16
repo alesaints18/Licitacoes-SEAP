@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Trash2, RotateCcw, AlertTriangle, Calendar, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,39 @@ const Trash = () => {
       return response.json();
     },
   });
+
+  // WebSocket para atualizações em tempo real
+  useEffect(() => {
+    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const socket = new WebSocket(wsUrl);
+
+    socket.onopen = () => {
+      console.log("Conexão WebSocket estabelecida para lixeira");
+    };
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log("Mensagem WebSocket recebida na lixeira:", data);
+
+      if (data.type === "process_deleted" || data.type === "process_restored") {
+        // Invalidar cache para recarregar a lista de processos excluídos
+        queryClient.invalidateQueries({ queryKey: ["/api/processes/deleted"] });
+      }
+    };
+
+    socket.onclose = () => {
+      console.log("Conexão WebSocket fechada na lixeira");
+    };
+
+    socket.onerror = (error) => {
+      console.error("Erro WebSocket na lixeira:", error);
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, []);
 
   // Mutation para restaurar processo
   const restoreMutation = useMutation({
