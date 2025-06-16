@@ -20,6 +20,7 @@ import { useQuery } from "@tanstack/react-query";
 import { User } from "@shared/schema";
 import { ThemeToggle } from "./theme-toggle";
 import { useIsMobile } from "@/hooks/use-mobile";
+import govPBTLogo from "@assets/GovPBT.png";
 
 const Sidebar = () => {
   const [location, setLocation] = useLocation();
@@ -105,15 +106,14 @@ const Sidebar = () => {
       <div className="flex flex-col w-64 dark:bg-[#010021] bg-[#105e8f] shadow-lg">
         {/* Logo */}
         <a href="/">
-          <div className="flex flex-col items-center justify-center h-auto px-30 dark:bg-[#01001A] bg-[#396a9c]">
+          <div className="flex flex-col items-center justify-center h-auto px-6 py-4 dark:bg-[#01001A] bg-[#396a9c]">
             <img
-              src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
-              alt="Logo"
-              className=" w-100 mr-2"
-              width={150}
+              src={govPBTLogo}
+              alt="Logo GovPBT"
+              className="w-32 h-auto mb-2"
             />
             <div className="flex items-center">
-              <span className=" text-white font-medium text-lg">SEAP-PB</span>
+              <span className="text-white font-medium text-lg">SEAP-PB</span>
             </div>
           </div>
         </a>
