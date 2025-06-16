@@ -19,7 +19,8 @@ import {
   Search, 
   SendHorizonal, 
   Loader2,
-  X
+  X,
+  Eye
 } from "lucide-react";
 import { 
   Dialog, 
@@ -354,15 +355,7 @@ const Processes = () => {
               title="Visualizar"
               onClick={() => handleViewProcess(process.id)}
             >
-              <FileText className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              title="Transferir"
-              onClick={() => handleTransferClick(process)}
-            >
-              <SendHorizonal className="h-5 w-5" />
+              <Eye className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
