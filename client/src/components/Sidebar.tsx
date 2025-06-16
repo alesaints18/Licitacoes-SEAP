@@ -148,16 +148,18 @@ const Sidebar = () => {
                 </Link>
               </li>
             ))}
-            
+
             {/* Instrumento de repasse (dropdown) - only for admin */}
             {user?.role === "admin" && (
-              <li className="px-2">
+              <li className="px-1">
                 <button
-                  onClick={() => setInstrumentoRepasseOpen(!instrumentoRepasseOpen)}
+                  onClick={() =>
+                    setInstrumentoRepasseOpen(!instrumentoRepasseOpen)
+                  }
                   className="flex items-center justify-between w-full px-4 py-3 rounded-md group transition-colors text-white dark:hover:bg-[#020035] hover:bg-[#5892c2]"
                 >
                   <div className="flex items-center">
-                    <FileSpreadsheet className="h-5 w-5 mr-3" />
+                    <FileSpreadsheet className="h-4 w-4 mr-3" />
                     <span>Instrumento de repasse</span>
                   </div>
                   {instrumentoRepasseOpen ? (
@@ -166,7 +168,7 @@ const Sidebar = () => {
                     <ChevronRight className="h-4 w-4" />
                   )}
                 </button>
-                
+
                 {/* Submenu */}
                 {instrumentoRepasseOpen && (
                   <ul className="ml-8 mt-1 space-y-1">

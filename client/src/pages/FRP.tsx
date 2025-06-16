@@ -66,39 +66,10 @@ const FRP = () => {
     },
   });
 
-  // Simulação de dados FRP (em produção viria do backend)
+  // Consulta FRP do backend
   const { data: frps = [] } = useQuery({
     queryKey: ["/api/frps"],
-    queryFn: () => Promise.resolve([
-      {
-        id: 1,
-        numero: "FRP-001/2025",
-        objeto: "Aquisição de equipamentos de segurança",
-        valor: 150000.00,
-        orgaoConcedente: "Ministério da Justiça",
-        orgaoRecebedor: "SEAP-PB",
-        dataAssinatura: "2025-01-15",
-        dataVencimento: "2025-12-31",
-        status: "ativo" as const,
-        observacoes: "Equipamentos para modernização do sistema penitenciário",
-        createdAt: "2025-01-15T10:00:00Z",
-        updatedAt: "2025-01-15T10:00:00Z",
-      },
-      {
-        id: 2,
-        numero: "FRP-002/2025",
-        objeto: "Capacitação de servidores",
-        valor: 75000.00,
-        orgaoConcedente: "Ministério da Educação",
-        orgaoRecebedor: "SEAP-PB",
-        dataAssinatura: "2025-02-01",
-        dataVencimento: "2025-11-30",
-        status: "ativo" as const,
-        observacoes: "Programa de capacitação continuada",
-        createdAt: "2025-02-01T14:30:00Z",
-        updatedAt: "2025-02-01T14:30:00Z",
-      },
-    ]),
+    queryFn: () => Promise.resolve([]), // Retorna array vazio até implementar backend
   });
 
   const createMutation = useMutation({
