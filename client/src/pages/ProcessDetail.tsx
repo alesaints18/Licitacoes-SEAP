@@ -229,22 +229,23 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     // Mapeamento dos nomes de departamentos do banco para os setores do fluxo
     const departmentToSectorMap: { [key: string]: string } = {
       "Setor Demandante": "TI",
-      "Divisão de Licitação": "Licitações", 
-      "Licitação": "Licitações", // Nome do departamento atual no banco
+      "Divisão de Licitação": "Licitações",
+      Licitação: "Licitações", // Nome do departamento atual no banco
       "Núcleo de Pesquisa de Preços – NPP": "NPP",
       "Unidade de  Orçamento e  Finanças": "Financeiro",
       "Procuradoria Geral do Estado - PGE": "Jurídico",
-      "Secretário de Estado da Administração  Penitenciária - SEAP": "Administrativo",
-      "Planejamento": "TI", // Mapeamento para o departamento atual do usuário admin
-      "TI": "TI",
-      "Licitações": "Licitações",
-      "Jurídico": "Jurídico",
-      "Financeiro": "Financeiro",
-      "Administrativo": "Administrativo",
+      "Secretário de Estado da Administração  Penitenciária - SEAP":
+        "Administrativo",
+      Planejamento: "TI", // Mapeamento para o departamento atual do usuário admin
+      TI: "TI",
+      Licitações: "Licitações",
+      Jurídico: "Jurídico",
+      Financeiro: "Financeiro",
+      Administrativo: "Administrativo",
     };
 
     const sector = departmentToSectorMap[userDepartment] || userDepartment;
-    
+
     console.log("getSectorSteps - Input:", { userDepartment, modalityId });
     console.log("getSectorSteps - Mapped sector:", sector);
 
@@ -374,7 +375,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     };
 
     const result = stepsBySector[sector] || [];
-    console.log("getSectorSteps - stepsBySector keys:", Object.keys(stepsBySector));
+    console.log(
+      "getSectorSteps - stepsBySector keys:",
+      Object.keys(stepsBySector),
+    );
     console.log("getSectorSteps - Final result:", result);
     return result;
   };
@@ -529,7 +533,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         queryClient.invalidateQueries({
           queryKey: [`/api/processes/${parsedId}/steps`],
         });
-        
+
         toast({
           title: isCompleted ? "Etapa concluída" : "Etapa desmarcada",
           description: isCompleted
@@ -933,154 +937,173 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                               );
                               return sectorSteps;
                             })()
-                            .filter((sectorStep) => {
-                              // Mostrar apenas etapas pendentes (não concluídas)
-                              const existingStep = steps?.find(
-                                (s) => s.stepName === sectorStep.name,
-                              );
-                              return !existingStep?.isCompleted;
-                            })
-                            .map((sectorStep, index) => {
-                              const existingStep = steps?.find(
-                                (s) => s.stepName === sectorStep.name,
-                              );
-                              const isCompleted =
-                                existingStep?.isCompleted || false;
+                              .filter((sectorStep) => {
+                                // Mostrar apenas etapas pendentes (não concluídas)
+                                const existingStep = steps?.find(
+                                  (s) => s.stepName === sectorStep.name,
+                                );
+                                return !existingStep?.isCompleted;
+                              })
+                              .map((sectorStep, index) => {
+                                const existingStep = steps?.find(
+                                  (s) => s.stepName === sectorStep.name,
+                                );
+                                const isCompleted =
+                                  existingStep?.isCompleted || false;
 
-                              // Só mostrar se o usuário atual pertence ao departamento do processo
-                              const userCanEdit =
-                                currentUser.department ===
-                                  currentDepartment?.name ||
-                                currentUser.role === "admin";
+                                // Só mostrar se o usuário atual pertence ao departamento do processo
+                                const userCanEdit =
+                                  currentUser.department ===
+                                    currentDepartment?.name ||
+                                  currentUser.role === "admin";
 
-                              console.log(
-                                `Step ${sectorStep.name}: userCanEdit=${userCanEdit}, existingStep=${!!existingStep}, isCompleted=${isCompleted}`,
-                              );
+                                console.log(
+                                  `Step ${sectorStep.name}: userCanEdit=${userCanEdit}, existingStep=${!!existingStep}, isCompleted=${isCompleted}`,
+                                );
 
-                              return (
-                                <div
-                                  key={index}
-                                  className="flex items-center space-x-3 p-3 bg-white rounded border border-gray-200"
-                                >
-                                  <div className="flex items-center space-x-2">
-                                    {/* Botão de Aprovar */}
-                                    <button
-                                      className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                                        isCompleted
-                                          ? "bg-green-600 border-green-600 hover:bg-green-700"
-                                          : userCanEdit
-                                            ? "border-green-400 hover:border-green-600 bg-white hover:bg-green-50"
-                                            : "border-gray-300 bg-gray-100"
-                                      }`}
-                                      onClick={async () => {
-                                        if (!userCanEdit) return;
-                                        
-                                        if (existingStep) {
-                                          // Etapa existe, apenas atualizar
-                                          handleStepToggle(existingStep.id, !isCompleted);
-                                        } else {
-                                          // Etapa não existe, criar primeiro
-                                          try {
-                                            const response = await apiRequest("POST", `/api/processes/${process.id}/steps`, {
-                                              stepName: sectorStep.name,
-                                              departmentId: process.currentDepartmentId,
-                                              isCompleted: true,
-                                              observations: null
-                                            });
-                                            
-                                            if (response.ok) {
-                                              // Recarregar etapas
-                                              queryClient.invalidateQueries({
-                                                queryKey: [`/api/processes/${process.id}/steps`],
-                                              });
-                                              
+                                return (
+                                  <div
+                                    key={index}
+                                    className="flex items-center space-x-3 p-3 bg-white rounded border border-gray-200"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      {/* Botão de Aprovar */}
+                                      <button
+                                        className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                          isCompleted
+                                            ? "bg-green-600 border-green-600 hover:bg-green-700"
+                                            : userCanEdit
+                                              ? "border-green-400 hover:border-green-600 bg-white hover:bg-green-50"
+                                              : "border-gray-300 bg-gray-100"
+                                        }`}
+                                        onClick={async () => {
+                                          if (!userCanEdit) return;
+
+                                          if (existingStep) {
+                                            // Etapa existe, apenas atualizar
+                                            handleStepToggle(
+                                              existingStep.id,
+                                              !isCompleted,
+                                            );
+                                          } else {
+                                            // Etapa não existe, criar primeiro
+                                            try {
+                                              const response = await apiRequest(
+                                                "POST",
+                                                `/api/processes/${process.id}/steps`,
+                                                {
+                                                  stepName: sectorStep.name,
+                                                  departmentId:
+                                                    process.currentDepartmentId,
+                                                  isCompleted: true,
+                                                  observations: null,
+                                                },
+                                              );
+
+                                              if (response.ok) {
+                                                // Recarregar etapas
+                                                queryClient.invalidateQueries({
+                                                  queryKey: [
+                                                    `/api/processes/${process.id}/steps`,
+                                                  ],
+                                                });
+
+                                                toast({
+                                                  title:
+                                                    "Etapa criada e concluída",
+                                                  description: `Etapa "${sectorStep.name}" foi criada e marcada como concluída`,
+                                                });
+                                              }
+                                            } catch (error) {
                                               toast({
-                                                title: "Etapa criada e concluída",
-                                                description: `Etapa "${sectorStep.name}" foi criada e marcada como concluída`,
+                                                title: "Erro",
+                                                description:
+                                                  "Não foi possível criar a etapa",
+                                                variant: "destructive",
                                               });
                                             }
-                                          } catch (error) {
-                                            toast({
-                                              title: "Erro",
-                                              description: "Não foi possível criar a etapa",
-                                              variant: "destructive",
-                                            });
                                           }
-                                        }
-                                      }}
-                                      disabled={!userCanEdit}
-                                      title="Aprovar etapa"
-                                    >
-                                      {isCompleted ? (
-                                        <Check className="h-4 w-4 text-white" />
-                                      ) : (
-                                        <Check className="h-4 w-4 text-green-600" />
-                                      )}
-                                    </button>
+                                        }}
+                                        disabled={!userCanEdit}
+                                        title="Aprovar etapa"
+                                      >
+                                        {isCompleted ? (
+                                          <Check className="h-4 w-4 text-white" />
+                                        ) : (
+                                          <Check className="h-4 w-4 text-green-600" />
+                                        )}
+                                      </button>
 
-                                    {/* Botão de Rejeitar */}
-                                    <button
-                                      className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                                        userCanEdit
-                                          ? "border-red-400 hover:border-red-600 bg-white hover:bg-red-50"
-                                          : "border-gray-300 bg-gray-100"
-                                      }`}
-                                      onClick={async () => {
-                                        if (!userCanEdit) return;
-                                        
-                                        if (existingStep) {
-                                          // Etapa existe, apenas rejeitar
-                                          handleStepReject(existingStep);
-                                        } else {
-                                          // Etapa não existe, criar primeiro para poder rejeitar
-                                          try {
-                                            const response = await apiRequest("POST", `/api/processes/${process.id}/steps`, {
-                                              stepName: sectorStep.name,
-                                              departmentId: process.currentDepartmentId,
-                                              isCompleted: false,
-                                              observations: null
-                                            });
-                                            
-                                            if (response.ok) {
-                                              const newStep = await response.json();
-                                              // Rejeitar a etapa criada
-                                              handleStepReject(newStep);
+                                      {/* Botão de Rejeitar */}
+                                      <button
+                                        className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                          userCanEdit
+                                            ? "border-red-400 hover:border-red-600 bg-white hover:bg-red-50"
+                                            : "border-gray-300 bg-gray-100"
+                                        }`}
+                                        onClick={async () => {
+                                          if (!userCanEdit) return;
+
+                                          if (existingStep) {
+                                            // Etapa existe, apenas rejeitar
+                                            handleStepReject(existingStep);
+                                          } else {
+                                            // Etapa não existe, criar primeiro para poder rejeitar
+                                            try {
+                                              const response = await apiRequest(
+                                                "POST",
+                                                `/api/processes/${process.id}/steps`,
+                                                {
+                                                  stepName: sectorStep.name,
+                                                  departmentId:
+                                                    process.currentDepartmentId,
+                                                  isCompleted: false,
+                                                  observations: null,
+                                                },
+                                              );
+
+                                              if (response.ok) {
+                                                const newStep =
+                                                  await response.json();
+                                                // Rejeitar a etapa criada
+                                                handleStepReject(newStep);
+                                              }
+                                            } catch (error) {
+                                              toast({
+                                                title: "Erro",
+                                                description:
+                                                  "Não foi possível criar a etapa para rejeição",
+                                                variant: "destructive",
+                                              });
                                             }
-                                          } catch (error) {
-                                            toast({
-                                              title: "Erro",
-                                              description: "Não foi possível criar a etapa para rejeição",
-                                              variant: "destructive",
-                                            });
                                           }
-                                        }
-                                      }}
-                                      disabled={!userCanEdit}
-                                      title="Rejeitar etapa"
-                                    >
-                                      <XCircle className="h-4 w-4 text-red-600" />
-                                    </button>
-                                  </div>
+                                        }}
+                                        disabled={!userCanEdit}
+                                        title="Rejeitar etapa"
+                                      >
+                                        <XCircle className="h-4 w-4 text-red-600" />
+                                      </button>
+                                    </div>
 
-                                  <div className="flex-1">
-                                    <p
-                                      className={`text-sm font-medium ${isCompleted ? "line-through text-gray-500" : "text-gray-900"}`}
-                                    >
-                                      {sectorStep.name}
-                                    </p>
-                                    <p className="text-xs text-gray-500">
-                                      Fase: {sectorStep.phase}
-                                    </p>
-                                    {existingStep?.observations && (
-                                      <p className="text-xs text-red-600 mt-1 bg-red-50 p-2 rounded">
-                                        <strong>Motivo da rejeição:</strong>{" "}
-                                        {existingStep.observations}
+                                    <div className="flex-1">
+                                      <p
+                                        className={`text-sm font-medium ${isCompleted ? "line-through text-gray-500" : "text-gray-900"}`}
+                                      >
+                                        {sectorStep.name}
                                       </p>
-                                    )}
+                                      <p className="text-xs text-gray-500">
+                                        Fase: {sectorStep.phase}
+                                      </p>
+                                      {existingStep?.observations && (
+                                        <p className="text-xs text-red-600 mt-1 bg-red-50 p-2 rounded">
+                                          <strong>Motivo da rejeição:</strong>{" "}
+                                          {existingStep.observations}
+                                        </p>
+                                      )}
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            })}
+                                );
+                              })}
                           </div>
                         </div>
                       )}
@@ -1119,6 +1142,67 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                         </div>
                       )}
        /*}
+       {/* Botão de Correção do Checklist */}
+                      <div className="mt-6 pt-4 border-t border-gray-200">
+                        <center>
+                          <Button
+                            variant="secondary"
+                            onClick={async () => {
+                              try {
+                                // Corrigir apenas etapas do setor atual
+                                if (steps && currentDepartment) {
+                                  const sectorSteps = getSectorSteps(
+                                    currentDepartment.name,
+                                    process?.modalityId || 1,
+                                  );
+
+                                  // Filtrar apenas etapas do setor atual que estão concluídas
+                                  const currentSectorSteps = steps.filter(
+                                    (step) =>
+                                      sectorSteps.some(
+                                        (sectorStep) =>
+                                          sectorStep.name === step.stepName,
+                                      ) && step.isCompleted,
+                                  );
+
+                                  for (const step of currentSectorSteps) {
+                                    await apiRequest(
+                                      "PATCH",
+                                      `/api/processes/${parsedId}/steps/${step.id}`,
+                                      { isCompleted: false },
+                                    );
+                                  }
+
+                                  queryClient.invalidateQueries({
+                                    queryKey: [
+                                      `/api/processes/${parsedId}/steps`,
+                                    ],
+                                  });
+
+                                  toast({
+                                    title: "Checklist corrigido",
+                                    description: `Etapas do setor ${currentDepartment.name} foram desmarcadas.`,
+                                  });
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Erro",
+                                  description:
+                                    "Não foi possível corrigir o checklist.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Corrigir
+                          </Button>
+                          <p className="text-sm text-gray-600 mt-2">
+                            Remove apenas as marcações do setor atual feitas
+                            incorretamente
+                          </p>
+                        </center>
+                      </div>
                       {/* Prazo de Finalização por Fase */}
                       {currentUser && process && (
                         <div className="mt-6 pt-4 border-t border-gray-200">
@@ -1238,59 +1322,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           </div>
                         </div>
                       )}
-                      
-                      {/* Botão de Correção do Checklist */}
-                      <div className="mt-6 pt-4 border-t border-gray-200">
-                        <Button
-                          variant="secondary"
-                          onClick={async () => {
-                            try {
-                              // Corrigir apenas etapas do setor atual
-                              if (steps && currentDepartment) {
-                                const sectorSteps = getSectorSteps(
-                                  currentDepartment.name,
-                                  process?.modalityId || 1
-                                );
-                                
-                                // Filtrar apenas etapas do setor atual que estão concluídas
-                                const currentSectorSteps = steps.filter(step => 
-                                  sectorSteps.some(sectorStep => sectorStep.name === step.stepName) &&
-                                  step.isCompleted
-                                );
-                                
-                                for (const step of currentSectorSteps) {
-                                  await apiRequest(
-                                    "PATCH",
-                                    `/api/processes/${parsedId}/steps/${step.id}`,
-                                    { isCompleted: false }
-                                  );
-                                }
-                                
-                                queryClient.invalidateQueries({
-                                  queryKey: [`/api/processes/${parsedId}/steps`],
-                                });
-                                
-                                toast({
-                                  title: "Checklist corrigido",
-                                  description: `Etapas do setor ${currentDepartment.name} foram desmarcadas.`,
-                                });
-                              }
-                            } catch (error) {
-                              toast({
-                                title: "Erro",
-                                description: "Não foi possível corrigir o checklist.",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                        >
-                          <RefreshCw className="h-4 w-4 mr-2" />
-                          Corrigir Checklist do Setor
-                        </Button>
-                        <p className="text-sm text-gray-600 mt-2">
-                          Remove apenas as marcações do setor atual feitas incorretamente
-                        </p>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>

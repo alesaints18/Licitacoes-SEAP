@@ -86,6 +86,19 @@ export const processParticipants = pgTable('process_participants', {
   isActive: boolean('is_active').notNull().default(true), // Indica se o participante tem acesso ativo
 });
 
+// Process responsibility history table
+export const processResponsibilityHistory = pgTable('process_responsibility_history', {
+  id: serial('id').primaryKey(),
+  processId: integer('process_id').notNull(),
+  userId: integer('user_id').notNull(),
+  departmentId: integer('department_id').notNull(),
+  assignedAt: timestamp('assigned_at').notNull().defaultNow(),
+  endedAt: timestamp('ended_at'),
+  assignedBy: integer('assigned_by'), // Quem fez a transferência
+  transferComment: text('transfer_comment'), // Comentário da transferência
+  isActive: boolean('is_active').notNull().default(true),
+});
+
 export const convenios = pgTable('convenios', {
   id: serial('id').primaryKey(),
   numero: text('numero').notNull(),

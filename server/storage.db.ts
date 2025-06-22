@@ -7,6 +7,7 @@ import {
   processes, type Process, type InsertProcess,
   processSteps, type ProcessStep, type InsertProcessStep,
   processParticipants, type ProcessParticipant, type InsertProcessParticipant,
+  processResponsibilityHistory, type ProcessResponsibilityHistory, type InsertProcessResponsibilityHistory,
   convenios, type Convenio, type InsertConvenio,
   deletedProcesses, type DeletedProcess, type InsertDeletedProcess
 } from "@shared/schema";
