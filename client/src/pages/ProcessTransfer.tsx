@@ -66,6 +66,33 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     }
   });
 
+  // Return mutation
+  const returnMutation = useMutation({
+    mutationFn: async ({ departmentId, comment }: { departmentId: number; comment: string }) => {
+      const response = await apiRequest("POST", `/api/processes/${parsedId}/return`, {
+        departmentId,
+        comment
+      });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Processo retornado",
+        description: "O processo foi retornado com sucesso"
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/processes'] });
+      setLocation(`/processes/${parsedId}`);
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao retornar processo",
+        description: error.message || "Não foi possível retornar o processo",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleTransfer = () => {
     if (!selectedDepartmentId) {
       toast({
