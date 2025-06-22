@@ -7,7 +7,7 @@ import { Process, Department } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 
 interface ProcessTransferProps {
   id: string;
@@ -18,6 +18,9 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedDepartmentId, setSelectedDepartmentId] = useState<string>("");
+  const [showReturnPanel, setShowReturnPanel] = useState(false);
+  const [allowAllPreviousDepartments, setAllowAllPreviousDepartments] = useState(false);
+  const [selectedReturnDepartment, setSelectedReturnDepartment] = useState<string>("");
   const parsedId = parseInt(id);
 
   // Get process details

@@ -641,48 +641,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
           <Button
             variant="outline"
-            onClick={() => setShowTransferPanel(!showTransferPanel)}
+            onClick={() => setLocation(`/processes/${process.id}/transfer`)}
           >
             <ArrowRight className="h-4 w-4 mr-2" />
             Tramitar
-          </Button>
-
-          <Button
-            variant="secondary"
-            onClick={async () => {
-              try {
-                // Corrigir todas as etapas marcadas incorretamente
-                if (steps) {
-                  for (const step of steps) {
-                    if (step.isCompleted) {
-                      await apiRequest(
-                        "PATCH",
-                        `/api/processes/${parsedId}/steps/${step.id}`,
-                        { isCompleted: false }
-                      );
-                    }
-                  }
-                  
-                  queryClient.invalidateQueries({
-                    queryKey: [`/api/processes/${parsedId}/steps`],
-                  });
-                  
-                  toast({
-                    title: "Checklist corrigido",
-                    description: "Todas as etapas foram desmarcadas.",
-                  });
-                }
-              } catch (error) {
-                toast({
-                  title: "Erro",
-                  description: "Não foi possível corrigir o checklist.",
-                  variant: "destructive",
-                });
-              }
-            }}
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Corrigir Checklist
           </Button>
 
           <Button variant="outline" onClick={handleEdit}>
@@ -715,80 +677,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           </AlertDialog>
         </div>
       </div>
-
-      {/* Painel de Tramitação */}
-      {showTransferPanel && (
-        <Card className="mb-6 border-blue-200 bg-blue-50">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span className="flex items-center gap-2">
-                <ArrowRight className="h-5 w-5 text-blue-600" />
-                Tramitação do Processo
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowTransferPanel(false)}
-              >
-                {showTransferPanel ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    setLocation(`/processes/${process.id}/transfer`);
-                    setShowTransferPanel(false);
-                  }}
-                >
-                  <ArrowRight className="h-4 w-4 mr-2" />
-                  Tramitar Normalmente
-                </Button>
-                <p className="text-sm text-gray-600 mt-2">
-                  Seguir o fluxo normal de tramitação entre setores
-                </p>
-              </div>
-              
-              <div>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="allowReturn"
-                      checked={allowForcedReturn}
-                      onChange={(e) => setAllowForcedReturn(e.target.checked)}
-                      className="rounded border-gray-300"
-                    />
-                    <label htmlFor="allowReturn" className="text-sm font-medium">
-                      Permitir retorno fora do fluxo
-                    </label>
-                  </div>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    disabled={!allowForcedReturn}
-                    onClick={() => {
-                      if (allowForcedReturn) {
-                        setLocation(`/processes/${process.id}/return`);
-                        setShowTransferPanel(false);
-                      }
-                    }}
-                  >
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Retornar Processo
-                  </Button>
-                  <p className="text-sm text-gray-600">
-                    Marque a opção acima para permitir o retorno do processo
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
@@ -1350,6 +1238,50 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           </div>
                         </div>
                       )}
+                      
+                      {/* Botão de Correção do Checklist */}
+                      <div className="mt-6 pt-4 border-t border-gray-200">
+                        <Button
+                          variant="secondary"
+                          onClick={async () => {
+                            try {
+                              // Corrigir todas as etapas marcadas incorretamente
+                              if (steps) {
+                                for (const step of steps) {
+                                  if (step.isCompleted) {
+                                    await apiRequest(
+                                      "PATCH",
+                                      `/api/processes/${parsedId}/steps/${step.id}`,
+                                      { isCompleted: false }
+                                    );
+                                  }
+                                }
+                                
+                                queryClient.invalidateQueries({
+                                  queryKey: [`/api/processes/${parsedId}/steps`],
+                                });
+                                
+                                toast({
+                                  title: "Checklist corrigido",
+                                  description: "Todas as etapas foram desmarcadas.",
+                                });
+                              }
+                            } catch (error) {
+                              toast({
+                                title: "Erro",
+                                description: "Não foi possível corrigir o checklist.",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Corrigir Checklist
+                        </Button>
+                        <p className="text-sm text-gray-600 mt-2">
+                          Remove todas as marcações feitas incorretamente no checklist
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
