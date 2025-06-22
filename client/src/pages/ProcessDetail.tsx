@@ -738,27 +738,46 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
                     <div className="py-3 grid grid-cols-3">
                       <dt className="text-sm font-medium text-gray-500">
-                        Responsável
+                        Histórico de Responsabilidade
                       </dt>
                       <dd className="text-sm text-gray-900 col-span-2">
-                        {responsible?.fullName ||
-                          `Usuário ${process.responsibleId}`}
-                        {process.responsibleSince && (
-                          <div className="mt-1 text-xs text-blue-600 flex items-center">
-                            <Clock className="h-3 w-3 mr-1" />
-                            Responsável desde{" "}
-                            {format(
-                              new Date(process.responsibleSince),
-                              "dd/MM/yyyy",
-                              { locale: ptBR },
+                        {historyLoading ? (
+                          <div className="text-xs text-gray-500">Carregando histórico...</div>
+                        ) : responsibilityHistory && responsibilityHistory.length > 0 ? (
+                          <div className="space-y-2">
+                            {responsibilityHistory.map((entry, index) => (
+                              <div key={entry.id} className="flex items-center text-xs">
+                                <span className="font-medium text-blue-600">
+                                  {entry.user.fullName} ({entry.department.name})
+                                </span>
+                                {entry.isActive && (
+                                  <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">
+                                    Atual
+                                  </span>
+                                )}
+                                <div className="ml-2 text-gray-500">
+                                  desde {format(new Date(entry.assignedAt), "dd/MM/yyyy", { locale: ptBR })}
+                                </div>
+                                {index < responsibilityHistory.length - 1 && (
+                                  <div className="ml-2 text-gray-400">→</div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-500">
+                            {responsible?.fullName || `Usuário ${process.responsibleId}`}
+                            {process.responsibleSince && (
+                              <div className="mt-1 text-xs text-blue-600 flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Responsável desde{" "}
+                                {format(
+                                  new Date(process.responsibleSince),
+                                  "dd/MM/yyyy",
+                                  { locale: ptBR },
+                                )}
+                              </div>
                             )}
-                            (
-                            {Math.ceil(
-                              (new Date().getTime() -
-                                new Date(process.responsibleSince).getTime()) /
-                                (1000 * 60 * 60 * 24),
-                            )}{" "}
-                            dias)
                           </div>
                         )}
                       </dd>
