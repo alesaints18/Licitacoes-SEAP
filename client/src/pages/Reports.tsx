@@ -73,22 +73,26 @@ const Reports = () => {
   // Filter processes based on filters
   const getFilteredProcesses = () => {
     if (!processes) return [];
-    
+
     return processes.filter((process) => {
+      // Filter by Central de Compras
+      if (centralDeComprasFilter && process.centralDeCompras) {
+        if (
+          !process.centralDeCompras
+            .toLowerCase()
+            .includes(centralDeComprasFilter.toLowerCase())
+        ) {
+          return false;
+        }
+      }
+
       // Filter by department
       if (selectedDepartment && selectedDepartment !== "all") {
         if (process.currentDepartmentId !== parseInt(selectedDepartment)) {
           return false;
         }
       }
-      
-      // Filter by Central de Compras
-      if (centralDeComprasFilter && process.centralDeCompras) {
-        if (!process.centralDeCompras.toLowerCase().includes(centralDeComprasFilter.toLowerCase())) {
-          return false;
-        }
-      }
-      
+
       // Filter by month and year
       if (selectedMonth && selectedMonth !== "all") {
         const processDate = new Date(process.createdAt);
@@ -96,14 +100,14 @@ const Reports = () => {
           return false;
         }
       }
-      
+
       if (selectedYear && selectedYear !== "all") {
         const processDate = new Date(process.createdAt);
         if (processDate.getFullYear() !== parseInt(selectedYear)) {
           return false;
         }
       }
-      
+
       return true;
     });
   };
@@ -214,7 +218,7 @@ const Reports = () => {
 
   const prepareReportData = () => {
     if (!processes || !users || !modalities || !sources) return null;
-    
+
     return {
       processes,
       users,
@@ -330,7 +334,7 @@ const Reports = () => {
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Central de Compras
@@ -350,11 +354,13 @@ const Reports = () => {
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               Exportar Excel
             </Button>
-            <Button onClick={() => {
-              const data = prepareReportData();
-              if (!data) return;
-              generateModernPdf(data);
-            }}>
+            <Button
+              onClick={() => {
+                const data = prepareReportData();
+                if (!data) return;
+                generateModernPdf(data);
+              }}
+            >
               <FileText className="h-4 w-4 mr-2" />
               Exportar PDF
             </Button>

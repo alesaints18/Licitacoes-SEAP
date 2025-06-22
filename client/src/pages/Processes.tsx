@@ -417,6 +417,22 @@ const Processes = () => {
             </div>
             
             <div>
+              <label htmlFor="centralDeCompras" className="block text-sm font-medium text-gray-700 mb-1">
+                Central de Compras
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="centralDeCompras"
+                  placeholder="Número Central de Compras"
+                  className="pl-10"
+                  value={centralDeComprasFilter}
+                  onChange={(e) => setCentralDeComprasFilter(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            <div>
               <label htmlFor="modality" className="block text-sm font-medium text-gray-700 mb-1">
                 Modalidade
               </label>
@@ -489,22 +505,6 @@ const Processes = () => {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-            
-            <div>
-              <label htmlFor="centralDeCompras" className="block text-sm font-medium text-gray-700 mb-1">
-                Central de Compras
-              </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="centralDeCompras"
-                  placeholder="Número Central de Compras"
-                  className="pl-10"
-                  value={centralDeComprasFilter}
-                  onChange={(e) => setCentralDeComprasFilter(e.target.value)}
-                />
-              </div>
             </div>
           </div>
         </CardContent>
