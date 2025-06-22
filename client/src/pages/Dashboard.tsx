@@ -158,6 +158,12 @@ const Dashboard = () => {
     queryClient.invalidateQueries({
       queryKey: ["/api/analytics/processes-by-responsible"],
     });
+    queryClient.invalidateQueries({
+      queryKey: ["/api/analytics/temporal-distribution"],
+    });
+    queryClient.invalidateQueries({
+      queryKey: ["/api/analytics/department-ranking"],
+    });
     queryClient.invalidateQueries({ queryKey: ["/api/settings/monthly-goal"] });
     queryClient.invalidateQueries({ queryKey: ["/api/users"] });
     queryClient.invalidateQueries({ queryKey: ["/api/modalities"] });
