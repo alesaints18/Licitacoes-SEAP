@@ -508,14 +508,28 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
                 
                 <div>
                   <label className="block text-sm font-medium mb-2">
-                    Motivo do retorno:
+                    Motivo do retorno *
                   </label>
                   <textarea
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    rows={3}
-                    placeholder="Descreva o motivo do retorno..."
+                    rows={4}
+                    placeholder="Descreva detalhadamente o motivo do retorno (mínimo 100 caracteres)..."
                     id="returnComment"
+                    onChange={(e) => {
+                      const chars = e.target.value.length;
+                      const counter = document.getElementById('charCounter');
+                      if (counter) {
+                        counter.textContent = `${chars}/100 caracteres`;
+                        counter.className = chars >= 100 ? "text-green-600 text-xs mt-1" : "text-red-600 text-xs mt-1";
+                      }
+                    }}
                   />
+                  <div 
+                    id="charCounter" 
+                    className="text-red-600 text-xs mt-1"
+                  >
+                    0/100 caracteres
+                  </div>
                 </div>
                 
                 <Button
@@ -532,9 +546,17 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
                       });
                       return;
                     }
+                    if (comment.trim().length < 100) {
+                      toast({
+                        title: "Motivo insuficiente",
+                        description: "O motivo do retorno deve ter pelo menos 100 caracteres",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
                     returnMutation.mutate({
                       departmentId: parseInt(selectedReturnDepartment),
-                      comment
+                      comment: comment.trim()
                     });
                   }}
                 >
