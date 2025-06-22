@@ -41,7 +41,7 @@ export function ProcessOverdueRanking({ filters }: ProcessOverdueRankingProps) {
 
   const { data: rankingData = [] } = useQuery<DepartmentRankingData[]>({
     queryKey: ['/api/analytics/department-ranking', urlParams],
-    queryFn: getQueryFn(),
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
   // Filtrar apenas departamentos com processos atrasados

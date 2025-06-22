@@ -38,7 +38,7 @@ export function DepartmentRanking({ filters }: DepartmentRankingProps) {
 
   const { data: rankingData = [] } = useQuery<DepartmentRankingData[]>({
     queryKey: ['/api/analytics/department-ranking', urlParams],
-    queryFn: getQueryFn(),
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
   const getRankPosition = (index: number) => {

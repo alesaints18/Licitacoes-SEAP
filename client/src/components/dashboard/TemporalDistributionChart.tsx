@@ -35,7 +35,7 @@ export function TemporalDistributionChart({ filters }: TemporalDistributionChart
 
   const { data: temporalData = [] } = useQuery<TemporalDistributionData[]>({
     queryKey: ['/api/analytics/temporal-distribution', urlParams],
-    queryFn: getQueryFn(),
+    queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
   // Preparar dados para o gráfico
