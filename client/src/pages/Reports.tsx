@@ -129,7 +129,6 @@ const Reports = () => {
     });
 
     return [
-      { name: "Rascunho", value: statusCounts.draft },
       { name: "Em Andamento", value: statusCounts.in_progress },
       { name: "Concluído", value: statusCounts.completed },
       { name: "Cancelado", value: statusCounts.canceled },
