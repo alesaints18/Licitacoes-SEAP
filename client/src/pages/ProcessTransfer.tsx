@@ -7,6 +7,7 @@ import { Process, Department } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, ArrowRight, CheckCircle, ChevronDown, ChevronUp } from "lucide-react";
 
 interface ProcessTransferProps {
@@ -31,6 +32,12 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   // Get departments
   const { data: departments } = useQuery<Department[]>({
     queryKey: ['/api/departments'],
+  });
+
+  // Get process steps
+  const { data: steps } = useQuery({
+    queryKey: [`/api/processes/${parsedId}/steps`],
+    enabled: !!process,
   });
 
   // Transfer mutation
@@ -88,8 +95,9 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   }
 
   // Get process steps to check completion
-  const { data: steps } = useQuery({
+  const { data: processSteps } = useQuery({
     queryKey: [`/api/processes/${parsedId}/steps`],
+    enabled: !!process,
   });
 
   // Definir a ordem do fluxo dos departamentos
@@ -138,7 +146,7 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   const expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
   
   // Filtrar etapas baseado nos nomes esperados para o setor atual
-  const currentDepartmentSteps = steps?.filter(step => 
+  const currentDepartmentSteps = processSteps?.filter(step => 
     expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
   ) || [];
   
@@ -401,6 +409,114 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
               </div>
             </div>
           </div>
+
+          {/* Painel de Retorno */}
+          <Card className="border-yellow-200 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <ArrowLeft className="h-5 w-5 text-yellow-600" />
+                  Retornar Processo
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowReturnPanel(!showReturnPanel)}
+                >
+                  {showReturnPanel ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            {showReturnPanel && (
+              <CardContent className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="allowAllPrevious"
+                    checked={allowAllPreviousDepartments}
+                    onChange={(e) => setAllowAllPreviousDepartments(e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                  <label htmlFor="allowAllPrevious" className="text-sm font-medium">
+                    Permitir retorno para todos os setores anteriores
+                  </label>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Selecionar departamento de retorno:
+                  </label>
+                  <Select value={selectedReturnDepartment} onValueChange={setSelectedReturnDepartment}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o departamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(() => {
+                        const currentIndex = departmentFlow.findIndex(id => id === process.currentDepartmentId);
+                        const availableForReturn = [];
+                        
+                        if (allowAllPreviousDepartments) {
+                          // Todos os departamentos anteriores
+                          for (let i = 0; i < currentIndex; i++) {
+                            const dept = departments?.find(d => d.id === departmentFlow[i]);
+                            if (dept) availableForReturn.push(dept);
+                          }
+                        } else {
+                          // Apenas o departamento anterior
+                          if (currentIndex > 0) {
+                            const dept = departments?.find(d => d.id === departmentFlow[currentIndex - 1]);
+                            if (dept) availableForReturn.push(dept);
+                          }
+                        }
+                        
+                        return availableForReturn.map(dept => (
+                          <SelectItem key={dept.id} value={dept.id.toString()}>
+                            {dept.name}
+                          </SelectItem>
+                        ));
+                      })()}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-2">
+                    Motivo do retorno:
+                  </label>
+                  <textarea
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    rows={3}
+                    placeholder="Descreva o motivo do retorno..."
+                    id="returnComment"
+                  />
+                </div>
+                
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled={!selectedReturnDepartment || returnMutation.isPending}
+                  onClick={() => {
+                    const comment = (document.getElementById('returnComment') as HTMLTextAreaElement)?.value;
+                    if (!comment.trim()) {
+                      toast({
+                        title: "Motivo obrigatório",
+                        description: "Por favor, informe o motivo do retorno",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                    returnMutation.mutate({
+                      departmentId: parseInt(selectedReturnDepartment),
+                      comment
+                    });
+                  }}
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  {returnMutation.isPending ? "Retornando..." : "Confirmar Retorno"}
+                </Button>
+              </CardContent>
+            )}
+          </Card>
 
           <div className="flex space-x-3">
             <Button
