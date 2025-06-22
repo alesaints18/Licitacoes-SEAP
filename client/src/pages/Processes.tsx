@@ -133,6 +133,7 @@ const Processes = () => {
   const [statusFilter, setStatusFilter] = useState("");
   const [sourceFilter, setSourceFilter] = useState("");
   const [responsibleFilter, setResponsibleFilter] = useState("");
+  const [centralDeComprasFilter, setCentralDeComprasFilter] = useState("");
   
   // Estado para controlar o diálogo de transferência
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
@@ -269,6 +270,10 @@ const Processes = () => {
       match = false;
     }
     
+    if (centralDeComprasFilter && process.centralDeCompras && !process.centralDeCompras.toLowerCase().includes(centralDeComprasFilter.toLowerCase())) {
+      match = false;
+    }
+    
     return match;
   });
   
@@ -394,7 +399,7 @@ const Processes = () => {
       {/* Filters */}
       <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div>
               <label htmlFor="pbdoc" className="block text-sm font-medium text-gray-700 mb-1">
                 PBDOC
@@ -484,6 +489,22 @@ const Processes = () => {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div>
+              <label htmlFor="centralDeCompras" className="block text-sm font-medium text-gray-700 mb-1">
+                Central de Compras
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="centralDeCompras"
+                  placeholder="Número Central de Compras"
+                  className="pl-10"
+                  value={centralDeComprasFilter}
+                  onChange={(e) => setCentralDeComprasFilter(e.target.value)}
+                />
+              </div>
             </div>
           </div>
         </CardContent>

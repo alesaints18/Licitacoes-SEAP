@@ -45,6 +45,7 @@ const Reports = () => {
   const [selectedYear, setSelectedYear] = useState(
     new Date().getFullYear().toString(),
   );
+  const [centralDeComprasFilter, setCentralDeComprasFilter] = useState("");
 
   const { data: processes } = useQuery<Process[]>({
     queryKey: ["/api/processes"],
@@ -209,7 +210,7 @@ const Reports = () => {
 
       <Card className="mb-6">
         <CardContent className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Tipo de Relatório
@@ -286,6 +287,19 @@ const Reports = () => {
                   <SelectItem value="2025">2025</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Central de Compras
+              </label>
+              <div className="relative">
+                <Input
+                  placeholder="Número Central de Compras"
+                  value={centralDeComprasFilter}
+                  onChange={(e) => setCentralDeComprasFilter(e.target.value)}
+                />
+              </div>
             </div>
           </div>
 
