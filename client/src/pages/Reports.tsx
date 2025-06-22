@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -69,9 +70,48 @@ const Reports = () => {
 
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
 
+  // Filter processes based on filters
+  const getFilteredProcesses = () => {
+    if (!processes) return [];
+    
+    return processes.filter((process) => {
+      // Filter by department
+      if (selectedDepartment && selectedDepartment !== "all") {
+        if (process.currentDepartmentId !== parseInt(selectedDepartment)) {
+          return false;
+        }
+      }
+      
+      // Filter by Central de Compras
+      if (centralDeComprasFilter && process.centralDeCompras) {
+        if (!process.centralDeCompras.toLowerCase().includes(centralDeComprasFilter.toLowerCase())) {
+          return false;
+        }
+      }
+      
+      // Filter by month and year
+      if (selectedMonth && selectedMonth !== "all") {
+        const processDate = new Date(process.createdAt);
+        if (processDate.getMonth() + 1 !== parseInt(selectedMonth)) {
+          return false;
+        }
+      }
+      
+      if (selectedYear && selectedYear !== "all") {
+        const processDate = new Date(process.createdAt);
+        if (processDate.getFullYear() !== parseInt(selectedYear)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+  };
+
   // Process data for charts
   const getProcessStatusData = () => {
-    if (!processes) return [];
+    const filteredProcesses = getFilteredProcesses();
+    if (!filteredProcesses.length) return [];
 
     const statusCounts = {
       draft: 0,
@@ -80,7 +120,7 @@ const Reports = () => {
       canceled: 0,
     };
 
-    processes.forEach((process) => {
+    filteredProcesses.forEach((process) => {
       statusCounts[process.status as keyof typeof statusCounts]++;
     });
 
@@ -93,11 +133,12 @@ const Reports = () => {
   };
 
   const getProcessModalityData = () => {
-    if (!processes || !modalities) return [];
+    const filteredProcesses = getFilteredProcesses();
+    if (!filteredProcesses.length || !modalities) return [];
 
     const modalityCounts = new Map<number, number>();
 
-    processes.forEach((process) => {
+    filteredProcesses.forEach((process) => {
       const count = modalityCounts.get(process.modalityId) || 0;
       modalityCounts.set(process.modalityId, count + 1);
     });
@@ -112,11 +153,12 @@ const Reports = () => {
   };
 
   const getProcessSourceData = () => {
-    if (!processes || !sources) return [];
+    const filteredProcesses = getFilteredProcesses();
+    if (!filteredProcesses.length || !sources) return [];
 
     const sourceCounts = new Map<number, number>();
 
-    processes.forEach((process) => {
+    filteredProcesses.forEach((process) => {
       const count = sourceCounts.get(process.sourceId) || 0;
       sourceCounts.set(process.sourceId, count + 1);
     });
