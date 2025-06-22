@@ -347,19 +347,6 @@ const Reports = () => {
                 </SelectContent>
               </Select>
             </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Central de Compras
-              </label>
-              <div className="relative">
-                <Input
-                  placeholder="Número Central de Compras"
-                  value={centralDeComprasFilter}
-                  onChange={(e) => setCentralDeComprasFilter(e.target.value)}
-                />
-              </div>
-            </div>
           </div>
 
           <div className="mt-4 flex justify-end gap-2">
@@ -398,18 +385,19 @@ const Reports = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={getProcessStatusData()}
+                      data={getProcessStatusData().filter(item => item.value > 0)}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent }) =>
-                        `${name}: ${(percent * 100).toFixed(0)}%`
-                      }
+                      label={({ name, percent, index }) => {
+                        const yOffset = index * 8; // Espaçamento vertical progressivo
+                        return `${name}: ${(percent * 100).toFixed(0)}%`;
+                      }}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {getProcessStatusData().map((entry, index) => (
+                      {getProcessStatusData().filter(item => item.value > 0).map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}
@@ -417,7 +405,11 @@ const Reports = () => {
                       ))}
                     </Pie>
                     <Tooltip />
-                    <Legend />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36}
+                      wrapperStyle={{ paddingTop: '20px' }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </CardContent>
