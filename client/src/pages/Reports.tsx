@@ -272,6 +272,19 @@ const Reports = () => {
                 </SelectContent>
               </Select>
             </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Central de Compras
+              </label>
+              <div className="relative">
+                <Input
+                  placeholder="Número Central de Compras"
+                  value={centralDeComprasFilter}
+                  onChange={(e) => setCentralDeComprasFilter(e.target.value)}
+                />
+              </div>
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
