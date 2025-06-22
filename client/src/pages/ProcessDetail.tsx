@@ -1245,16 +1245,25 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           variant="secondary"
                           onClick={async () => {
                             try {
-                              // Corrigir todas as etapas marcadas incorretamente
-                              if (steps) {
-                                for (const step of steps) {
-                                  if (step.isCompleted) {
-                                    await apiRequest(
-                                      "PATCH",
-                                      `/api/processes/${parsedId}/steps/${step.id}`,
-                                      { isCompleted: false }
-                                    );
-                                  }
+                              // Corrigir apenas etapas do setor atual
+                              if (steps && currentDepartment) {
+                                const sectorSteps = getSectorSteps(
+                                  currentDepartment.name,
+                                  process?.modalityId || 1
+                                );
+                                
+                                // Filtrar apenas etapas do setor atual que estão concluídas
+                                const currentSectorSteps = steps.filter(step => 
+                                  sectorSteps.some(sectorStep => sectorStep.name === step.stepName) &&
+                                  step.isCompleted
+                                );
+                                
+                                for (const step of currentSectorSteps) {
+                                  await apiRequest(
+                                    "PATCH",
+                                    `/api/processes/${parsedId}/steps/${step.id}`,
+                                    { isCompleted: false }
+                                  );
                                 }
                                 
                                 queryClient.invalidateQueries({
@@ -1263,7 +1272,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                 
                                 toast({
                                   title: "Checklist corrigido",
-                                  description: "Todas as etapas foram desmarcadas.",
+                                  description: `Etapas do setor ${currentDepartment.name} foram desmarcadas.`,
                                 });
                               }
                             } catch (error) {
@@ -1276,10 +1285,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           }}
                         >
                           <RefreshCw className="h-4 w-4 mr-2" />
-                          Corrigir Checklist
+                          Corrigir Checklist do Setor
                         </Button>
                         <p className="text-sm text-gray-600 mt-2">
-                          Remove todas as marcações feitas incorretamente no checklist
+                          Remove apenas as marcações do setor atual feitas incorretamente
                         </p>
                       </div>
                     </div>
