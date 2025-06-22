@@ -385,19 +385,19 @@ const Reports = () => {
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
-                      data={getProcessStatusData().filter(item => item.value > 0)}
+                      data={getProcessStatusData()}
                       cx="50%"
                       cy="50%"
                       labelLine={false}
-                      label={({ name, percent, index }) => {
-                        const yOffset = index * 8; // Espaçamento vertical progressivo
-                        return `${name}: ${(percent * 100).toFixed(0)}%`;
+                      label={({ name, percent, value }) => {
+                        // Só mostra label se tem valor > 0
+                        return value > 0 ? `${name}: ${(percent * 100).toFixed(0)}%` : null;
                       }}
                       outerRadius={80}
                       fill="#8884d8"
                       dataKey="value"
                     >
-                      {getProcessStatusData().filter(item => item.value > 0).map((entry, index) => (
+                      {getProcessStatusData().map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
                           fill={COLORS[index % COLORS.length]}
