@@ -25,6 +25,8 @@ const ProcessCreate = () => {
         responsibleId: Number(data.responsibleId),
         // Todos os processos sempre começam no Setor Demandante (ID: 1)
         currentDepartmentId: 1,
+        // Novos processos sempre começam em andamento
+        status: "in_progress",
         // Converter deadline string para Date
         deadline: data.deadline ? new Date(data.deadline) : null
       };
