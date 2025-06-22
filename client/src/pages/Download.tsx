@@ -1,93 +1,104 @@
-import { useParams } from "wouter";
-import { FileDown, Clock, CheckCircle } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect, useState } from "react";
+import { Download, FileText, Calendar } from "lucide-react";
 
-const Download = () => {
-  const { token } = useParams();
-  const [downloaded, setDownloaded] = useState(false);
-  
-  // Status de download
-  const [downloadStatus, setDownloadStatus] = useState<'idle' | 'downloading' | 'completed'>('idle');
-  
-  // Função para iniciar o download
-  const handleDownload = () => {
-    // Configurar status de download
-    setDownloadStatus('downloading');
-    
-    // Simular progresso de download
-    setTimeout(() => {
-      setDownloadStatus('completed');
-      setDownloaded(true);
-      
-      // Criar link de download para o arquivo
-      const link = document.createElement('a');
-      link.href = '/downloads/SEAP-PB-v1.0.0.zip';
-      link.setAttribute('download', 'SEAP-PB-v1.0.0.zip');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }, 2000);
+export default function DownloadPage() {
+  const handleDownloadReport = () => {
+    // Create a download link for the HTML report
+    const link = document.createElement('a');
+    link.href = '/download/Relatorio_Alteracoes_Sistema_Licitacao.html';
+    link.download = 'Relatorio_Alteracoes_Sistema_Licitacao.html';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-  
+
+  const handleViewReport = () => {
+    // Open report in new tab
+    window.open('/download/Relatorio_Alteracoes_Sistema_Licitacao.html', '_blank');
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
-      <Card className="w-full max-w-md shadow-xl">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center">
-            <FileDown className="h-10 w-10 text-blue-600" />
-          </div>
-          <CardTitle className="text-2xl font-bold">Sistema SEAP-PB</CardTitle>
-          <CardDescription>
-            Sistema de Controle de Processos de Licitação
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4">
-            <h3 className="font-medium mb-2">Informações do Download</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Versão: 1.0.0<br />
-              Tamanho: 12.5 MB<br />
-              Data de lançamento: 23/05/2025
-            </p>
-          </div>
-          
-          <div className="rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
-            <h3 className="font-medium mb-2">Conteúdo</h3>
-            <ul className="text-sm text-gray-500 dark:text-gray-400 list-disc pl-5 space-y-1">
-              <li>Aplicativo completo do Sistema SEAP-PB</li>
-              <li>Guia de instalação</li>
-              <li>Documentação de usuário</li>
-              <li>Requisitos de sistema</li>
-            </ul>
-          </div>
-        </CardContent>
-        <CardFooter className="flex justify-center pb-6">
-          {downloadStatus === 'idle' && (
-            <Button onClick={handleDownload} className="w-3/4">
-              <FileDown className="mr-2 h-4 w-4" />
-              Baixar agora
-            </Button>
-          )}
-          
-          {downloadStatus === 'downloading' && (
-            <Button disabled className="w-3/4">
-              <Clock className="mr-2 h-4 w-4 animate-spin" />
-              Baixando...
-            </Button>
-          )}
-          
-          {downloadStatus === 'completed' && (
-            <Button variant="outline" className="w-3/4 bg-green-50 text-green-700 border-green-200">
-              <CheckCircle className="mr-2 h-4 w-4" />
-              Download concluído
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
+    <div className="container mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-6">Downloads e Relatórios</h1>
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Relatório de Alterações
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Calendar className="h-4 w-4" />
+                Período: 18/06/2025 - 22/06/2025
+              </div>
+              
+              <p className="text-sm text-gray-700">
+                Relatório completo das alterações realizadas no Sistema de Controle 
+                de Processos de Licitação nos últimos 5 dias, incluindo melhorias na 
+                interface, novas funcionalidades e atualizações do backend.
+              </p>
+              
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleViewReport}
+                  variant="outline"
+                  size="sm"
+                >
+                  Visualizar
+                </Button>
+                <Button 
+                  onClick={handleDownloadReport}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download HTML
+                </Button>
+              </div>
+              
+              <div className="text-xs text-gray-500">
+                <p><strong>Dica:</strong> Após abrir o relatório HTML, use Ctrl+P (ou Cmd+P no Mac) 
+                para imprimir ou salvar como PDF diretamente do navegador.</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Instruções para PDF</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3 text-sm">
+              <div>
+                <strong>Para gerar PDF:</strong>
+                <ol className="list-decimal list-inside mt-2 space-y-1 text-gray-700">
+                  <li>Clique em "Visualizar" ou "Download HTML"</li>
+                  <li>No navegador, pressione Ctrl+P (ou Cmd+P)</li>
+                  <li>Selecione "Salvar como PDF" como destino</li>
+                  <li>Configure margens e orientação se necessário</li>
+                  <li>Clique em "Salvar"</li>
+                </ol>
+              </div>
+              
+              <div className="bg-blue-50 p-3 rounded">
+                <p className="text-blue-800 text-xs">
+                  <strong>Recomendações:</strong><br />
+                  • Use orientação retrato<br />
+                  • Margens normais ou estreitas<br />
+                  • Incluir gráficos de fundo para melhor aparência
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
-};
-
-export default Download;
+}

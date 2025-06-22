@@ -223,7 +223,7 @@ const Sidebar = () => {
         {/* Version and Theme */}
         <div className="p-2 border-t dark:border-[#090935] border-[#5892c2]">
           <div className="flex items-center justify-between px-4 py-2 text-white text-xs">
-            <span>v1.0.1</span>
+            <span>v1.0.2</span>
             {/* <div className="hidden md:block">
               <ThemeToggle />
             </div>

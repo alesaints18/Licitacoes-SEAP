@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Alterações - Sistema de Licitação</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 40px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            color: #0066cc;
+            font-size: 24px;
+            margin: 0;
+        }
+        .header p {
+            color: #666;
+            margin: 10px 0;
+        }
+        .section {
+            margin: 30px 0;
+        }
+        .section h2 {
+            color: #0066cc;
+            font-size: 18px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        .changes-list {
+            margin: 15px 0;
+        }
+        .changes-list li {
+            margin: 8px 0;
+            padding-left: 10px;
+        }
+        .checkmark {
+            color: #00aa00;
+            font-weight: bold;
+        }
+        .bullet {
+            color: #0066cc;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 12px;
+        }
+        .file-path {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        @media print {
+            body { margin: 20px; }
+            .header { page-break-after: avoid; }
+            .section { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>RELATÓRIO DE ALTERAÇÕES</h1>
+        <h2>SISTEMA DE CONTROLE DE PROCESSOS DE LICITAÇÃO</h2>
+        <p><strong>Período:</strong> 18/06/2025 - 22/06/2025</p>
+        <p><strong>Gerado em:</strong> 22/6/2025 às 08:58:16</p>
+        <p><strong>Secretaria de Estado da Administração Penitenciária - SEAP</strong></p>
+    </div>
+
+    <div class="section">
+        <h2>1. ALTERAÇÕES NA INTERFACE DO USUÁRIO</h2>
+        <ul class="changes-list">
+            <li><span class="checkmark">✓</span> Eliminação completa do status "Rascunho" de todo o sistema</li>
+            <li><span class="checkmark">✓</span> Implementação do botão "Tramitar" substituindo "Transferir" na página de detalhes</li>
+            <li><span class="checkmark">✓</span> Posicionamento do botão de correção abaixo dos checklists, antes dos prazos</li>
+            <li><span class="checkmark">✓</span> Criação de painel expansível de retorno na página de transferência</li>
+            <li><span class="checkmark">✓</span> Implementação de checkbox para seleção de departamentos anteriores no retorno</li>
+            <li><span class="checkmark">✓</span> Validação de 50 caracteres mínimos para comentários de retorno com contador dinâmico</li>
+            <li><span class="checkmark">✓</span> Modificação do botão de correção para afetar apenas marcações do setor atual</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>2. ALTERAÇÕES NO BACKEND E BANCO DE DADOS</h2>
+        <ul class="changes-list">
+            <li><span class="checkmark">✓</span> Criação da tabela processResponsibilityHistory para histórico de responsabilidade</li>
+            <li><span class="checkmark">✓</span> Implementação de métodos no DatabaseStorage para gerenciar histórico</li>
+            <li><span class="checkmark">✓</span> Criação da API /api/processes/:id/responsibility-history</li>
+            <li><span class="checkmark">✓</span> Integração automática de registro de histórico nas transferências de processo</li>
+            <li><span class="checkmark">✓</span> Atualização do schema com novos tipos TypeScript para responsabilidade</li>
+            <li><span class="checkmark">✓</span> Modificação das regras de negócio para retorno de processos</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>3. NOVAS FUNCIONALIDADES</h2>
+        <ul class="changes-list">
+            <li><span class="checkmark">✓</span> Sistema de histórico de responsabilidade em cascata com formato "usuário+(setor)"</li>
+            <li><span class="checkmark">✓</span> Validação de motivo de retorno com contagem de caracteres em tempo real</li>
+            <li><span class="checkmark">✓</span> Opção de retorno para todos os departamentos anteriores ou apenas o anterior</li>
+            <li><span class="checkmark">✓</span> Correção seletiva de checklists por setor específico</li>
+            <li><span class="checkmark">✓</span> Interface melhorada para transferência e retorno de processos</li>
+            <li><span class="checkmark">✓</span> Rastreamento automático de mudanças de responsabilidade</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>4. REGRAS DE NEGÓCIO IMPLEMENTADAS</h2>
+        <ul class="changes-list">
+            <li><span class="bullet">•</span> Eliminação do status "Rascunho" - processos iniciam como "Em Andamento"</li>
+            <li><span class="bullet">•</span> NPP deve retornar processos para Divisão de Licitação (não sequencial)</li>
+            <li><span class="bullet">•</span> Motivo de retorno obrigatório com mínimo de 50 caracteres</li>
+            <li><span class="bullet">•</span> Correção de checklist afeta apenas etapas do setor atual</li>
+            <li><span class="bullet">•</span> Histórico de responsabilidade registra todas as transferências</li>
+            <li><span class="bullet">•</span> Validação de etapas completadas antes de permitir transferência</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>5. ARQUIVOS PRINCIPAIS MODIFICADOS</h2>
+        <ul class="changes-list">
+            <li><span class="bullet">•</span> <span class="file-path">client/src/pages/ProcessDetail.tsx</span> - Interface de detalhes do processo</li>
+            <li><span class="bullet">•</span> <span class="file-path">client/src/pages/ProcessTransfer.tsx</span> - Página de transferência e retorno</li>
+            <li><span class="bullet">•</span> <span class="file-path">shared/schema.ts</span> - Schema do banco com nova tabela de histórico</li>
+            <li><span class="bullet">•</span> <span class="file-path">server/storage.db.ts</span> - Implementação do storage com histórico</li>
+            <li><span class="bullet">•</span> <span class="file-path">server/routes.ts</span> - APIs para histórico de responsabilidade</li>
+            <li><span class="bullet">•</span> <span class="file-path">client/src/lib/utils/process.ts</span> - Utilitários de processo atualizados</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>6. IMPACTO E BENEFÍCIOS</h2>
+        <ul class="changes-list">
+            <li><span class="bullet">•</span> Maior controle e rastreabilidade dos processos de licitação</li>
+            <li><span class="bullet">•</span> Interface mais intuitiva com terminologia adequada ("Tramitar")</li>
+            <li><span class="bullet">•</span> Prevenção de erros com validações rigorosas de retorno</li>
+            <li><span class="bullet">•</span> Histórico completo de responsabilidade por processo</li>
+            <li><span class="bullet">•</span> Flexibilidade no retorno de processos entre departamentos</li>
+            <li><span class="bullet">•</span> Correção seletiva evita perda de trabalho de outros setores</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>Relatório gerado automaticamente pelo Sistema de Controle de Processos de Licitação</p>
+        <p>Secretaria de Estado da Administração Penitenciária - SEAP</p>
+    </div>
+</body>
+</html>
