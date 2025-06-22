@@ -391,17 +391,11 @@ const Reports = () => {
                       labelLine={false}
                       label={({ name, percent, value }) => {
                         // Só mostra label se tem valor > 0
-                        if (value > 0) {
-                          const text = `${name}: ${(percent * 100).toFixed(0)}%`;
-                          return {
-                            content: text,
-                            style: {
-                              fontSize: name === 'Em Andamento' ? '11px' : '12px',
-                              fontWeight: 'normal'
-                            }
-                          };
-                        }
-                        return null;
+                        return value > 0 ? `${name}: ${(percent * 100).toFixed(0)}%` : null;
+                      }}
+                      labelStyle={{
+                        fontSize: '11px',
+                        fontWeight: 'normal'
                       }}
                       outerRadius={80}
                       fill="#8884d8"
