@@ -6,7 +6,7 @@ export default function DownloadPage() {
   const handleDownloadReport = () => {
     // Create a download link for the HTML report
     const link = document.createElement('a');
-    link.href = '/download/Relatorio_Alteracoes_Sistema_Licitacao.html';
+    link.href = '/relatorio/Relatorio_Alteracoes_Sistema_Licitacao.html';
     link.download = 'Relatorio_Alteracoes_Sistema_Licitacao.html';
     link.target = '_blank';
     document.body.appendChild(link);
@@ -16,7 +16,7 @@ export default function DownloadPage() {
 
   const handleViewReport = () => {
     // Open report in new tab
-    window.open('/download/Relatorio_Alteracoes_Sistema_Licitacao.html', '_blank');
+    window.open('/relatorio/Relatorio_Alteracoes_Sistema_Licitacao.html', '_blank');
   };
 
   return (
