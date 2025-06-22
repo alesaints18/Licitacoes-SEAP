@@ -135,6 +135,35 @@ export interface IStorage {
     status?: string;
   }): Promise<{responsibleId: number; total: number; completed: number}[]>;
 
+  // Novos métodos de analytics
+  getTemporalDistribution(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }, period?: string): Promise<{
+    period: string;
+    inProgress: number;
+    overdue: number;
+    completed: number;
+  }[]>;
+
+  getDepartmentRanking(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{
+    departmentId: number;
+    departmentName: string;
+    total: number;
+    inProgress: number;
+    overdue: number;
+    completed: number;
+  }[]>;
+
   // Convenio operations
   getConvenios(): Promise<Convenio[]>;
   getConvenio(id: number): Promise<Convenio | undefined>;

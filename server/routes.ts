@@ -1169,6 +1169,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Erro ao buscar processos por responsável", error });
     }
   });
+
+  // Nova rota para distribuição temporal com status
+  app.get('/api/analytics/temporal-distribution', isAuthenticated, async (req, res) => {
+    try {
+      const { pbdocNumber, modalityId, sourceId, responsibleId, status, period = 'month' } = req.query;
+      
+      const filters = {
+        pbdocNumber: pbdocNumber as string | undefined,
+        modalityId: modalityId ? parseInt(modalityId as string) : undefined,
+        sourceId: sourceId ? parseInt(sourceId as string) : undefined,
+        responsibleId: responsibleId ? parseInt(responsibleId as string) : undefined,
+        status: status as string | undefined
+      };
+      
+      const data = await storage.getTemporalDistribution(filters, period as string);
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao buscar distribuição temporal", error });
+    }
+  });
+
+  // Nova rota para ranking de departamentos
+  app.get('/api/analytics/department-ranking', isAuthenticated, async (req, res) => {
+    try {
+      const { pbdocNumber, modalityId, sourceId, responsibleId, status } = req.query;
+      
+      const filters = {
+        pbdocNumber: pbdocNumber as string | undefined,
+        modalityId: modalityId ? parseInt(modalityId as string) : undefined,
+        sourceId: sourceId ? parseInt(sourceId as string) : undefined,
+        responsibleId: responsibleId ? parseInt(responsibleId as string) : undefined,
+        status: status as string | undefined
+      };
+      
+      const data = await storage.getDepartmentRanking(filters);
+      res.json(data);
+    } catch (error) {
+      res.status(500).json({ message: "Erro ao buscar ranking de departamentos", error });
+    }
+  });
   
   // Configuração para meta mensal
   let monthlyGoal = 200; // Valor padrão

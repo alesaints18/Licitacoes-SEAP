@@ -926,4 +926,168 @@ export class DatabaseStorage implements IStorage {
       return false;
     }
   }
+
+  async getTemporalDistribution(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }, period: string = 'month'): Promise<{
+    period: string;
+    inProgress: number;
+    overdue: number;
+    completed: number;
+  }[]> {
+    const baseQuery = db.select().from(processes);
+    const conditions = [];
+    
+    if (filters?.pbdocNumber) {
+      conditions.push(eq(processes.pbdocNumber, filters.pbdocNumber));
+    }
+    
+    if (filters?.modalityId) {
+      conditions.push(eq(processes.modalityId, filters.modalityId));
+    }
+    
+    if (filters?.sourceId) {
+      conditions.push(eq(processes.sourceId, filters.sourceId));
+    }
+    
+    if (filters?.responsibleId) {
+      conditions.push(eq(processes.responsibleId, filters.responsibleId));
+    }
+    
+    let allProcesses: Process[];
+    if (conditions.length > 0) {
+      allProcesses = await baseQuery.where(and(...conditions));
+    } else {
+      allProcesses = await baseQuery;
+    }
+    
+    const distributionMap = new Map<string, {inProgress: number; overdue: number; completed: number}>();
+    
+    allProcesses.forEach(process => {
+      const createdAt = new Date(process.createdAt);
+      let periodKey: string;
+      
+      if (period === 'year') {
+        periodKey = createdAt.getFullYear().toString();
+      } else {
+        periodKey = `${createdAt.getFullYear()}-${(createdAt.getMonth() + 1).toString().padStart(2, '0')}`;
+      }
+      
+      if (!distributionMap.has(periodKey)) {
+        distributionMap.set(periodKey, { inProgress: 0, overdue: 0, completed: 0 });
+      }
+      
+      const current = distributionMap.get(periodKey)!;
+      
+      if (process.status === 'completed') {
+        current.completed++;
+      } else if (process.status === 'overdue' || (process.deadline && new Date(process.deadline) < new Date())) {
+        current.overdue++;
+      } else if (process.status === 'in_progress' || process.status === 'draft') {
+        current.inProgress++;
+      }
+    });
+    
+    return Array.from(distributionMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([period, counts]) => ({
+        period,
+        ...counts
+      }));
+  }
+
+  async getDepartmentRanking(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{
+    departmentId: number;
+    departmentName: string;
+    total: number;
+    inProgress: number;
+    overdue: number;
+    completed: number;
+  }[]> {
+    const baseQuery = db.select({
+      process: processes,
+      department: departments
+    }).from(processes)
+      .leftJoin(departments, eq(processes.currentDepartmentId, departments.id));
+    
+    const conditions = [];
+    
+    if (filters?.pbdocNumber) {
+      conditions.push(eq(processes.pbdocNumber, filters.pbdocNumber));
+    }
+    
+    if (filters?.modalityId) {
+      conditions.push(eq(processes.modalityId, filters.modalityId));
+    }
+    
+    if (filters?.sourceId) {
+      conditions.push(eq(processes.sourceId, filters.sourceId));
+    }
+    
+    if (filters?.responsibleId) {
+      conditions.push(eq(processes.responsibleId, filters.responsibleId));
+    }
+    
+    if (filters?.status) {
+      conditions.push(eq(processes.status, filters.status));
+    }
+    
+    let results: { process: Process; department: Department | null }[];
+    if (conditions.length > 0) {
+      results = await baseQuery.where(and(...conditions));
+    } else {
+      results = await baseQuery;
+    }
+    
+    const rankingMap = new Map<number, {
+      departmentName: string;
+      total: number;
+      inProgress: number;
+      overdue: number;
+      completed: number;
+    }>();
+    
+    results.forEach(({ process, department }) => {
+      const deptId = process.currentDepartmentId || 0;
+      const deptName = department?.name || 'Sem Departamento';
+      
+      if (!rankingMap.has(deptId)) {
+        rankingMap.set(deptId, {
+          departmentName: deptName,
+          total: 0,
+          inProgress: 0,
+          overdue: 0,
+          completed: 0
+        });
+      }
+      
+      const current = rankingMap.get(deptId)!;
+      current.total++;
+      
+      if (process.status === 'completed') {
+        current.completed++;
+      } else if (process.status === 'overdue' || (process.deadline && new Date(process.deadline) < new Date())) {
+        current.overdue++;
+      } else if (process.status === 'in_progress' || process.status === 'draft') {
+        current.inProgress++;
+      }
+    });
+    
+    return Array.from(rankingMap.entries())
+      .map(([departmentId, data]) => ({
+        departmentId,
+        ...data
+      }))
+      .sort((a, b) => b.total - a.total);
+  }
 }
