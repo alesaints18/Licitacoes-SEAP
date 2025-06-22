@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileText, CheckCircle, Clock, XCircle, RefreshCw } from "lucide-react";
+import { FileText, CheckCircle, Clock, XCircle, RefreshCw, Trophy, TrendingUp } from "lucide-react";
 import StatsCard from "@/components/dashboard/StatsCard";
 import ProcessStatusChart from "@/components/dashboard/ProcessStatusChart";
 import MonthlyProcessesChart from "@/components/dashboard/MonthlyProcessesChart";
@@ -8,6 +8,8 @@ import ResponsibleTable from "@/components/dashboard/ResponsibleTable";
 import ProcessTable from "@/components/dashboard/ProcessTable";
 import DashboardFilters from "@/components/dashboard/DashboardFilters";
 import MonthlyGoalSettings from "@/components/dashboard/MonthlyGoalSettings";
+import { TemporalDistributionChart } from "@/components/dashboard/TemporalDistributionChart";
+import { DepartmentRanking } from "@/components/dashboard/DepartmentRanking";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -223,11 +225,12 @@ const Dashboard = () => {
       {/* Charts - First Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <ProcessStatusChart filters={filters} />
-        <MonthlyProcessesChart filters={filters} />
+        <TemporalDistributionChart filters={filters} />
       </div>
 
       {/* Charts - Second Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <DepartmentRanking filters={filters} />
         <ResourceDistributionChart filters={filters} />
         <ResponsibleTable filters={filters} />
       </div>
