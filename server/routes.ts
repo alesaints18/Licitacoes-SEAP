@@ -1298,90 +1298,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .step { border: 1px solid #e5e7eb; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
             .step.completed { background: #f0fdf4; border-left: 4px solid #10b981; }
             .step.pending { background: #fefce8; border-left: 4px solid #f59e0b; }
-            .return-comments { background: #fef2f2; padding: 15px; border-radius: 5px; border-left: 4px solid #dc2626; }
-            .footer { margin-top: 40px; text-align: center; font-size: 12px; color: #6b7280; border-top: 1px solid #e5e7eb; padding-top: 15px; }
-            @media print { body { margin: 0; } }
+            .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #6b7280; }
           </style>
         </head>
         <body>
           <div class="header">
-            <h1>SEAP - Secretaria de Estado da Administração Penitenciária</h1>
-            <p>Relatório de Processo Licitatório</p>
-            <h2>Processo Nº ${process.pbdocNumber}</h2>
+            <h1>SECRETARIA DE ESTADO DA ADMINISTRAÇÃO PENITENCIÁRIA</h1>
+            <h2>Relatório do Processo ${process.pbdocNumber}</h2>
+            <p>Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
           </div>
-          
+
           <div class="section">
-            <h3 class="section-title">Informações Básicas</h3>
+            <h3 class="section-title">Informações Gerais</h3>
             <div class="info-grid">
-              <div class="info-item"><span class="info-label">Número PBDOC:</span> ${process.pbdocNumber}</div>
-              <div class="info-item"><span class="info-label">Status:</span> ${process.status}</div>
-              <div class="info-item"><span class="info-label">Modalidade:</span> ${modality?.name || "Não informado"}</div>
-              <div class="info-item"><span class="info-label">Prioridade:</span> ${process.priority}</div>
-              <div class="info-item"><span class="info-label">Fonte de Recurso:</span> ${source ? `${source.code} - ${source.description}` : "Não informado"}</div>
-              <div class="info-item"><span class="info-label">Responsável:</span> ${responsible?.fullName || "Não informado"}</div>
-              <div class="info-item"><span class="info-label">Departamento Atual:</span> ${currentDepartment?.name || "Não informado"}</div>
-              <div class="info-item"><span class="info-label">Central de Compras:</span> ${process.centralDeCompras || "Não informado"}</div>
+              <div class="info-item">
+                <span class="info-label">Número PBDoc:</span> ${process.pbdocNumber}
+              </div>
+              <div class="info-item">
+                <span class="info-label">Status:</span> ${process.status === 'in_progress' ? 'Em Andamento' : process.status === 'completed' ? 'Concluído' : 'Cancelado'}
+              </div>
+              <div class="info-item">
+                <span class="info-label">Modalidade:</span> ${modality?.name || 'N/A'}
+              </div>
+              <div class="info-item">
+                <span class="info-label">Fonte de Recurso:</span> ${source?.description || 'N/A'}
+              </div>
+              <div class="info-item">
+                <span class="info-label">Responsável:</span> ${responsible?.fullName || 'N/A'}
+              </div>
+              <div class="info-item">
+                <span class="info-label">Departamento Atual:</span> ${currentDepartment?.name || 'N/A'}
+              </div>
+              <div class="info-item">
+                <span class="info-label">Prioridade:</span> ${process.priority === 'high' ? 'Alta' : process.priority === 'medium' ? 'Média' : 'Baixa'}
+              </div>
+              <div class="info-item">
+                <span class="info-label">Prazo:</span> ${process.deadline ? new Date(process.deadline).toLocaleDateString('pt-BR') : 'N/A'}
+              </div>
             </div>
           </div>
-          
+
           <div class="section">
-            <h3 class="section-title">Objeto</h3>
+            <h3 class="section-title">Descrição</h3>
             <div class="description">${process.description}</div>
           </div>
-          
+
           <div class="section">
-            <h3 class="section-title">Cronograma</h3>
-            <div class="info-grid">
-              <div class="info-item"><span class="info-label">Data de Criação:</span> ${new Date(process.createdAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-              <div class="info-item"><span class="info-label">Última Atualização:</span> ${new Date(process.updatedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
-              <div class="info-item"><span class="info-label">Prazo de Entrega:</span> ${process.deadline ? new Date(process.deadline).toLocaleDateString('pt-BR') : "Não definido"}</div>
-            </div>
-          </div>
-          
-          ${process.returnComments ? `
-          <div class="section">
-            <h3 class="section-title">Comentários de Retorno</h3>
-            <div class="return-comments">${process.returnComments}</div>
-          </div>
-          ` : ''}
-          
-          ${steps && steps.length > 0 ? `
-          <div class="section">
-            <h3 class="section-title">Histórico de Etapas</h3>
+            <h3 class="section-title">Etapas do Processo</h3>
             <div class="steps">
-              ${steps.map((step, index) => {
-                const stepDepartment = departments.find(d => d.id === step.departmentId);
-                const completedBy = users.find(u => u.id === step.completedBy);
-                return `
-                  <div class="step ${step.isCompleted ? 'completed' : 'pending'}">
-                    <h4>${index + 1}. ${step.stepName}</h4>
-                    <p><span class="info-label">Departamento:</span> ${stepDepartment?.name || "Não informado"}</p>
-                    ${step.completedBy ? `<p><span class="info-label">Responsável:</span> ${completedBy?.fullName || "Não informado"}</p>` : ''}
-                    ${step.completedAt ? `<p><span class="info-label">Data de Conclusão:</span> ${new Date(step.completedAt).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>` : ''}
-                    ${step.observations ? `<p><span class="info-label">Observações:</span> ${step.observations}</p>` : ''}
-                    <p><span class="info-label">Status:</span> ${step.isCompleted ? 'Concluída' : 'Em andamento'}</p>
-                  </div>
-                `;
-              }).join('')}
+              ${steps.map(step => `
+                <div class="step ${step.isCompleted ? 'completed' : 'pending'}">
+                  <strong>${step.stepName}</strong>
+                  <br>Status: ${step.isCompleted ? 'Concluída' : 'Pendente'}
+                  ${step.completedAt ? `<br>Concluída em: ${new Date(step.completedAt).toLocaleDateString('pt-BR')}` : ''}
+                </div>
+              `).join('')}
             </div>
           </div>
-          ` : ''}
-          
+
           <div class="footer">
-            <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
-            <p>SEAP - Secretaria de Estado da Administração Penitenciária da Paraíba</p>
+            <p>Sistema de Controle de Processos de Licitação - SEAP/PB</p>
+            <p>Relatório gerado automaticamente</p>
           </div>
         </body>
         </html>
       `;
+
+      // Configurar headers para PDF
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="relatorio-processo-${process.pbdocNumber}.pdf"`);
       
-      // Retornar HTML formatado para impressão/conversão em PDF
-      res.setHeader('Content-Type', 'text/html; charset=utf-8');
-      res.send(htmlContent);
+      // Gerar PDF usando puppeteer
+      const puppeteer = require('puppeteer');
       
+      const browser = await puppeteer.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+      
+      const page = await browser.newPage();
+      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+      
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '15mm',
+          bottom: '20mm',
+          left: '15mm'
+        }
+      });
+      
+      await browser.close();
+      
+      res.send(pdfBuffer);
     } catch (error) {
-      console.error("Erro ao gerar relatório:", error);
-      res.status(500).json({ message: "Erro ao gerar relatório", error });
+      console.error('Erro ao gerar relatório PDF:', error);
+      res.status(500).json({ message: "Erro ao gerar relatório PDF", error: error.message });
     }
   });
   
