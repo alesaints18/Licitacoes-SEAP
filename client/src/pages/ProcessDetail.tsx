@@ -76,18 +76,19 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
   const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
+  const [isZoomFocused, setIsZoomFocused] = useState(true);
   const flowchartRef = useRef<HTMLDivElement>(null);
   const parsedId = parseInt(id);
 
   // Funções para zoom inteligente do fluxograma baseado no departamento
   const getFlowchartStyle = (department: string | undefined) => {
-    console.log("Department for zoom:", department);
-    if (!department) return {};
+    console.log("Department for zoom:", department, "isZoomFocused:", isZoomFocused);
+    if (!department || !isZoomFocused) return {};
     
     const zoomConfigs = {
       "Setor Demandante": {
-        transform: "scale(2.0) translate(-20%, -30%)",
-        transformOrigin: "25% 20%"
+        transform: "scale(2.5) translate(-35%, -40%)",
+        transformOrigin: "15% 15%"
       },
       "Divisão de Licitação": {
         transform: "scale(1.8) translate(-10%, -10%)",
@@ -1460,8 +1461,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Fluxograma Visual do Processo</span>
-                  <div className="text-sm text-gray-600">
-                    Foco: {currentUser?.department || 'Geral'}
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsZoomFocused(!isZoomFocused)}
+                    >
+                      {isZoomFocused ? "Visão Completa" : "Foco no Setor"}
+                    </Button>
+                    <div className="text-sm text-gray-600">
+                      Foco: {currentUser?.department || 'Geral'}
+                    </div>
                   </div>
                 </CardTitle>
               </CardHeader>
