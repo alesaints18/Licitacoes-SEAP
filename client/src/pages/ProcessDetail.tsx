@@ -1810,48 +1810,58 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               </div>
             </div>
 
-            <div className="flex-1 p-4 flex gap-4">
-              <div className="flex-1">
-                <div className="w-full h-full relative flex items-center justify-center border-2 border-gray-200 rounded">
-                  <img
-                    ref={fullScreenImageRef}
-                    src={fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}
-                    alt="Fluxograma do Processo de Licitação SEAP"
-                    className="max-w-full max-h-full object-contain cursor-crosshair"
-                    draggable={false}
-                    onMouseMove={handleMouseMove}
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                  />
-                  
-                  {/* Indicador de área sendo ampliada */}
-                  {showMagnifier && (
-                    <div
-                      className="absolute pointer-events-none border-2 border-blue-500 bg-blue-100 bg-opacity-30"
-                      style={{
-                        width: '60px',
-                        height: '60px',
-                        left: `${mousePosition.x - 30}px`,
-                        top: `${mousePosition.y - 30}px`,
-                      }}
-                    />
-                  )}
-                </div>
-              </div>
-              
-              {/* Área de ampliação lateral */}
-              {showMagnifier && (
-                <div className="w-80 h-80 border-2 border-gray-300 rounded bg-white shadow-lg overflow-hidden">
+            <div className="flex-1 p-4 relative">
+              <div className="w-full h-full relative flex items-center justify-center border-2 border-gray-200 rounded">
+                <img
+                  ref={fullScreenImageRef}
+                  src={fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}
+                  alt="Fluxograma do Processo de Licitação SEAP"
+                  className="max-w-full max-h-full object-contain cursor-crosshair"
+                  draggable={false}
+                  onMouseMove={handleMouseMove}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
+                />
+                
+                {/* Indicador de área sendo ampliada */}
+                {showMagnifier && (
                   <div
-                    className="w-full h-full"
+                    className="absolute pointer-events-none border-2 border-blue-500 bg-blue-100 bg-opacity-30"
                     style={{
-                      background: `url(${fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}) no-repeat`,
-                      backgroundPosition: `-${mousePosition.percentX * 500 - 160}px -${mousePosition.percentY * 500 - 160}px`,
-                      backgroundSize: '500%',
+                      width: '60px',
+                      height: '60px',
+                      left: `${mousePosition.x - 30}px`,
+                      top: `${mousePosition.y - 30}px`,
                     }}
                   />
-                </div>
-              )}
+                )}
+                
+                {/* Área de ampliação flutuante que segue o mouse */}
+                {showMagnifier && (
+                  <div
+                    className="absolute pointer-events-none border-2 border-gray-400 rounded bg-white shadow-2xl overflow-hidden z-20"
+                    style={{
+                      width: '250px',
+                      height: '250px',
+                      left: `${Math.min(mousePosition.x + 40, window.innerWidth - 300)}px`,
+                      top: `${Math.max(mousePosition.y - 125, 50)}px`,
+                    }}
+                  >
+                    <div
+                      className="w-full h-full"
+                      style={{
+                        background: `url(${fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}) no-repeat`,
+                        backgroundPosition: `-${mousePosition.percentX * 500 - 125}px -${mousePosition.percentY * 500 - 125}px`,
+                        backgroundSize: '500%',
+                      }}
+                    />
+                    {/* Indicador de zoom */}
+                    <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                      5x
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             
             <div className="p-4 border-t bg-gray-50">
