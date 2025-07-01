@@ -1464,68 +1464,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               </p>
             </div>
 
-            {/* Sequência do Fluxograma */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ArrowRight className="h-5 w-5" />
-                  Sequência do Fluxograma para Comparação Manual
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Ordem dos departamentos conforme o fluxo do processo de licitação
-                </p>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-3">
-                    <h4 className="font-medium text-sm text-gray-700">Sequência Principal:</h4>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">1</span>
-                      <span className="font-medium">Setor Demandante</span>
-                      <ArrowRight className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">2</span>
-                      <span className="font-medium">Divisão de Licitação</span>
-                      <ArrowRight className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">3</span>
-                      <span className="font-medium">Núcleo de Pesquisa de Preços (NPP)</span>
-                      <ArrowRight className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-blue-100 text-blue-600 rounded-full text-xs font-medium">4</span>
-                      <span className="font-medium">Unidade de Orçamento e Finanças</span>
-                      <ArrowRight className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="inline-flex items-center justify-center w-6 h-6 bg-green-100 text-green-600 rounded-full text-xs font-medium">5</span>
-                      <span className="font-medium">Secretário de Estado da Administração Penitenciária</span>
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    <div className="p-4 bg-blue-50 rounded-lg">
-                      <h4 className="font-medium text-sm text-blue-800 mb-2">Resumo da Sequência:</h4>
-                      <p className="text-xs text-blue-700 leading-relaxed">
-                        <strong>Setor Demandante</strong> → <strong>Divisão de Licitação</strong> → <strong>NPP</strong> → <strong>Unidade de Orçamento e Finanças</strong> → <strong>Secretário de Estado</strong>
-                      </p>
-                    </div>
-                    
-                    <div className="p-4 bg-amber-50 rounded-lg">
-                      <h4 className="font-medium text-sm text-amber-800 mb-2">⚠️ Observações:</h4>
-                      <ul className="text-xs text-amber-700 space-y-1">
-                        <li>• Processos podem retornar a departamentos anteriores</li>
-                        <li>• Algumas etapas podem ser executadas em paralelo</li>
-                        <li>• A sequência pode variar conforme a modalidade</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             {/* Fluxograma Visual */}
             <Card>
               <CardHeader>
