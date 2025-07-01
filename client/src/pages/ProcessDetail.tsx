@@ -80,9 +80,23 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [isZoomFocused, setIsZoomFocused] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [fullScreenViewMode, setFullScreenViewMode] = useState<'focused' | 'complete'>('complete');
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const flowchartRef = useRef<HTMLDivElement>(null);
+  const fullScreenImageRef = useRef<HTMLImageElement>(null);
   const parsedId = parseInt(id);
+
+  // Função para lidar com zoom via scroll
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    setZoomLevel(prev => Math.max(0.5, Math.min(3, prev + delta)));
+  };
+
+  // Reset zoom quando mudar de modo de visualização
+  useEffect(() => {
+    setZoomLevel(1);
+  }, [fullScreenViewMode]);
 
   // Função para obter a imagem específica do departamento
   const getFlowchartImage = (department: string | undefined) => {
@@ -1753,13 +1767,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       </Dialog>
 
       {/* Modal de Tela Cheia para Fluxograma */}
-      <Dialog open={isFullScreen} onOpenChange={setIsFullScreen}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0">
-          <DialogTitle className="sr-only">Fluxograma Completo - SEAP/PB</DialogTitle>
-          <DialogDescription className="sr-only">
-            Visualização em tela cheia do fluxograma do processo de licitação
-          </DialogDescription>
-          <div className="flex flex-col h-full">
+      {isFullScreen && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+          <div className="w-[95vw] h-[95vh] bg-white rounded-lg flex flex-col">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-semibold">
                 {fullScreenViewMode === 'complete' ? 'Fluxograma Completo - SEAP/PB' : `Foco: ${currentUser?.department}`}
@@ -1772,6 +1782,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 >
                   {fullScreenViewMode === 'complete' ? "Foco no Setor" : "Visão Completa"}
                 </Button>
+                <span className="text-sm text-gray-600">
+                  Zoom: {Math.round(zoomLevel * 100)}%
+                </span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -1781,12 +1794,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 </Button>
               </div>
             </div>
-            <div className="flex-1 overflow-auto p-4">
+            <div 
+              className="flex-1 overflow-auto p-4 cursor-grab active:cursor-grabbing"
+              onWheel={handleWheel}
+            >
               <div className="w-full h-full flex items-center justify-center">
                 <img
+                  ref={fullScreenImageRef}
                   src={fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}
                   alt="Fluxograma do Processo de Licitação SEAP"
-                  className="max-w-full max-h-full object-contain"
+                  className="object-contain transition-transform duration-200"
+                  style={{ 
+                    transform: `scale(${zoomLevel})`,
+                    maxWidth: 'none',
+                    maxHeight: 'none'
+                  }}
+                  draggable={false}
                 />
               </div>
             </div>
@@ -1795,12 +1818,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 {fullScreenViewMode === 'complete'
                   ? "Visualizando fluxograma completo do processo de licitação"
                   : `Visualizando imagem específica: ${currentUser?.department}`
-                }
+                } • Use o scroll do mouse para dar zoom
               </p>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 };
