@@ -12,6 +12,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
+import puppeteer from "puppeteer";
 
 // Configuração para meta mensal
 let monthlyGoal = 200; // Valor padrão
@@ -1394,7 +1395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.send(pdfBuffer);
     } catch (error) {
       console.error('Erro ao gerar relatório PDF:', error);
-      res.status(500).json({ message: "Erro ao gerar relatório PDF", error: error.message });
+      res.status(500).json({ message: "Erro ao gerar relatório PDF", error: (error as Error).message });
     }
   });
   
