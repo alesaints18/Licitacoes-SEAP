@@ -87,8 +87,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     
     const zoomConfigs = {
       "Setor Demandante": {
-        transform: "scale(2.5) translate(-35%, -40%)",
-        transformOrigin: "15% 15%"
+        transform: "scale(4.0) translate(-50%, -60%)",
+        transformOrigin: "5% 5%"
       },
       "Divisão de Licitação": {
         transform: "scale(1.8) translate(-10%, -10%)",
