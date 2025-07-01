@@ -87,31 +87,30 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const fullScreenImageRef = useRef<HTMLImageElement>(null);
   const parsedId = parseInt(id);
 
-  // Função de mouse move direta e otimizada
+  // Função de mouse move com coordenadas precisas
   const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     const rect = img.getBoundingClientRect();
     
-    // Calcular posição relativa à imagem
+    // Posição exata do mouse relativa à imagem
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     
-    // Converter para porcentagem da imagem real
-    const percentX = x / rect.width;
-    const percentY = y / rect.height;
+    // Garantir que as coordenadas estão dentro dos limites da imagem
+    const clampedX = Math.max(0, Math.min(x, rect.width));
+    const clampedY = Math.max(0, Math.min(y, rect.height));
     
-    // Posição global do mouse para o painel flutuante
-    const globalX = e.clientX;
-    const globalY = e.clientY;
+    // Converter para porcentagem para o background do zoom
+    const percentX = clampedX / rect.width;
+    const percentY = clampedY / rect.height;
     
-    // Atualização síncrona direta
     setMousePosition({
-      x: x,
-      y: y,
+      x: clampedX,
+      y: clampedY,
       percentX: percentX,
       percentY: percentY,
-      globalX: globalX,
-      globalY: globalY
+      globalX: e.clientX,
+      globalY: e.clientY
     });
   };
 
@@ -1859,13 +1858,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       className="w-full h-full"
                       style={{
                         background: `url(${fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}) no-repeat`,
-                        backgroundPosition: `-${mousePosition.percentX * 500 - 100}px -${mousePosition.percentY * 500 - 100}px`,
-                        backgroundSize: '500%',
+                        backgroundPosition: `-${mousePosition.percentX * 1000 - 100}px -${mousePosition.percentY * 1000 - 100}px`,
+                        backgroundSize: '1000%',
                       }}
                     />
                     {/* Indicador de zoom */}
                     <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 rounded text-[10px]">
-                      5x
+                      10x
                     </div>
                   </div>
                 )}
