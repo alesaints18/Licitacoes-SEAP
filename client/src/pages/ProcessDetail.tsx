@@ -88,11 +88,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     
     const zoomVariations = {
       "Setor Demandante": [
-        { transform: "scale(3.5) translate(-25%, -35%)", transformOrigin: "10% 8%" },
-        { transform: "scale(4.0) translate(-40%, -50%)", transformOrigin: "5% 5%" },
-        { transform: "scale(3.0) translate(-10%, -20%)", transformOrigin: "15% 12%" },
-        { transform: "scale(3.5) translate(-30%, -25%)", transformOrigin: "8% 10%" },
-        { transform: "scale(4.5) translate(-45%, -60%)", transformOrigin: "3% 3%" },
+        { transform: "scale(3.0) translate(0%, -15%)", transformOrigin: "25% 10%" },
+        { transform: "scale(3.5) translate(-15%, -20%)", transformOrigin: "20% 12%" },
+        { transform: "scale(2.8) translate(10%, -10%)", transformOrigin: "30% 8%" },
+        { transform: "scale(3.2) translate(-5%, -25%)", transformOrigin: "22% 15%" },
+        { transform: "scale(4.0) translate(-20%, -30%)", transformOrigin: "18% 18%" },
       ]
     };
     
