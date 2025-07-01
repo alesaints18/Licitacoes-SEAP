@@ -80,7 +80,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [isZoomFocused, setIsZoomFocused] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [fullScreenViewMode, setFullScreenViewMode] = useState<'focused' | 'complete'>('complete');
-  const [zoomLevel, setZoomLevel] = useState(0.5);
+  const [zoomLevel, setZoomLevel] = useState(1);
 
   const flowchartRef = useRef<HTMLDivElement>(null);
   const fullScreenImageRef = useRef<HTMLImageElement>(null);
@@ -88,7 +88,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Reset zoom quando mudar de modo de visualização
   useEffect(() => {
-    setZoomLevel(0.5); // 50% como valor padrão no novo range
+    setZoomLevel(1); // 100% como valor padrão
   }, [fullScreenViewMode]);
 
   // Função para obter a imagem específica do departamento
@@ -1789,44 +1789,52 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             </div>
             
             {/* Barra de Zoom Vertical */}
-            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white border rounded-lg px-2 py-4 shadow-lg">
-              <div className="flex flex-col items-center h-48">
-                <span className="text-xs text-gray-600 font-semibold mb-2">100%</span>
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white border rounded-lg px-3 py-4 shadow-lg">
+              <div className="flex flex-col items-center h-52">
+                <span className="text-xs text-gray-600 font-semibold mb-3">200%</span>
                 <div className="flex-1 flex items-center">
                   <input
                     type="range"
-                    min="0.3"
-                    max="1"
-                    step="0.01"
+                    min="0.5"
+                    max="2"
+                    step="0.05"
                     value={zoomLevel}
                     onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
-                    className="w-32 h-4"
+                    className="w-36 h-4"
                     style={{ 
                       transform: 'rotate(-90deg)',
                       transformOrigin: 'center'
                     }}
                   />
                 </div>
-                <span className="text-xs text-gray-600 font-semibold mt-2">30%</span>
+                <span className="text-xs text-gray-600 font-semibold mt-3">50%</span>
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-2">
-              <div className="w-full h-full flex items-center justify-center relative">
-                <img
-                  ref={fullScreenImageRef}
-                  src={fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}
-                  alt="Fluxograma do Processo de Licitação SEAP"
-                  className="transition-transform duration-200"
-                  style={{ 
+            <div className="flex-1 overflow-auto">
+              <div className="w-full h-full relative" style={{ minHeight: '500px' }}>
+                <div 
+                  className="absolute inset-0 flex items-center justify-center"
+                  style={{
                     transform: `scale(${zoomLevel})`,
-                    maxWidth: zoomLevel <= 0.5 ? '100%' : 'none',
-                    maxHeight: zoomLevel <= 0.5 ? '100%' : 'none',
-                    width: 'auto',
-                    height: 'auto'
+                    transformOrigin: 'center center',
+                    transition: 'transform 0.2s ease'
                   }}
-                  draggable={false}
-                />
+                >
+                  <img
+                    ref={fullScreenImageRef}
+                    src={fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}
+                    alt="Fluxograma do Processo de Licitação SEAP"
+                    className="max-w-none"
+                    style={{ 
+                      width: 'auto',
+                      height: 'auto',
+                      maxWidth: zoomLevel <= 1 ? '90vw' : 'none',
+                      maxHeight: zoomLevel <= 1 ? '70vh' : 'none'
+                    }}
+                    draggable={false}
+                  />
+                </div>
               </div>
             </div>
             <div className="p-4 border-t bg-gray-50">
