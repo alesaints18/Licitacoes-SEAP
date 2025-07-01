@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import ZoomableFlowchart from "@/components/ZoomableFlowchart";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -1800,22 +1799,25 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             </div>
 
             <div className="flex-1 p-4 relative">
-              <ZoomableFlowchart
-                imageSrc={
-                  fullScreenViewMode === "complete"
-                    ? "/fluxograma-seap-1.png"
-                    : getFlowchartImage(currentUser?.department)
-                }
-                alt="Fluxograma do Processo de Licitação SEAP"
-              />
+              <div className="w-full h-full relative flex items-center justify-center border-2 border-gray-200 rounded">
+                <img
+                  src={
+                    fullScreenViewMode === "complete"
+                      ? "/fluxograma-seap-1.png"
+                      : getFlowchartImage(currentUser?.department)
+                  }
+                  alt="Fluxograma do Processo de Licitação SEAP"
+                  className="max-w-full max-h-full object-contain"
+                  draggable={false}
+                />
+              </div>
             </div>
 
             <div className="p-4 border-t bg-gray-50">
               <p className="text-sm text-gray-600 text-center">
                 {fullScreenViewMode === "complete"
                   ? "Visualizando fluxograma completo do processo de licitação"
-                  : `Visualizando imagem específica: ${currentUser?.department}`}{" "}
-                • Clique e arraste para selecionar uma área e aplicar zoom
+                  : `Visualizando imagem específica: ${currentUser?.department}`}
               </p>
             </div>
           </div>
