@@ -1394,28 +1394,18 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               </p>
             </div>
 
-            {/* Fluxograma do Processo */}
+            {/* Fluxograma Visual */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <ImageIcon className="h-5 w-5" />
-                  Fluxograma do Processo SEAP
-                </CardTitle>
+                <CardTitle>Fluxograma Visual do Processo</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="border border-gray-300 rounded-lg p-4 bg-white">
+                <div className="border rounded-lg p-4 bg-white">
                   <img
-                    src="/fluxograma_seap.png"
+                    src="/fluxograma-seap-1.png"
                     alt="Fluxograma do Processo de Licitação SEAP"
                     className="w-full h-auto"
-                    style={{ maxHeight: '500px', objectFit: 'contain' }}
-                    onLoad={() => console.log('Fluxograma carregado!')}
-                    onError={(e) => console.error('Erro ao carregar:', e)}
                   />
-                </div>
-                
-                <div className="mt-4 text-center text-sm text-gray-600">
-                  <p>Fluxograma do processo de licitação SEAP/PB baseado na Lei nº 14.133/2021</p>
                 </div>
               </CardContent>
             </Card>
