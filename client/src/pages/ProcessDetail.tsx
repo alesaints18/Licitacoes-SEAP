@@ -1789,37 +1789,41 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             </div>
             
             {/* Barra de Zoom Vertical */}
-            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white border rounded-lg p-3 shadow-lg">
-              <div className="flex flex-col items-center gap-3 h-40">
-                <span className="text-xs text-gray-600 font-semibold">100%</span>
-                <input
-                  type="range"
-                  min="0.1"
-                  max="1"
-                  step="0.01"
-                  value={zoomLevel}
-                  onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
-                  className="w-32 h-4"
-                  style={{ 
-                    transform: 'rotate(-90deg)',
-                    transformOrigin: 'center'
-                  }}
-                />
-                <span className="text-xs text-gray-600 font-semibold">10%</span>
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white border rounded-lg px-2 py-4 shadow-lg">
+              <div className="flex flex-col items-center h-48">
+                <span className="text-xs text-gray-600 font-semibold mb-2">100%</span>
+                <div className="flex-1 flex items-center">
+                  <input
+                    type="range"
+                    min="0.3"
+                    max="1"
+                    step="0.01"
+                    value={zoomLevel}
+                    onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
+                    className="w-32 h-4"
+                    style={{ 
+                      transform: 'rotate(-90deg)',
+                      transformOrigin: 'center'
+                    }}
+                  />
+                </div>
+                <span className="text-xs text-gray-600 font-semibold mt-2">30%</span>
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-4">
-              <div className="w-full h-full flex items-center justify-center">
+            <div className="flex-1 overflow-auto p-2">
+              <div className="w-full h-full flex items-center justify-center relative">
                 <img
                   ref={fullScreenImageRef}
                   src={fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}
                   alt="Fluxograma do Processo de Licitação SEAP"
-                  className="object-contain transition-transform duration-200"
+                  className="transition-transform duration-200"
                   style={{ 
                     transform: `scale(${zoomLevel})`,
-                    maxWidth: 'none',
-                    maxHeight: 'none'
+                    maxWidth: zoomLevel <= 0.5 ? '100%' : 'none',
+                    maxHeight: zoomLevel <= 0.5 ? '100%' : 'none',
+                    width: 'auto',
+                    height: 'auto'
                   }}
                   draggable={false}
                 />
