@@ -83,12 +83,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     "focused" | "complete"
   >("complete");
 
-
   const flowchartRef = useRef<HTMLDivElement>(null);
   const fullScreenImageRef = useRef<HTMLImageElement>(null);
   const parsedId = parseInt(id);
-
-
 
   // Função para obter a imagem específica do departamento
   const getFlowchartImage = (department: string | undefined) => {
@@ -112,8 +109,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "/fluxograma-seap-1.png"
     );
   };
-
-
 
   const getDepartmentFocus = (department: string | undefined) => {
     const focuses = {
@@ -1500,7 +1495,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       src={getFlowchartImage(currentUser?.department)}
                       alt="Fluxograma do Processo de Licitação SEAP"
                       className="w-full h-auto transition-all duration-500 hover:scale-105"
-
                     />
                     <div className="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                       {getDepartmentFocus(currentUser?.department)}
