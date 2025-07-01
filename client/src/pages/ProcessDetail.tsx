@@ -90,7 +90,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Função para obter a imagem específica do departamento
   const getFlowchartImage = (department: string | undefined) => {
-    if (!department || !isZoomFocused) {
+    if (!department) {
       return "/fluxograma-seap-1.png"; // Imagem completa
     }
 
