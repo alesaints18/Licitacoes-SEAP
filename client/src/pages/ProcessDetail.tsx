@@ -77,18 +77,34 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
   const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
   const [isZoomFocused, setIsZoomFocused] = useState(true);
+  const [zoomVariation, setZoomVariation] = useState(1);
   const flowchartRef = useRef<HTMLDivElement>(null);
   const parsedId = parseInt(id);
 
   // Funções para zoom inteligente do fluxograma baseado no departamento
   const getFlowchartStyle = (department: string | undefined) => {
-    console.log("Department for zoom:", department, "isZoomFocused:", isZoomFocused);
+    console.log("Department for zoom:", department, "isZoomFocused:", isZoomFocused, "variation:", zoomVariation);
     if (!department || !isZoomFocused) return {};
+    
+    const zoomVariations = {
+      "Setor Demandante": [
+        { transform: "scale(3.5) translate(-25%, -35%)", transformOrigin: "10% 8%" },
+        { transform: "scale(4.0) translate(-40%, -50%)", transformOrigin: "5% 5%" },
+        { transform: "scale(3.0) translate(-10%, -20%)", transformOrigin: "15% 12%" },
+        { transform: "scale(3.5) translate(-30%, -25%)", transformOrigin: "8% 10%" },
+        { transform: "scale(4.5) translate(-45%, -60%)", transformOrigin: "3% 3%" },
+      ]
+    };
+    
+    const configs = zoomVariations[department as keyof typeof zoomVariations];
+    if (configs && configs[zoomVariation - 1]) {
+      return configs[zoomVariation - 1];
+    }
     
     const zoomConfigs = {
       "Setor Demandante": {
-        transform: "scale(3.0) translate(-15%, -25%)",
-        transformOrigin: "20% 15%"
+        transform: "scale(3.5) translate(-25%, -35%)",
+        transformOrigin: "10% 8%"
       },
       "Divisão de Licitação": {
         transform: "scale(2.5) translate(-10%, -5%)",
@@ -1461,7 +1477,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Fluxograma Visual do Processo</span>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 flex-wrap">
                     <Button
                       variant="outline"
                       size="sm"
@@ -1469,6 +1485,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     >
                       {isZoomFocused ? "Visão Completa" : "Foco no Setor"}
                     </Button>
+                    {isZoomFocused && currentUser?.department === "Setor Demandante" && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500">Teste:</span>
+                        {[1, 2, 3, 4, 5].map(variation => (
+                          <Button
+                            key={variation}
+                            variant={zoomVariation === variation ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setZoomVariation(variation)}
+                            className="w-8 h-8 p-0 text-xs"
+                          >
+                            {variation}
+                          </Button>
+                        ))}
+                      </div>
+                    )}
                     <div className="text-sm text-gray-600">
                       Foco: {currentUser?.department || 'Geral'}
                     </div>
