@@ -79,48 +79,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
   const [isZoomFocused, setIsZoomFocused] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const [fullScreenViewMode, setFullScreenViewMode] = useState<'focused' | 'complete'>('complete');
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0, percentX: 0, percentY: 0, globalX: 0, globalY: 0 });
-  const [showMagnifier, setShowMagnifier] = useState(false);
+  const [fullScreenViewMode, setFullScreenViewMode] = useState<
+    "focused" | "complete"
+  >("complete");
+
 
   const flowchartRef = useRef<HTMLDivElement>(null);
   const fullScreenImageRef = useRef<HTMLImageElement>(null);
   const parsedId = parseInt(id);
 
-  // Função de mouse move com coordenadas precisas
-  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    const rect = img.getBoundingClientRect();
-    
-    // Posição exata do mouse relativa à imagem
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    // Garantir que as coordenadas estão dentro dos limites da imagem
-    const clampedX = Math.max(0, Math.min(x, rect.width));
-    const clampedY = Math.max(0, Math.min(y, rect.height));
-    
-    // Converter para porcentagem para o background do zoom
-    const percentX = clampedX / rect.width;
-    const percentY = clampedY / rect.height;
-    
-    setMousePosition({
-      x: clampedX,
-      y: clampedY,
-      percentX: percentX,
-      percentY: percentY,
-      globalX: e.clientX,
-      globalY: e.clientY
-    });
-  };
 
-  const handleMouseEnter = () => {
-    setShowMagnifier(true);
-  };
-
-  const handleMouseLeave = () => {
-    setShowMagnifier(false);
-  };
 
   // Função para obter a imagem específica do departamento
   const getFlowchartImage = (department: string | undefined) => {
@@ -131,14 +99,18 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     // Mapeamento de departamentos para imagens específicas
     const departmentImages = {
       "Setor Demandante": "/fluxograma-setor-demandante.png",
-      "Divisão de Licitação": "/fluxograma-divisao-licitacao.png", 
+      "Divisão de Licitação": "/fluxograma-divisao-licitacao.png",
       "Núcleo de Pesquisa de Preços – NPP": "/fluxograma-npp.png",
       "Procuradoria Geral do Estado - PGE": "/fluxograma-pge.png",
       "Unidade de Orçamento e Finanças": "/fluxograma-financeiro.png",
-      "Secretário de Estado da Administração Penitenciária - SEAP": "/fluxograma-seap-secretario.png",
+      "Secretário de Estado da Administração Penitenciária - SEAP":
+        "/fluxograma-seap-secretario.png",
     };
 
-    return departmentImages[department as keyof typeof departmentImages] || "/fluxograma-seap-1.png";
+    return (
+      departmentImages[department as keyof typeof departmentImages] ||
+      "/fluxograma-seap-1.png"
+    );
   };
 
   // Função simplificada - sem zoom, apenas usa imagens específicas
@@ -1508,7 +1480,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       size="sm"
                       onClick={() => {
                         if (isZoomFocused) {
-                          setFullScreenViewMode('complete');
+                          setFullScreenViewMode("complete");
                           setIsFullScreen(true);
                         } else {
                           setIsZoomFocused(true);
@@ -1540,18 +1512,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 </div>
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <h4 className="font-semibold text-blue-800 mb-2">
-                    {isZoomFocused ? `Foco: ${currentUser?.department}` : "Fluxograma Completo"}
+                    {isZoomFocused
+                      ? `Foco: ${currentUser?.department}`
+                      : "Fluxograma Completo"}
                   </h4>
                   <p className="text-sm text-blue-700">
-                    {isZoomFocused 
+                    {isZoomFocused
                       ? `Visualizando imagem específica do ${currentUser?.department}. ${getDepartmentDescription(currentUser?.department)}`
-                      : "Visualizando todo o fluxograma do processo de licitação."
-                    }
+                      : "Visualizando todo o fluxograma do processo de licitação."}
                   </p>
                   {isZoomFocused && (
                     <div className="mt-2 text-xs text-blue-600 bg-blue-100 p-2 rounded">
-                      💡 Para ver as imagens específicas de cada setor, você pode enviar as imagens cortadas com os nomes: 
-                      fluxograma-setor-demandante.png, fluxograma-divisao-licitacao.png, etc.
+                      💡 Para ver as imagens específicas de cada setor, você
+                      pode enviar as imagens cortadas com os nomes:
+                      fluxograma-setor-demandante.png,
+                      fluxograma-divisao-licitacao.png, etc.
                     </div>
                   )}
                 </div>
@@ -1796,15 +1771,25 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           <div className="w-[95vw] h-[95vh] bg-white rounded-lg flex flex-col relative">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-semibold">
-                {fullScreenViewMode === 'complete' ? 'Fluxograma Completo - SEAP/PB' : `Foco: ${currentUser?.department}`}
+                {fullScreenViewMode === "complete"
+                  ? "Fluxograma Completo - SEAP/PB"
+                  : `Foco: ${currentUser?.department}`}
               </h2>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setFullScreenViewMode(fullScreenViewMode === 'complete' ? 'focused' : 'complete')}
+                  onClick={() =>
+                    setFullScreenViewMode(
+                      fullScreenViewMode === "complete"
+                        ? "focused"
+                        : "complete",
+                    )
+                  }
                 >
-                  {fullScreenViewMode === 'complete' ? "Foco no Setor" : "Visão Completa"}
+                  {fullScreenViewMode === "complete"
+                    ? "Foco no Setor"
+                    : "Visão Completa"}
                 </Button>
                 <Button
                   variant="ghost"
@@ -1820,63 +1805,27 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               <div className="w-full h-full relative flex items-center justify-center border-2 border-gray-200 rounded">
                 <img
                   ref={fullScreenImageRef}
-                  src={fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}
+                  src={
+                    fullScreenViewMode === "complete"
+                      ? "/fluxograma-seap-1.png"
+                      : getFlowchartImage(currentUser?.department)
+                  }
                   alt="Fluxograma do Processo de Licitação SEAP"
-                  className="max-w-full max-h-full object-contain cursor-crosshair"
+                  className="max-w-full max-h-full object-contain"
                   draggable={false}
-                  onMouseMove={handleMouseMove}
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
+
                 />
-                
-                {/* Indicador de área sendo ampliada */}
-                {showMagnifier && fullScreenImageRef.current && (
-                  <div
-                    className="absolute pointer-events-none border-2 border-blue-500 bg-blue-100 bg-opacity-30 z-10"
-                    style={{
-                      width: '40px',
-                      height: '40px',
-                      left: `${mousePosition.x - 20}px`,
-                      top: `${mousePosition.y - 20}px`,
-                    }}
-                  />
-                )}
-                
-                {/* Área de ampliação flutuante que segue o mouse */}
-                {showMagnifier && (
-                  <div
-                    className="fixed pointer-events-none border-2 border-gray-400 rounded bg-white shadow-2xl overflow-hidden z-50"
-                    style={{
-                      width: '200px',
-                      height: '200px',
-                      left: `${mousePosition.globalX + 20}px`,
-                      top: `${mousePosition.globalY - 100}px`,
-                      transform: mousePosition.globalX > window.innerWidth - 250 ? 'translateX(-220px)' : 'none'
-                    }}
-                  >
-                    <div
-                      className="w-full h-full"
-                      style={{
-                        background: `url(${fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}) no-repeat`,
-                        backgroundPosition: `-${mousePosition.percentX * 400 - 100}px -${mousePosition.percentY * 400 - 100}px`,
-                        backgroundSize: '500%',
-                      }}
-                    />
-                    {/* Indicador de zoom */}
-                    <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 rounded text-[10px]">
-                      5x
-                    </div>
-                  </div>
-                )}
+
+
               </div>
             </div>
-            
+
             <div className="p-4 border-t bg-gray-50">
               <p className="text-sm text-gray-600 text-center">
-                {fullScreenViewMode === 'complete'
+                {fullScreenViewMode === "complete"
                   ? "Visualizando fluxograma completo do processo de licitação"
-                  : `Visualizando imagem específica: ${currentUser?.department}`
-                } • Passe o mouse sobre a imagem para ampliar detalhes
+                  : `Visualizando imagem específica: ${currentUser?.department}`}{" "}
+                • Passe o mouse sobre a imagem para ampliar detalhes
               </p>
             </div>
           </div>
