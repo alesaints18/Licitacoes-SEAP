@@ -61,7 +61,7 @@ const SimpleImageZoom = ({ imageSrc, alt }: SimpleImageZoomProps) => {
       <div className="absolute top-4 right-4 z-10 flex gap-2">
         <button
           onClick={zoomIn}
-          disabled={scale >= 5}
+          disabled={getCurrentZoomIndex() >= zoomLevels.length - 1}
           className="bg-white hover:bg-gray-50 border border-gray-300 rounded p-2 shadow-sm disabled:opacity-50"
           title="Aumentar zoom"
         >
@@ -69,7 +69,7 @@ const SimpleImageZoom = ({ imageSrc, alt }: SimpleImageZoomProps) => {
         </button>
         <button
           onClick={zoomOut}
-          disabled={scale <= 0.5}
+          disabled={getCurrentZoomIndex() <= 0}
           className="bg-white hover:bg-gray-50 border border-gray-300 rounded p-2 shadow-sm disabled:opacity-50"
           title="Diminuir zoom"
         >

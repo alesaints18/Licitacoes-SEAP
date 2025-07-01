@@ -1811,7 +1811,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 {fullScreenViewMode === "complete"
                   ? "Visualizando fluxograma completo do processo de licitação"
                   : `Visualizando imagem específica: ${currentUser?.department}`}
-                {" • Use os botões +/- para aplicar zoom e arraste para mover a imagem"}
+                {" • Use os botões +/- para alternar entre 100%, 300% e 500% de zoom. Arraste para mover a imagem"}
               </p>
             </div>
           </div>

@@ -144,6 +144,7 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 01, 2025. Implementado sistema de zoom 100% funcional com SimpleImageZoom usando controles de botão +/- e arrastar para mover
 - July 01, 2025. Adicionadas imagens específicas de fluxograma por departamento (Setor Demandante, Divisão de Licitação, NPP, Orçamento e Finanças, Secretário de Estado)
 - July 01, 2025. Substituída imagem de fluxograma completo por versão mais leve (2.4MB vs 5.7MB anterior - redução de 58%)
+- July 01, 2025. Ajustado sistema de zoom para níveis fixos: 100% → 300% → 500% ao invés de incremento contínuo
 
 ## User Preferences
 
