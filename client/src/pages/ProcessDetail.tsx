@@ -80,7 +80,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [isZoomFocused, setIsZoomFocused] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [fullScreenViewMode, setFullScreenViewMode] = useState<'focused' | 'complete'>('complete');
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const [zoomLevel, setZoomLevel] = useState(0.5);
 
   const flowchartRef = useRef<HTMLDivElement>(null);
   const fullScreenImageRef = useRef<HTMLImageElement>(null);
@@ -88,7 +88,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Reset zoom quando mudar de modo de visualização
   useEffect(() => {
-    setZoomLevel(1);
+    setZoomLevel(0.5); // 50% como valor padrão no novo range
   }, [fullScreenViewMode]);
 
   // Função para obter a imagem específica do departamento
@@ -1789,23 +1789,23 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             </div>
             
             {/* Barra de Zoom Vertical */}
-            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white border rounded-lg p-2 shadow-lg">
-              <div className="flex flex-col items-center gap-2">
-                <span className="text-xs text-gray-600">300%</span>
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white border rounded-lg p-3 shadow-lg">
+              <div className="flex flex-col items-center gap-3 h-40">
+                <span className="text-xs text-gray-600 font-semibold">100%</span>
                 <input
                   type="range"
-                  min="0"
-                  max="3"
-                  step="0.1"
+                  min="0.1"
+                  max="1"
+                  step="0.01"
                   value={zoomLevel}
                   onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
-                  className="h-32 w-4 transform -rotate-90 origin-center"
+                  className="w-32 h-4"
                   style={{ 
-                    writingMode: 'bt-lr',
-                    WebkitAppearance: 'slider-vertical'
+                    transform: 'rotate(-90deg)',
+                    transformOrigin: 'center'
                   }}
                 />
-                <span className="text-xs text-gray-600">0%</span>
+                <span className="text-xs text-gray-600 font-semibold">10%</span>
               </div>
             </div>
 
@@ -1819,8 +1819,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   style={{ 
                     transform: `scale(${zoomLevel})`,
                     maxWidth: 'none',
-                    maxHeight: 'none',
-                    opacity: zoomLevel === 0 ? 0 : 1
+                    maxHeight: 'none'
                   }}
                   draggable={false}
                 />
