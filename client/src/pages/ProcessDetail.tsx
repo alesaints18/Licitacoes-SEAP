@@ -81,32 +81,33 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Funções para zoom inteligente do fluxograma baseado no departamento
   const getFlowchartStyle = (department: string | undefined) => {
+    console.log("Department for zoom:", department);
     if (!department) return {};
     
     const zoomConfigs = {
       "Setor Demandante": {
-        transform: "scale(1.3) translate(-10%, -20%)",
-        transformOrigin: "20% 30%"
+        transform: "scale(2.0) translate(-20%, -30%)",
+        transformOrigin: "25% 20%"
       },
       "Divisão de Licitação": {
-        transform: "scale(1.4) translate(-5%, 0%)",
-        transformOrigin: "30% 50%"
+        transform: "scale(1.8) translate(-10%, -10%)",
+        transformOrigin: "40% 40%"
       },
       "Núcleo de Pesquisa de Preços – NPP": {
-        transform: "scale(1.3) translate(0%, -15%)",
-        transformOrigin: "40% 35%"
+        transform: "scale(1.7) translate(5%, -5%)",
+        transformOrigin: "55% 45%"
       },
       "Procuradoria Geral do Estado - PGE": {
-        transform: "scale(1.3) translate(10%, -10%)",
-        transformOrigin: "60% 40%"
+        transform: "scale(1.6) translate(15%, 0%)",
+        transformOrigin: "70% 50%"
       },
       "Unidade de Orçamento e Finanças": {
-        transform: "scale(1.3) translate(5%, 10%)",
-        transformOrigin: "50% 70%"
+        transform: "scale(1.6) translate(10%, 20%)",
+        transformOrigin: "60% 70%"
       },
       "Secretário de Estado da Administração Penitenciária - SEAP": {
-        transform: "scale(1.2) translate(0%, 15%)",
-        transformOrigin: "50% 80%"
+        transform: "scale(1.5) translate(0%, 30%)",
+        transformOrigin: "50% 85%"
       }
     };
 
