@@ -86,13 +86,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const fullScreenImageRef = useRef<HTMLImageElement>(null);
   const parsedId = parseInt(id);
 
-  // Função para lidar com zoom via scroll
-  const handleWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    setZoomLevel(prev => Math.max(0.5, Math.min(3, prev + delta)));
-  };
-
   // Reset zoom quando mudar de modo de visualização
   useEffect(() => {
     setZoomLevel(1);
@@ -1769,7 +1762,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       {/* Modal de Tela Cheia para Fluxograma */}
       {isFullScreen && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
-          <div className="w-[95vw] h-[95vh] bg-white rounded-lg flex flex-col">
+          <div className="w-[95vw] h-[95vh] bg-white rounded-lg flex flex-col relative">
             <div className="flex items-center justify-between p-4 border-b">
               <h2 className="text-lg font-semibold">
                 {fullScreenViewMode === 'complete' ? 'Fluxograma Completo - SEAP/PB' : `Foco: ${currentUser?.department}`}
@@ -1794,10 +1787,29 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 </Button>
               </div>
             </div>
-            <div 
-              className="flex-1 overflow-auto p-4 cursor-grab active:cursor-grabbing"
-              onWheel={handleWheel}
-            >
+            
+            {/* Barra de Zoom Vertical */}
+            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white border rounded-lg p-2 shadow-lg">
+              <div className="flex flex-col items-center gap-2">
+                <span className="text-xs text-gray-600">300%</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="3"
+                  step="0.1"
+                  value={zoomLevel}
+                  onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
+                  className="h-32 w-4 transform -rotate-90 origin-center"
+                  style={{ 
+                    writingMode: 'bt-lr',
+                    WebkitAppearance: 'slider-vertical'
+                  }}
+                />
+                <span className="text-xs text-gray-600">0%</span>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto p-4">
               <div className="w-full h-full flex items-center justify-center">
                 <img
                   ref={fullScreenImageRef}
@@ -1807,7 +1819,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   style={{ 
                     transform: `scale(${zoomLevel})`,
                     maxWidth: 'none',
-                    maxHeight: 'none'
+                    maxHeight: 'none',
+                    opacity: zoomLevel === 0 ? 0 : 1
                   }}
                   draggable={false}
                 />
@@ -1818,7 +1831,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 {fullScreenViewMode === 'complete'
                   ? "Visualizando fluxograma completo do processo de licitação"
                   : `Visualizando imagem específica: ${currentUser?.department}`
-                } • Use o scroll do mouse para dar zoom
+                } • Use a barra de zoom à direita para ajustar o tamanho
               </p>
             </div>
           </div>
