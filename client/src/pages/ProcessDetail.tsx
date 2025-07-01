@@ -33,6 +33,7 @@ import {
   Image as ImageIcon,
   ChevronDown,
   ChevronUp,
+  X,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
