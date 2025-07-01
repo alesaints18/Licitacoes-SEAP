@@ -58,7 +58,7 @@ const ProcessReport = ({ id }: ProcessReportProps) => {
       const response = await fetch(`/api/processes/${parsedId}/report`, {
         method: 'GET',
         headers: {
-          'Accept': 'application/pdf',
+          'Accept': 'text/html',
         },
       });
 
@@ -66,24 +66,30 @@ const ProcessReport = ({ id }: ProcessReportProps) => {
         throw new Error('Erro ao gerar relatório');
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `relatorio-processo-${process?.pbdocNumber || parsedId}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(url);
+      const htmlContent = await response.text();
+      
+      // Abrir uma nova janela com o conteúdo HTML para impressão
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(htmlContent);
+        printWindow.document.close();
+        
+        // Aguardar o carregamento e iniciar impressão
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print();
+          }, 500);
+        };
+      }
 
       toast({
-        title: "Relatório gerado",
-        description: "O relatório foi baixado com sucesso"
+        title: "Relatório aberto",
+        description: "Use Ctrl+P ou o menu de impressão para salvar como PDF"
       });
     } catch (error) {
       toast({
         title: "Erro ao gerar relatório",
-        description: "Não foi possível gerar o relatório PDF",
+        description: "Não foi possível gerar o relatório",
         variant: "destructive"
       });
     } finally {
@@ -134,7 +140,7 @@ const ProcessReport = ({ id }: ProcessReportProps) => {
           </Button>
           <Button onClick={generatePDF} disabled={isGenerating}>
             <Download className="h-4 w-4 mr-2" />
-            {isGenerating ? "Gerando..." : "Baixar PDF"}
+            {isGenerating ? "Abrindo..." : "Gerar PDF"}
           </Button>
         </div>
       </div>

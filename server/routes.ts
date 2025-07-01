@@ -12,7 +12,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
-import puppeteer from "puppeteer";
+// Removido puppeteer - usando alternativa mais simples
 
 // Configuração para meta mensal
 let monthlyGoal = 200; // Valor padrão
@@ -1365,34 +1365,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         </html>
       `;
 
-      // Configurar headers para PDF
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="relatorio-processo-${process.pbdocNumber}.pdf"`);
-      
-      // Gerar PDF usando puppeteer
-      
-      const browser = await puppeteer.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
-      
-      const page = await browser.newPage();
-      await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
-      
-      const pdfBuffer = await page.pdf({
-        format: 'A4',
-        printBackground: true,
-        margin: {
-          top: '20mm',
-          right: '15mm',
-          bottom: '20mm',
-          left: '15mm'
-        }
-      });
-      
-      await browser.close();
-      
-      res.send(pdfBuffer);
+      // Retornar HTML para que o frontend possa converter em PDF
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      res.setHeader('Content-Disposition', 'inline');
+      res.send(htmlContent);
     } catch (error) {
       console.error('Erro ao gerar relatório PDF:', error);
       res.status(500).json({ message: "Erro ao gerar relatório PDF", error: (error as Error).message });
