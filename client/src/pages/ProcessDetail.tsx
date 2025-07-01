@@ -1418,159 +1418,35 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div
-                  ref={flowchartRef}
-                  className={`flowchart-container ${isFlowchartExpanded ? "expanded" : "focused"}`}
+                <div 
+                  className={`relative border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ${
+                    isFlowchartExpanded 
+                      ? "fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center border-none rounded-none" 
+                      : "h-96"
+                  }`}
                   onClick={toggleFlowchartView}
                 >
                   <img
                     src="/fluxograma_seap.png"
                     alt="Fluxograma do Processo de Licitação SEAP"
-                    className="flowchart-image"
+                    className={`transition-all duration-300 ${
+                      isFlowchartExpanded 
+                        ? "max-w-[95vw] max-h-[95vh] object-contain" 
+                        : "w-full h-full object-cover object-top"
+                    }`}
                     draggable={false}
                     onLoad={() => console.log('Fluxograma carregado com sucesso')}
                     onError={(e) => {
                       console.error('Erro ao carregar fluxograma:', e);
-                      console.log('Tentando URL alternativa...');
-                      (e.target as HTMLImageElement).src = '/fluxograma-completo.png';
                     }}
                   />
-                  <div className="flowchart-overlay">
-                    <div className="zoom-hint">
-                      {isFlowchartExpanded
-                        ? "Clique para focar"
-                        : "Clique para expandir"}
-                    </div>
-                  </div>
+                </div>
+                
+                <div className="mt-4 text-center text-sm text-gray-600">
+                  <p>Fluxograma do processo de licitação SEAP/PB baseado na Lei nº 14.133/2021</p>
                 </div>
 
-                <div className="mt-6 text-center text-sm text-gray-600">
-                  <p className="mb-2">
-                    <strong>Dica:</strong> Clique na imagem para alternar entre
-                    visualização focada e completa
-                  </p>
-                  <p className="text-xs">
-                    Pressione{" "}
-                    <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">
-                      ESC
-                    </kbd>{" "}
-                    para sair do modo expandido
-                  </p>
-                </div>
 
-                <style
-                  dangerouslySetInnerHTML={{
-                    __html: `
-                    .flowchart-container {
-                      position: relative;
-                      cursor: pointer;
-                      overflow: hidden;
-                      border-radius: 12px;
-                      border: 2px solid #e5e7eb;
-                      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                      background: #f9fafb;
-                    }
-                    
-                    .flowchart-container.focused {
-                      height: 400px;
-                      transform: scale(1);
-                    }
-                    
-                    .flowchart-container.expanded {
-                      position: fixed;
-                      top: 0;
-                      left: 0;
-                      width: 100vw;
-                      height: 100vh;
-                      z-index: 1000;
-                      background: rgba(0, 0, 0, 0.95);
-                      border: none;
-                      border-radius: 0;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                    }
-                    
-                    .flowchart-image {
-                      width: 100%;
-                      height: 100%;
-                      object-fit: contain;
-                      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-                      user-select: none;
-                    }
-                    
-                    .flowchart-container.focused .flowchart-image {
-                      object-fit: cover;
-                      object-position: center top;
-                      transform: scale(1.2);
-                    }
-                    
-                    .flowchart-container.expanded .flowchart-image {
-                      max-width: 95vw;
-                      max-height: 95vh;
-                      object-fit: contain;
-                      transform: scale(1);
-                    }
-                    
-                    .flowchart-overlay {
-                      position: absolute;
-                      top: 0;
-                      left: 0;
-                      right: 0;
-                      bottom: 0;
-                      display: flex;
-                      align-items: center;
-                      justify-content: center;
-                      background: rgba(0, 0, 0, 0);
-                      transition: all 0.3s ease;
-                      opacity: 0;
-                    }
-                    
-                    .flowchart-container:hover .flowchart-overlay {
-                      background: rgba(0, 0, 0, 0.3);
-                      opacity: 1;
-                    }
-                    
-                    .zoom-hint {
-                      background: rgba(255, 255, 255, 0.95);
-                      color: #1f2937;
-                      padding: 12px 24px;
-                      border-radius: 8px;
-                      font-weight: 500;
-                      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-                      transform: translateY(10px);
-                      transition: transform 0.3s ease;
-                    }
-                    
-                    .flowchart-container:hover .zoom-hint {
-                      transform: translateY(0);
-                    }
-                    
-                    .flowchart-container.expanded .flowchart-overlay {
-                      background: transparent;
-                    }
-                    
-                    .flowchart-container.expanded:hover .flowchart-overlay {
-                      background: rgba(0, 0, 0, 0.2);
-                    }
-                    
-                    @media (max-width: 768px) {
-                      .flowchart-container.focused {
-                        height: 250px;
-                      }
-                      
-                      .flowchart-container.focused .flowchart-image {
-                        transform: scale(1.5);
-                      }
-                      
-                      .zoom-hint {
-                        padding: 8px 16px;
-                        font-size: 14px;
-                      }
-                    }
-                  `,
-                  }}
-                />
               </CardContent>
             </Card>
 
