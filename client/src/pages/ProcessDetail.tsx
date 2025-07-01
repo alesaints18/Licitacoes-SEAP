@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -28,6 +28,9 @@ import {
   FileText,
   Check,
   RefreshCw,
+  ZoomIn,
+  ZoomOut,
+  Image as ImageIcon,
   ChevronDown,
   ChevronUp,
 } from "lucide-react";
@@ -72,6 +75,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
+  const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
+  const flowchartRef = useRef<HTMLDivElement>(null);
   const parsedId = parseInt(id);
 
   // Get process details
@@ -599,6 +604,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         return null;
     }
   };
+
+  // Flowchart functions
+  const toggleFlowchartView = () => {
+    setIsFlowchartExpanded(!isFlowchartExpanded);
+  };
+
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isFlowchartExpanded) {
+        setIsFlowchartExpanded(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isFlowchartExpanded]);
 
   if (processLoading) {
     return (
@@ -1369,6 +1390,167 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 Contratos
               </p>
             </div>
+
+            {/* Fluxograma Interativo */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 justify-between">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5" />
+                    Fluxograma Visual Interativo
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={toggleFlowchartView}
+                    className="flex items-center gap-2"
+                  >
+                    {isFlowchartExpanded ? <ZoomOut className="h-4 w-4" /> : <ZoomIn className="h-4 w-4" />}
+                    {isFlowchartExpanded ? "Minimizar" : "Expandir"}
+                  </Button>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div 
+                  ref={flowchartRef}
+                  className={`flowchart-container ${isFlowchartExpanded ? 'expanded' : 'focused'}`}
+                  onClick={toggleFlowchartView}
+                >
+                  <img 
+                    src="/fluxograma_seap.png"
+                    alt="Fluxograma do Processo de Licitação SEAP"
+                    className="flowchart-image"
+                    draggable={false}
+                  />
+                  <div className="flowchart-overlay">
+                    <div className="zoom-hint">
+                      {isFlowchartExpanded ? "Clique para focar" : "Clique para expandir"}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-6 text-center text-sm text-gray-600">
+                  <p className="mb-2">
+                    <strong>Dica:</strong> Clique na imagem para alternar entre visualização focada e completa
+                  </p>
+                  <p className="text-xs">
+                    Pressione <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">ESC</kbd> para sair do modo expandido
+                  </p>
+                </div>
+
+                <style dangerouslySetInnerHTML={{
+                  __html: `
+                    .flowchart-container {
+                      position: relative;
+                      cursor: pointer;
+                      overflow: hidden;
+                      border-radius: 12px;
+                      border: 2px solid #e5e7eb;
+                      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                      background: #f9fafb;
+                    }
+                    
+                    .flowchart-container.focused {
+                      height: 400px;
+                      transform: scale(1);
+                    }
+                    
+                    .flowchart-container.expanded {
+                      position: fixed;
+                      top: 0;
+                      left: 0;
+                      width: 100vw;
+                      height: 100vh;
+                      z-index: 1000;
+                      background: rgba(0, 0, 0, 0.95);
+                      border: none;
+                      border-radius: 0;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                    }
+                    
+                    .flowchart-image {
+                      width: 100%;
+                      height: 100%;
+                      object-fit: contain;
+                      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                      user-select: none;
+                    }
+                    
+                    .flowchart-container.focused .flowchart-image {
+                      object-fit: cover;
+                      object-position: center top;
+                      transform: scale(1.2);
+                    }
+                    
+                    .flowchart-container.expanded .flowchart-image {
+                      max-width: 95vw;
+                      max-height: 95vh;
+                      object-fit: contain;
+                      transform: scale(1);
+                    }
+                    
+                    .flowchart-overlay {
+                      position: absolute;
+                      top: 0;
+                      left: 0;
+                      right: 0;
+                      bottom: 0;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                      background: rgba(0, 0, 0, 0);
+                      transition: all 0.3s ease;
+                      opacity: 0;
+                    }
+                    
+                    .flowchart-container:hover .flowchart-overlay {
+                      background: rgba(0, 0, 0, 0.3);
+                      opacity: 1;
+                    }
+                    
+                    .zoom-hint {
+                      background: rgba(255, 255, 255, 0.95);
+                      color: #1f2937;
+                      padding: 12px 24px;
+                      border-radius: 8px;
+                      font-weight: 500;
+                      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+                      transform: translateY(10px);
+                      transition: transform 0.3s ease;
+                    }
+                    
+                    .flowchart-container:hover .zoom-hint {
+                      transform: translateY(0);
+                    }
+                    
+                    .flowchart-container.expanded .flowchart-overlay {
+                      background: transparent;
+                    }
+                    
+                    .flowchart-container.expanded:hover .flowchart-overlay {
+                      background: rgba(0, 0, 0, 0.2);
+                    }
+                    
+                    @media (max-width: 768px) {
+                      .flowchart-container.focused {
+                        height: 250px;
+                      }
+                      
+                      .flowchart-container.focused .flowchart-image {
+                        transform: scale(1.5);
+                      }
+                      
+                      .zoom-hint {
+                        padding: 8px 16px;
+                        font-size: 14px;
+                      }
+                    }
+                  `
+                }} />
+              </CardContent>
+            </Card>
 
             {/* Fase 1: Iniciação */}
             <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
