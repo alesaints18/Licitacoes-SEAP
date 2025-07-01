@@ -13,6 +13,15 @@ app.use('/downloads', express.static(path.join(process.cwd(), 'public', 'downloa
 // Servir a página de download estática
 app.use('/download', express.static(path.join(process.cwd(), 'public', 'download')));
 
+// Servir imagens estáticas (incluindo fluxogramas) sem autenticação
+app.use('/', express.static(path.join(process.cwd(), 'public'), {
+  setHeaders: (res, filePath) => {
+    if (filePath.endsWith('.png') || filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || filePath.endsWith('.gif')) {
+      res.set('Cache-Control', 'public, max-age=86400'); // Cache por 1 dia
+    }
+  }
+}));
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
