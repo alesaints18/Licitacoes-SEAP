@@ -81,76 +81,28 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const flowchartRef = useRef<HTMLDivElement>(null);
   const parsedId = parseInt(id);
 
-  // Funções para zoom inteligente do fluxograma baseado no departamento
-  const getFlowchartStyle = (department: string | undefined) => {
-    console.log(
-      "Department for zoom:",
-      department,
-      "isZoomFocused:",
-      isZoomFocused,
-      "variation:",
-      zoomVariation,
-    );
-    if (!department || !isZoomFocused) return {};
-
-    const zoomVariations = {
-      "Setor Demandante": [
-        {
-          transform: "scale(5.0) translate(25%, 25%)",
-          transformOrigin: "25% 10%",
-        },
-        {
-          transform: "scale(4.8) translate(-15%, -20%)",
-          transformOrigin: "20% 12%",
-        },
-        {
-          transform: "scale(4.5) translate(10%, -10%)",
-          transformOrigin: "30% 8%",
-        },
-        {
-          transform: "scale(5.2) translate(-5%, -25%)",
-          transformOrigin: "22% 15%",
-        },
-        {
-          transform: "scale(5.5) translate(-20%, -30%)",
-          transformOrigin: "18% 18%",
-        },
-      ],
-    };
-
-    const configs = zoomVariations[department as keyof typeof zoomVariations];
-    if (configs && configs[zoomVariation - 1]) {
-      return configs[zoomVariation - 1];
+  // Função para obter a imagem específica do departamento
+  const getFlowchartImage = (department: string | undefined) => {
+    if (!department || !isZoomFocused) {
+      return "/fluxograma-seap-1.png"; // Imagem completa
     }
 
-    const zoomConfigs = {
-      "Setor Demandante": {
-        transform: "scale(3.5) translate(-25%, -35%)",
-        transformOrigin: "10% 8%",
-      },
-      "Divisão de Licitação": {
-        transform: "scale(2.5) translate(-10%, -5%)",
-        transformOrigin: "20% 40%",
-      },
-      "Núcleo de Pesquisa de Preços – NPP": {
-        transform: "scale(2.8) translate(-20%, 10%)",
-        transformOrigin: "15% 60%",
-      },
-      "Procuradoria Geral do Estado - PGE": {
-        transform: "scale(2.5) translate(15%, -15%)",
-        transformOrigin: "70% 35%",
-      },
-      "Unidade de Orçamento e Finanças": {
-        transform: "scale(2.8) translate(-20%, 15%)",
-        transformOrigin: "15% 65%",
-      },
-      "Secretário de Estado da Administração Penitenciária - SEAP": {
-        transform: "scale(1.5) translate(0%, 30%)",
-        transformOrigin: "50% 85%",
-      },
+    // Mapeamento de departamentos para imagens específicas
+    const departmentImages = {
+      "Setor Demandante": "/fluxograma-setor-demandante.png",
+      "Divisão de Licitação": "/fluxograma-divisao-licitacao.png", 
+      "Núcleo de Pesquisa de Preços – NPP": "/fluxograma-npp.png",
+      "Procuradoria Geral do Estado - PGE": "/fluxograma-pge.png",
+      "Unidade de Orçamento e Finanças": "/fluxograma-financeiro.png",
+      "Secretário de Estado da Administração Penitenciária - SEAP": "/fluxograma-seap-secretario.png",
     };
 
-    return zoomConfigs[department as keyof typeof zoomConfigs] || {};
+    return departmentImages[department as keyof typeof departmentImages] || "/fluxograma-seap-1.png";
+  };
+
+  // Função simplificada - sem zoom, apenas usa imagens específicas
+  const getFlowchartStyle = () => {
+    return {}; // Sem transformações CSS necessárias
   };
 
   const getDepartmentFocus = (department: string | undefined) => {
@@ -1548,10 +1500,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 <div className="border rounded-lg p-4 bg-white overflow-hidden">
                   <div className="relative">
                     <img
-                      src="/fluxograma-seap-1.png"
+                      src={getFlowchartImage(currentUser?.department)}
                       alt="Fluxograma do Processo de Licitação SEAP"
                       className="w-full h-auto transition-all duration-500 hover:scale-105"
-                      style={getFlowchartStyle(currentUser?.department)}
+                      style={getFlowchartStyle()}
                     />
                     <div className="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
                       {getDepartmentFocus(currentUser?.department)}
