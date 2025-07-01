@@ -80,16 +80,29 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [isZoomFocused, setIsZoomFocused] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [fullScreenViewMode, setFullScreenViewMode] = useState<'focused' | 'complete'>('complete');
-  const [zoomLevel, setZoomLevel] = useState(1);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [showMagnifier, setShowMagnifier] = useState(false);
 
   const flowchartRef = useRef<HTMLDivElement>(null);
   const fullScreenImageRef = useRef<HTMLImageElement>(null);
   const parsedId = parseInt(id);
 
-  // Reset zoom quando mudar de modo de visualização
-  useEffect(() => {
-    setZoomLevel(1); // 100% como valor padrão
-  }, [fullScreenViewMode]);
+  // Funções para o efeito de lupa
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleMouseEnter = () => {
+    setShowMagnifier(true);
+  };
+
+  const handleMouseLeave = () => {
+    setShowMagnifier(false);
+  };
 
   // Função para obter a imagem específica do departamento
   const getFlowchartImage = (department: string | undefined) => {
@@ -1775,9 +1788,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 >
                   {fullScreenViewMode === 'complete' ? "Foco no Setor" : "Visão Completa"}
                 </Button>
-                <span className="text-sm text-gray-600">
-                  Zoom: {Math.round(zoomLevel * 100)}%
-                </span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -1787,62 +1797,59 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 </Button>
               </div>
             </div>
-            
-            {/* Barra de Zoom Vertical */}
-            <div className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 bg-white border rounded-lg px-3 py-4 shadow-lg">
-              <div className="flex flex-col items-center h-52">
-                <span className="text-xs text-gray-600 font-semibold mb-3">200%</span>
-                <div className="flex-1 flex items-center">
-                  <input
-                    type="range"
-                    min="0.5"
-                    max="2"
-                    step="0.05"
-                    value={zoomLevel}
-                    onChange={(e) => setZoomLevel(parseFloat(e.target.value))}
-                    className="w-36 h-4"
-                    style={{ 
-                      transform: 'rotate(-90deg)',
-                      transformOrigin: 'center'
-                    }}
-                  />
-                </div>
-                <span className="text-xs text-gray-600 font-semibold mt-3">50%</span>
-              </div>
-            </div>
 
-            <div className="flex-1 overflow-auto">
-              <div className="w-full h-full relative" style={{ minHeight: '500px' }}>
+            <div className="flex-1 p-4 flex gap-4">
+              <div className="flex-1">
                 <div 
-                  className="absolute inset-0 flex items-center justify-center"
-                  style={{
-                    transform: `scale(${zoomLevel})`,
-                    transformOrigin: 'center center',
-                    transition: 'transform 0.2s ease'
-                  }}
+                  className="w-full h-full relative flex items-center justify-center cursor-crosshair border-2 border-gray-200 rounded"
+                  onMouseMove={handleMouseMove}
+                  onMouseEnter={handleMouseEnter}
+                  onMouseLeave={handleMouseLeave}
                 >
                   <img
                     ref={fullScreenImageRef}
                     src={fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}
                     alt="Fluxograma do Processo de Licitação SEAP"
-                    className="max-w-none"
-                    style={{ 
-                      width: 'auto',
-                      height: 'auto',
-                      maxWidth: zoomLevel <= 1 ? '90vw' : 'none',
-                      maxHeight: zoomLevel <= 1 ? '70vh' : 'none'
-                    }}
+                    className="max-w-full max-h-full object-contain"
                     draggable={false}
                   />
+                  
+                  {/* Indicador de área sendo ampliada */}
+                  {showMagnifier && (
+                    <div
+                      className="absolute pointer-events-none border-2 border-blue-500 bg-blue-100 bg-opacity-30"
+                      style={{
+                        width: '80px',
+                        height: '80px',
+                        left: `${mousePosition.x - 40}px`,
+                        top: `${mousePosition.y - 40}px`,
+                      }}
+                    />
+                  )}
                 </div>
               </div>
+              
+              {/* Área de ampliação lateral */}
+              {showMagnifier && (
+                <div className="w-80 h-80 border-2 border-gray-300 rounded bg-white shadow-lg overflow-hidden">
+                  <div
+                    className="w-full h-full"
+                    style={{
+                      background: `url(${fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}) no-repeat`,
+                      backgroundPosition: `-${mousePosition.x * 3 - 160}px -${mousePosition.y * 3 - 160}px`,
+                      backgroundSize: '300%',
+                    }}
+                  />
+                </div>
+              )}
             </div>
+            
             <div className="p-4 border-t bg-gray-50">
               <p className="text-sm text-gray-600 text-center">
                 {fullScreenViewMode === 'complete'
                   ? "Visualizando fluxograma completo do processo de licitação"
                   : `Visualizando imagem específica: ${currentUser?.department}`
-                } • Use a barra de zoom à direita para ajustar o tamanho
+                } • Passe o mouse sobre a imagem para ampliar detalhes
               </p>
             </div>
           </div>
