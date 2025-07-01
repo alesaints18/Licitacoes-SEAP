@@ -79,6 +79,66 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const flowchartRef = useRef<HTMLDivElement>(null);
   const parsedId = parseInt(id);
 
+  // Funções para zoom inteligente do fluxograma baseado no departamento
+  const getFlowchartStyle = (department: string | undefined) => {
+    if (!department) return {};
+    
+    const zoomConfigs = {
+      "Setor Demandante": {
+        transform: "scale(1.3) translate(-10%, -20%)",
+        transformOrigin: "20% 30%"
+      },
+      "Divisão de Licitação": {
+        transform: "scale(1.4) translate(-5%, 0%)",
+        transformOrigin: "30% 50%"
+      },
+      "Núcleo de Pesquisa de Preços – NPP": {
+        transform: "scale(1.3) translate(0%, -15%)",
+        transformOrigin: "40% 35%"
+      },
+      "Procuradoria Geral do Estado - PGE": {
+        transform: "scale(1.3) translate(10%, -10%)",
+        transformOrigin: "60% 40%"
+      },
+      "Unidade de Orçamento e Finanças": {
+        transform: "scale(1.3) translate(5%, 10%)",
+        transformOrigin: "50% 70%"
+      },
+      "Secretário de Estado da Administração Penitenciária - SEAP": {
+        transform: "scale(1.2) translate(0%, 15%)",
+        transformOrigin: "50% 80%"
+      }
+    };
+
+    return zoomConfigs[department as keyof typeof zoomConfigs] || {};
+  };
+
+  const getDepartmentFocus = (department: string | undefined) => {
+    const focuses = {
+      "Setor Demandante": "Iniciação",
+      "Divisão de Licitação": "Preparação & Execução",
+      "Núcleo de Pesquisa de Preços – NPP": "Pesquisa de Preços",
+      "Procuradoria Geral do Estado - PGE": "Análise Jurídica",
+      "Unidade de Orçamento e Finanças": "Análise Orçamentária",
+      "Secretário de Estado da Administração Penitenciária - SEAP": "Autorização Final"
+    };
+    
+    return focuses[department as keyof typeof focuses] || "Visão Geral";
+  };
+
+  const getDepartmentDescription = (department: string | undefined) => {
+    const descriptions = {
+      "Setor Demandante": "Responsável pela criação do DFD, ETP, Mapa de Risco e Termo de Referência. Esta é a fase inicial onde a necessidade é formalizada.",
+      "Divisão de Licitação": "Coordena todo o processo licitatório, desde a criação até a execução. Gerencia prazos e documentação.",
+      "Núcleo de Pesquisa de Preços – NPP": "Realiza pesquisa de mercado e análise de preços para garantir economicidade na contratação.",
+      "Procuradoria Geral do Estado - PGE": "Analisa juridicamente todos os documentos e procedimentos para garantir conformidade legal.",
+      "Unidade de Orçamento e Finanças": "Verifica disponibilidade orçamentária e autoriza empenho dos recursos necessários.",
+      "Secretário de Estado da Administração Penitenciária - SEAP": "Autoridade máxima que aprova e autoriza o processo licitatório."
+    };
+    
+    return descriptions[department as keyof typeof descriptions] || "Visualização geral do processo de licitação.";
+  };
+
   // Get process details
   const {
     data: process,
@@ -1397,15 +1457,34 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             {/* Fluxograma Visual */}
             <Card>
               <CardHeader>
-                <CardTitle>Fluxograma Visual do Processo</CardTitle>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Fluxograma Visual do Processo</span>
+                  <div className="text-sm text-gray-600">
+                    Foco: {currentUser?.department || 'Geral'}
+                  </div>
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="border rounded-lg p-4 bg-white">
-                  <img
-                    src="/fluxograma-seap-1.png"
-                    alt="Fluxograma do Processo de Licitação SEAP"
-                    className="w-full h-auto"
-                  />
+                <div className="border rounded-lg p-4 bg-white overflow-hidden">
+                  <div className="relative">
+                    <img
+                      src="/fluxograma-seap-1.png"
+                      alt="Fluxograma do Processo de Licitação SEAP"
+                      className="w-full h-auto transition-all duration-500 hover:scale-105"
+                      style={getFlowchartStyle(currentUser?.department)}
+                    />
+                    <div className="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                      {getDepartmentFocus(currentUser?.department)}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">
+                    Área de Foco: {currentUser?.department}
+                  </h4>
+                  <p className="text-sm text-blue-700">
+                    {getDepartmentDescription(currentUser?.department)}
+                  </p>
                 </div>
               </CardContent>
             </Card>
