@@ -1858,13 +1858,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       className="w-full h-full"
                       style={{
                         background: `url(${fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}) no-repeat`,
-                        backgroundPosition: `-${mousePosition.percentX * 1000 - 100}px -${mousePosition.percentY * 1000 - 100}px`,
-                        backgroundSize: '1000%',
+                        backgroundPosition: `-${mousePosition.percentX * 400 - 100}px -${mousePosition.percentY * 400 - 100}px`,
+                        backgroundSize: '500%',
                       }}
                     />
                     {/* Indicador de zoom */}
                     <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 rounded text-[10px]">
-                      10x
+                      5x
                     </div>
                   </div>
                 )}
