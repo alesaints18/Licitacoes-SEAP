@@ -1512,11 +1512,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 </div>
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <h4 className="font-semibold text-blue-800 mb-2">
-                    Área de Foco: {currentUser?.department}
+                    {isZoomFocused ? `Foco: ${currentUser?.department}` : "Fluxograma Completo"}
                   </h4>
                   <p className="text-sm text-blue-700">
-                    {getDepartmentDescription(currentUser?.department)}
+                    {isZoomFocused 
+                      ? `Visualizando imagem específica do ${currentUser?.department}. ${getDepartmentDescription(currentUser?.department)}`
+                      : "Visualizando todo o fluxograma do processo de licitação."
+                    }
                   </p>
+                  {isZoomFocused && (
+                    <div className="mt-2 text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                      💡 Para ver as imagens específicas de cada setor, você pode enviar as imagens cortadas com os nomes: 
+                      fluxograma-setor-demandante.png, fluxograma-divisao-licitacao.png, etc.
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

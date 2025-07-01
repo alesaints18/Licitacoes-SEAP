@@ -140,6 +140,7 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 01, 2025. Initial setup
 - July 01, 2025. Implementada geração de relatório PDF usando impressão do navegador (solução compatível com ambiente Replit)
 - July 01, 2025. Adicionado fluxograma interativo na página de processos com zoom e expansão em tela cheia
+- July 01, 2025. Reformulado sistema de fluxograma para usar imagens específicas por departamento ao invés de zoom CSS complexo
 
 ## User Preferences
 
