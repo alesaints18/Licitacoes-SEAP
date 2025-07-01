@@ -83,49 +83,71 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Funções para zoom inteligente do fluxograma baseado no departamento
   const getFlowchartStyle = (department: string | undefined) => {
-    console.log("Department for zoom:", department, "isZoomFocused:", isZoomFocused, "variation:", zoomVariation);
+    console.log(
+      "Department for zoom:",
+      department,
+      "isZoomFocused:",
+      isZoomFocused,
+      "variation:",
+      zoomVariation,
+    );
     if (!department || !isZoomFocused) return {};
-    
+
     const zoomVariations = {
       "Setor Demandante": [
-        { transform: "scale(3.0) translate(0%, -15%)", transformOrigin: "25% 10%" },
-        { transform: "scale(3.5) translate(-15%, -20%)", transformOrigin: "20% 12%" },
-        { transform: "scale(2.8) translate(10%, -10%)", transformOrigin: "30% 8%" },
-        { transform: "scale(3.2) translate(-5%, -25%)", transformOrigin: "22% 15%" },
-        { transform: "scale(4.0) translate(-20%, -30%)", transformOrigin: "18% 18%" },
-      ]
+        {
+          transform: "scale(5.0) translate(25%, 25%)",
+          transformOrigin: "25% 10%",
+        },
+        {
+          transform: "scale(4.8) translate(-15%, -20%)",
+          transformOrigin: "20% 12%",
+        },
+        {
+          transform: "scale(4.5) translate(10%, -10%)",
+          transformOrigin: "30% 8%",
+        },
+        {
+          transform: "scale(5.2) translate(-5%, -25%)",
+          transformOrigin: "22% 15%",
+        },
+        {
+          transform: "scale(5.5) translate(-20%, -30%)",
+          transformOrigin: "18% 18%",
+        },
+      ],
     };
-    
+
     const configs = zoomVariations[department as keyof typeof zoomVariations];
     if (configs && configs[zoomVariation - 1]) {
       return configs[zoomVariation - 1];
     }
-    
+
     const zoomConfigs = {
       "Setor Demandante": {
         transform: "scale(3.5) translate(-25%, -35%)",
-        transformOrigin: "10% 8%"
+        transformOrigin: "10% 8%",
       },
       "Divisão de Licitação": {
         transform: "scale(2.5) translate(-10%, -5%)",
-        transformOrigin: "20% 40%"
+        transformOrigin: "20% 40%",
       },
       "Núcleo de Pesquisa de Preços – NPP": {
         transform: "scale(2.8) translate(-20%, 10%)",
-        transformOrigin: "15% 60%"
+        transformOrigin: "15% 60%",
       },
       "Procuradoria Geral do Estado - PGE": {
         transform: "scale(2.5) translate(15%, -15%)",
-        transformOrigin: "70% 35%"
+        transformOrigin: "70% 35%",
       },
       "Unidade de Orçamento e Finanças": {
         transform: "scale(2.8) translate(-20%, 15%)",
-        transformOrigin: "15% 65%"
+        transformOrigin: "15% 65%",
       },
       "Secretário de Estado da Administração Penitenciária - SEAP": {
         transform: "scale(1.5) translate(0%, 30%)",
-        transformOrigin: "50% 85%"
-      }
+        transformOrigin: "50% 85%",
+      },
     };
 
     return zoomConfigs[department as keyof typeof zoomConfigs] || {};
@@ -138,23 +160,33 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Núcleo de Pesquisa de Preços – NPP": "Pesquisa de Preços",
       "Procuradoria Geral do Estado - PGE": "Análise Jurídica",
       "Unidade de Orçamento e Finanças": "Análise Orçamentária",
-      "Secretário de Estado da Administração Penitenciária - SEAP": "Autorização Final"
+      "Secretário de Estado da Administração Penitenciária - SEAP":
+        "Autorização Final",
     };
-    
+
     return focuses[department as keyof typeof focuses] || "Visão Geral";
   };
 
   const getDepartmentDescription = (department: string | undefined) => {
     const descriptions = {
-      "Setor Demandante": "Responsável pela criação do DFD, ETP, Mapa de Risco e Termo de Referência. Esta é a fase inicial onde a necessidade é formalizada.",
-      "Divisão de Licitação": "Coordena todo o processo licitatório, desde a criação até a execução. Gerencia prazos e documentação.",
-      "Núcleo de Pesquisa de Preços – NPP": "Realiza pesquisa de mercado e análise de preços para garantir economicidade na contratação.",
-      "Procuradoria Geral do Estado - PGE": "Analisa juridicamente todos os documentos e procedimentos para garantir conformidade legal.",
-      "Unidade de Orçamento e Finanças": "Verifica disponibilidade orçamentária e autoriza empenho dos recursos necessários.",
-      "Secretário de Estado da Administração Penitenciária - SEAP": "Autoridade máxima que aprova e autoriza o processo licitatório."
+      "Setor Demandante":
+        "Responsável pela criação do DFD, ETP, Mapa de Risco e Termo de Referência. Esta é a fase inicial onde a necessidade é formalizada.",
+      "Divisão de Licitação":
+        "Coordena todo o processo licitatório, desde a criação até a execução. Gerencia prazos e documentação.",
+      "Núcleo de Pesquisa de Preços – NPP":
+        "Realiza pesquisa de mercado e análise de preços para garantir economicidade na contratação.",
+      "Procuradoria Geral do Estado - PGE":
+        "Analisa juridicamente todos os documentos e procedimentos para garantir conformidade legal.",
+      "Unidade de Orçamento e Finanças":
+        "Verifica disponibilidade orçamentária e autoriza empenho dos recursos necessários.",
+      "Secretário de Estado da Administração Penitenciária - SEAP":
+        "Autoridade máxima que aprova e autoriza o processo licitatório.",
     };
-    
-    return descriptions[department as keyof typeof descriptions] || "Visualização geral do processo de licitação.";
+
+    return (
+      descriptions[department as keyof typeof descriptions] ||
+      "Visualização geral do processo de licitação."
+    );
   };
 
   // Get process details
@@ -1485,24 +1517,29 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     >
                       {isZoomFocused ? "Visão Completa" : "Foco no Setor"}
                     </Button>
-                    {isZoomFocused && currentUser?.department === "Setor Demandante" && (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">Teste:</span>
-                        {[1, 2, 3, 4, 5].map(variation => (
-                          <Button
-                            key={variation}
-                            variant={zoomVariation === variation ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setZoomVariation(variation)}
-                            className="w-8 h-8 p-0 text-xs"
-                          >
-                            {variation}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
+                    {isZoomFocused &&
+                      currentUser?.department === "Setor Demandante" && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500">Teste:</span>
+                          {[1, 2, 3, 4, 5].map((variation) => (
+                            <Button
+                              key={variation}
+                              variant={
+                                zoomVariation === variation
+                                  ? "default"
+                                  : "outline"
+                              }
+                              size="sm"
+                              onClick={() => setZoomVariation(variation)}
+                              className="w-8 h-8 p-0 text-xs"
+                            >
+                              {variation}
+                            </Button>
+                          ))}
+                        </div>
+                      )}
                     <div className="text-sm text-gray-600">
-                      Foco: {currentUser?.department || 'Geral'}
+                      Foco: {currentUser?.department || "Geral"}
                     </div>
                   </div>
                 </CardTitle>
