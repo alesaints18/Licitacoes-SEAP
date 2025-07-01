@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import SimpleImageZoom from "@/components/SimpleImageZoom";
 import { useLocation } from "wouter";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -1793,18 +1794,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             </div>
 
             <div className="flex-1 p-4 relative">
-              <div className="w-full h-full relative flex items-center justify-center border-2 border-gray-200 rounded">
-                <img
-                  src={
-                    fullScreenViewMode === "complete"
-                      ? "/fluxograma-seap-1.png"
-                      : getFlowchartImage(currentUser?.department)
-                  }
-                  alt="Fluxograma do Processo de Licitação SEAP"
-                  className="max-w-full max-h-full object-contain"
-                  draggable={false}
-                />
-              </div>
+              <SimpleImageZoom
+                imageSrc={
+                  fullScreenViewMode === "complete"
+                    ? "/fluxograma-seap-1.png"
+                    : getFlowchartImage(currentUser?.department)
+                }
+                alt="Fluxograma do Processo de Licitação SEAP"
+              />
             </div>
 
             <div className="p-4 border-t bg-gray-50">
@@ -1812,6 +1809,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 {fullScreenViewMode === "complete"
                   ? "Visualizando fluxograma completo do processo de licitação"
                   : `Visualizando imagem específica: ${currentUser?.department}`}
+                {" • Use os botões +/- para aplicar zoom e arraste para mover a imagem"}
               </p>
             </div>
           </div>
