@@ -1394,59 +1394,29 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               </p>
             </div>
 
-            {/* Fluxograma Interativo */}
+            {/* Fluxograma do Processo */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 justify-between">
-                  <div className="flex items-center gap-2">
-                    <ImageIcon className="h-5 w-5" />
-                    Fluxograma Visual Interativo
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={toggleFlowchartView}
-                    className="flex items-center gap-2"
-                  >
-                    {isFlowchartExpanded ? (
-                      <ZoomOut className="h-4 w-4" />
-                    ) : (
-                      <ZoomIn className="h-4 w-4" />
-                    )}
-                    {isFlowchartExpanded ? "Minimizar" : "Expandir"}
-                  </Button>
+                <CardTitle className="flex items-center gap-2">
+                  <ImageIcon className="h-5 w-5" />
+                  Fluxograma do Processo SEAP
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div 
-                  className={`relative border-2 border-gray-200 rounded-lg overflow-hidden cursor-pointer transition-all duration-300 ${
-                    isFlowchartExpanded 
-                      ? "fixed inset-0 z-50 bg-black bg-opacity-90 flex items-center justify-center border-none rounded-none" 
-                      : "h-96"
-                  }`}
-                  onClick={toggleFlowchartView}
-                >
+                <div className="border border-gray-300 rounded-lg p-4 bg-white">
                   <img
                     src="/fluxograma_seap.png"
                     alt="Fluxograma do Processo de Licitação SEAP"
-                    className={`transition-all duration-300 ${
-                      isFlowchartExpanded 
-                        ? "max-w-[95vw] max-h-[95vh] object-contain" 
-                        : "w-full h-full object-cover object-top"
-                    }`}
-                    draggable={false}
-                    onLoad={() => console.log('Fluxograma carregado com sucesso')}
-                    onError={(e) => {
-                      console.error('Erro ao carregar fluxograma:', e);
-                    }}
+                    className="w-full h-auto"
+                    style={{ maxHeight: '500px', objectFit: 'contain' }}
+                    onLoad={() => console.log('Fluxograma carregado!')}
+                    onError={(e) => console.error('Erro ao carregar:', e)}
                   />
                 </div>
                 
                 <div className="mt-4 text-center text-sm text-gray-600">
                   <p>Fluxograma do processo de licitação SEAP/PB baseado na Lei nº 14.133/2021</p>
                 </div>
-
-
               </CardContent>
             </Card>
 
