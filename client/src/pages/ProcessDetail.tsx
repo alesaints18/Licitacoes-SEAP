@@ -87,24 +87,24 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     
     const zoomConfigs = {
       "Setor Demandante": {
-        transform: "scale(4.0) translate(-50%, -60%)",
-        transformOrigin: "5% 5%"
+        transform: "scale(3.0) translate(-15%, -25%)",
+        transformOrigin: "20% 15%"
       },
       "Divisão de Licitação": {
-        transform: "scale(1.8) translate(-10%, -10%)",
-        transformOrigin: "40% 40%"
+        transform: "scale(2.5) translate(-10%, -5%)",
+        transformOrigin: "20% 40%"
       },
       "Núcleo de Pesquisa de Preços – NPP": {
-        transform: "scale(1.7) translate(5%, -5%)",
-        transformOrigin: "55% 45%"
+        transform: "scale(2.8) translate(-20%, 10%)",
+        transformOrigin: "15% 60%"
       },
       "Procuradoria Geral do Estado - PGE": {
-        transform: "scale(1.6) translate(15%, 0%)",
-        transformOrigin: "70% 50%"
+        transform: "scale(2.5) translate(15%, -15%)",
+        transformOrigin: "70% 35%"
       },
       "Unidade de Orçamento e Finanças": {
-        transform: "scale(1.6) translate(10%, 20%)",
-        transformOrigin: "60% 70%"
+        transform: "scale(2.8) translate(-20%, 15%)",
+        transformOrigin: "15% 65%"
       },
       "Secretário de Estado da Administração Penitenciária - SEAP": {
         transform: "scale(1.5) translate(0%, 30%)",
