@@ -87,7 +87,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const fullScreenImageRef = useRef<HTMLImageElement>(null);
   const parsedId = parseInt(id);
 
-  // Funções para o efeito de lupa otimizadas
+  // Função de mouse move direta e otimizada
   const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
     const img = e.currentTarget;
     const rect = img.getBoundingClientRect();
@@ -104,7 +104,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     const globalX = e.clientX;
     const globalY = e.clientY;
     
-    // Atualização imediata sem throttle para máxima responsividade
+    // Atualização síncrona direta
     setMousePosition({
       x: x,
       y: y,
