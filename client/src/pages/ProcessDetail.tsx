@@ -97,12 +97,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     // Mapeamento de departamentos para imagens específicas
     const departmentImages = {
       "Setor Demandante": "/fluxograma-setor-demandante.png",
-      "Divisão de Licitação": "/fluxograma-divisao-licitacao.png",
-      "Núcleo de Pesquisa de Preços – NPP": "/fluxograma-npp.png",
-      "Procuradoria Geral do Estado - PGE": "/fluxograma-pge.png",
-      "Unidade de Orçamento e Finanças": "/fluxograma-financeiro.png",
-      "Secretário de Estado da Administração Penitenciária - SEAP":
-        "/fluxograma-seap-secretario.png",
+      "Divisão de Licitação": "/fluxograma-divisao-de-licitacao.png",
+      "Núcleo de Pesquisa de Preços": "/fluxograma-nucleo-de-pesquisa-de-precos.png",
+      "Núcleo de Pesquisa de Preços – NPP": "/fluxograma-nucleo-de-pesquisa-de-precos.png",
+      "Procuradoria Geral do Estado - PGE": "/fluxograma-seap-1.png", // Usando fluxograma geral até ter imagem específica
+      "Assessoria Jurídica": "/fluxograma-seap-1.png", // Usando fluxograma geral até ter imagem específica
+      "Unidade de Orçamento e Finanças": "/fluxograma-unidade-de-orcamento-e-financas.png",
+      "Secretário de Estado da Administração Penitenciária - SEAP": "/fluxograma-secretario-de-estado.png",
+      "Secretário de Estado": "/fluxograma-secretario-de-estado.png",
     };
 
     return (
