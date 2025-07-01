@@ -87,18 +87,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const fullScreenImageRef = useRef<HTMLImageElement>(null);
   const parsedId = parseInt(id);
 
-  // Throttle para otimizar performance
-  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Funções para o efeito de lupa
+  // Funções para o efeito de lupa otimizadas
   const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
-    // Throttle: Executa apenas a cada 16ms (~60fps)
-    if (throttleTimeoutRef.current) return;
-    
-    throttleTimeoutRef.current = setTimeout(() => {
-      throttleTimeoutRef.current = null;
-    }, 16);
-
     const img = e.currentTarget;
     const rect = img.getBoundingClientRect();
     
@@ -114,6 +104,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     const globalX = e.clientX;
     const globalY = e.clientY;
     
+    // Atualização imediata sem throttle para máxima responsividade
     setMousePosition({
       x: x,
       y: y,
@@ -130,11 +121,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   const handleMouseLeave = () => {
     setShowMagnifier(false);
-    // Limpar throttle timeout ao sair da imagem
-    if (throttleTimeoutRef.current) {
-      clearTimeout(throttleTimeoutRef.current);
-      throttleTimeoutRef.current = null;
-    }
   };
 
   // Função para obter a imagem específica do departamento
@@ -1845,14 +1831,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 />
                 
                 {/* Indicador de área sendo ampliada */}
-                {showMagnifier && (
+                {showMagnifier && fullScreenImageRef.current && (
                   <div
-                    className="absolute pointer-events-none border-2 border-blue-500 bg-blue-100 bg-opacity-30"
+                    className="absolute pointer-events-none border-2 border-blue-500 bg-blue-100 bg-opacity-30 z-10"
                     style={{
-                      width: '60px',
-                      height: '60px',
-                      left: `${mousePosition.x - 30}px`,
-                      top: `${mousePosition.y - 30}px`,
+                      width: '40px',
+                      height: '40px',
+                      left: `${mousePosition.x - 20}px`,
+                      top: `${mousePosition.y - 20}px`,
                     }}
                   />
                 )}
