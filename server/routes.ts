@@ -1369,7 +1369,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.setHeader('Content-Disposition', `attachment; filename="relatorio-processo-${process.pbdocNumber}.pdf"`);
       
       // Gerar PDF usando puppeteer
-      const puppeteer = require('puppeteer');
       
       const browser = await puppeteer.launch({
         headless: true,
@@ -1400,6 +1399,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   const httpServer = createServer(app);
+  
   // Configurar WebSocket Server para atualizações em tempo real
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
