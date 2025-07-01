@@ -80,7 +80,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [isZoomFocused, setIsZoomFocused] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [fullScreenViewMode, setFullScreenViewMode] = useState<'focused' | 'complete'>('complete');
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0, percentX: 0, percentY: 0 });
   const [showMagnifier, setShowMagnifier] = useState(false);
 
   const flowchartRef = useRef<HTMLDivElement>(null);
@@ -88,11 +88,23 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const parsedId = parseInt(id);
 
   // Funções para o efeito de lupa
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
+  const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    const rect = img.getBoundingClientRect();
+    
+    // Calcular posição relativa à imagem
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Converter para porcentagem da imagem real
+    const percentX = x / rect.width;
+    const percentY = y / rect.height;
+    
     setMousePosition({
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top
+      x: x,
+      y: y,
+      percentX: percentX,
+      percentY: percentY
     });
   };
 
@@ -1800,18 +1812,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
             <div className="flex-1 p-4 flex gap-4">
               <div className="flex-1">
-                <div 
-                  className="w-full h-full relative flex items-center justify-center cursor-crosshair border-2 border-gray-200 rounded"
-                  onMouseMove={handleMouseMove}
-                  onMouseEnter={handleMouseEnter}
-                  onMouseLeave={handleMouseLeave}
-                >
+                <div className="w-full h-full relative flex items-center justify-center border-2 border-gray-200 rounded">
                   <img
                     ref={fullScreenImageRef}
                     src={fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}
                     alt="Fluxograma do Processo de Licitação SEAP"
-                    className="max-w-full max-h-full object-contain"
+                    className="max-w-full max-h-full object-contain cursor-crosshair"
                     draggable={false}
+                    onMouseMove={handleMouseMove}
+                    onMouseEnter={handleMouseEnter}
+                    onMouseLeave={handleMouseLeave}
                   />
                   
                   {/* Indicador de área sendo ampliada */}
@@ -1819,10 +1829,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     <div
                       className="absolute pointer-events-none border-2 border-blue-500 bg-blue-100 bg-opacity-30"
                       style={{
-                        width: '80px',
-                        height: '80px',
-                        left: `${mousePosition.x - 40}px`,
-                        top: `${mousePosition.y - 40}px`,
+                        width: '60px',
+                        height: '60px',
+                        left: `${mousePosition.x - 30}px`,
+                        top: `${mousePosition.y - 30}px`,
                       }}
                     />
                   )}
@@ -1836,8 +1846,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     className="w-full h-full"
                     style={{
                       background: `url(${fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}) no-repeat`,
-                      backgroundPosition: `-${mousePosition.x * 3 - 160}px -${mousePosition.y * 3 - 160}px`,
-                      backgroundSize: '300%',
+                      backgroundPosition: `-${mousePosition.percentX * 500 - 160}px -${mousePosition.percentY * 500 - 160}px`,
+                      backgroundSize: '500%',
                     }}
                   />
                 </div>
