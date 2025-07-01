@@ -612,13 +612,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isFlowchartExpanded) {
+      if (e.key === "Escape" && isFlowchartExpanded) {
         setIsFlowchartExpanded(false);
       }
     };
 
-    document.addEventListener('keydown', handleEscape);
-    return () => document.removeEventListener('keydown', handleEscape);
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
   }, [isFlowchartExpanded]);
 
   if (processLoading) {
@@ -763,7 +763,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       </dt>
                       <dd className="text-sm text-gray-900 col-span-2">
                         <div className="text-xs text-gray-500">
-                          {responsible?.fullName || `Usuário ${process.responsibleId}`}
+                          {responsible?.fullName ||
+                            `Usuário ${process.responsibleId}`}
                           {process.responsibleSince && (
                             <div className="mt-1 text-xs text-blue-600 flex items-center">
                               <Clock className="h-3 w-3 mr-1" />
@@ -776,7 +777,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                               (
                               {Math.ceil(
                                 (new Date().getTime() -
-                                  new Date(process.responsibleSince).getTime()) /
+                                  new Date(
+                                    process.responsibleSince,
+                                  ).getTime()) /
                                   (1000 * 60 * 60 * 24),
                               )}{" "}
                               dias)
@@ -1399,47 +1402,65 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     <ImageIcon className="h-5 w-5" />
                     Fluxograma Visual Interativo
                   </div>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={toggleFlowchartView}
                     className="flex items-center gap-2"
                   >
-                    {isFlowchartExpanded ? <ZoomOut className="h-4 w-4" /> : <ZoomIn className="h-4 w-4" />}
+                    {isFlowchartExpanded ? (
+                      <ZoomOut className="h-4 w-4" />
+                    ) : (
+                      <ZoomIn className="h-4 w-4" />
+                    )}
                     {isFlowchartExpanded ? "Minimizar" : "Expandir"}
                   </Button>
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div 
+                <div
                   ref={flowchartRef}
-                  className={`flowchart-container ${isFlowchartExpanded ? 'expanded' : 'focused'}`}
+                  className={`flowchart-container ${isFlowchartExpanded ? "expanded" : "focused"}`}
                   onClick={toggleFlowchartView}
                 >
-                  <img 
+                  <img
                     src="/fluxograma_seap.png"
                     alt="Fluxograma do Processo de Licitação SEAP"
                     className="flowchart-image"
                     draggable={false}
+                    onLoad={() => console.log('Fluxograma carregado com sucesso')}
+                    onError={(e) => {
+                      console.error('Erro ao carregar fluxograma:', e);
+                      console.log('Tentando URL alternativa...');
+                      (e.target as HTMLImageElement).src = '/fluxograma-completo.png';
+                    }}
                   />
                   <div className="flowchart-overlay">
                     <div className="zoom-hint">
-                      {isFlowchartExpanded ? "Clique para focar" : "Clique para expandir"}
+                      {isFlowchartExpanded
+                        ? "Clique para focar"
+                        : "Clique para expandir"}
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="mt-6 text-center text-sm text-gray-600">
                   <p className="mb-2">
-                    <strong>Dica:</strong> Clique na imagem para alternar entre visualização focada e completa
+                    <strong>Dica:</strong> Clique na imagem para alternar entre
+                    visualização focada e completa
                   </p>
                   <p className="text-xs">
-                    Pressione <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">ESC</kbd> para sair do modo expandido
+                    Pressione{" "}
+                    <kbd className="px-2 py-1 bg-gray-200 rounded text-xs">
+                      ESC
+                    </kbd>{" "}
+                    para sair do modo expandido
                   </p>
                 </div>
 
-                <style dangerouslySetInnerHTML={{
-                  __html: `
+                <style
+                  dangerouslySetInnerHTML={{
+                    __html: `
                     .flowchart-container {
                       position: relative;
                       cursor: pointer;
@@ -1547,8 +1568,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                         font-size: 14px;
                       }
                     }
-                  `
-                }} />
+                  `,
+                  }}
+                />
               </CardContent>
             </Card>
 
