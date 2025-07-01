@@ -56,7 +56,7 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - Resource distribution analysis
 - Department performance rankings
 - Temporal distribution charts
-- Customizable report generation (PDF/Excel)
+- Individual process report generation (HTML-based for browser printing to PDF)
 
 ### 5. Real-time Features
 - WebSocket integration for live updates
@@ -138,6 +138,7 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 
 ## Changelog
 - July 01, 2025. Initial setup
+- July 01, 2025. Implementada geração de relatório PDF usando impressão do navegador (solução compatível com ambiente Replit)
 
 ## User Preferences
 
