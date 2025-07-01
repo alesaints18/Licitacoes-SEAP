@@ -80,15 +80,25 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [isZoomFocused, setIsZoomFocused] = useState(true);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [fullScreenViewMode, setFullScreenViewMode] = useState<'focused' | 'complete'>('complete');
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0, percentX: 0, percentY: 0 });
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0, percentX: 0, percentY: 0, globalX: 0, globalY: 0 });
   const [showMagnifier, setShowMagnifier] = useState(false);
 
   const flowchartRef = useRef<HTMLDivElement>(null);
   const fullScreenImageRef = useRef<HTMLImageElement>(null);
   const parsedId = parseInt(id);
 
+  // Throttle para otimizar performance
+  const throttleTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // Funções para o efeito de lupa
   const handleMouseMove = (e: React.MouseEvent<HTMLImageElement>) => {
+    // Throttle: Executa apenas a cada 16ms (~60fps)
+    if (throttleTimeoutRef.current) return;
+    
+    throttleTimeoutRef.current = setTimeout(() => {
+      throttleTimeoutRef.current = null;
+    }, 16);
+
     const img = e.currentTarget;
     const rect = img.getBoundingClientRect();
     
@@ -100,11 +110,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     const percentX = x / rect.width;
     const percentY = y / rect.height;
     
+    // Posição global do mouse para o painel flutuante
+    const globalX = e.clientX;
+    const globalY = e.clientY;
+    
     setMousePosition({
       x: x,
       y: y,
       percentX: percentX,
-      percentY: percentY
+      percentY: percentY,
+      globalX: globalX,
+      globalY: globalY
     });
   };
 
@@ -114,6 +130,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   const handleMouseLeave = () => {
     setShowMagnifier(false);
+    // Limpar throttle timeout ao sair da imagem
+    if (throttleTimeoutRef.current) {
+      clearTimeout(throttleTimeoutRef.current);
+      throttleTimeoutRef.current = null;
+    }
   };
 
   // Função para obter a imagem específica do departamento
@@ -1839,24 +1860,25 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 {/* Área de ampliação flutuante que segue o mouse */}
                 {showMagnifier && (
                   <div
-                    className="absolute pointer-events-none border-2 border-gray-400 rounded bg-white shadow-2xl overflow-hidden z-20"
+                    className="fixed pointer-events-none border-2 border-gray-400 rounded bg-white shadow-2xl overflow-hidden z-50"
                     style={{
-                      width: '250px',
-                      height: '250px',
-                      left: `${Math.min(mousePosition.x + 40, window.innerWidth - 300)}px`,
-                      top: `${Math.max(mousePosition.y - 125, 50)}px`,
+                      width: '200px',
+                      height: '200px',
+                      left: `${mousePosition.globalX + 20}px`,
+                      top: `${mousePosition.globalY - 100}px`,
+                      transform: mousePosition.globalX > window.innerWidth - 250 ? 'translateX(-220px)' : 'none'
                     }}
                   >
                     <div
                       className="w-full h-full"
                       style={{
                         background: `url(${fullScreenViewMode === 'complete' ? "/fluxograma-seap-1.png" : getFlowchartImage(currentUser?.department)}) no-repeat`,
-                        backgroundPosition: `-${mousePosition.percentX * 500 - 125}px -${mousePosition.percentY * 500 - 125}px`,
+                        backgroundPosition: `-${mousePosition.percentX * 500 - 100}px -${mousePosition.percentY * 500 - 100}px`,
                         backgroundSize: '500%',
                       }}
                     />
                     {/* Indicador de zoom */}
-                    <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                    <div className="absolute bottom-1 right-1 bg-black bg-opacity-70 text-white text-xs px-1 py-0.5 rounded text-[10px]">
                       5x
                     </div>
                   </div>
