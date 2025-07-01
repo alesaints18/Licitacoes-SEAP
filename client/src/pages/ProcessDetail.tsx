@@ -77,7 +77,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
   const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
   const [isZoomFocused, setIsZoomFocused] = useState(true);
-  const [zoomVariation, setZoomVariation] = useState(1);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
   const flowchartRef = useRef<HTMLDivElement>(null);
   const parsedId = parseInt(id);
 
@@ -1465,31 +1466,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setIsZoomFocused(!isZoomFocused)}
+                      onClick={() => {
+                        if (isZoomFocused) {
+                          setIsFullScreen(true);
+                        } else {
+                          setIsZoomFocused(true);
+                        }
+                      }}
                     >
                       {isZoomFocused ? "Visão Completa" : "Foco no Setor"}
                     </Button>
-                    {isZoomFocused &&
-                      currentUser?.department === "Setor Demandante" && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500">Teste:</span>
-                          {[1, 2, 3, 4, 5].map((variation) => (
-                            <Button
-                              key={variation}
-                              variant={
-                                zoomVariation === variation
-                                  ? "default"
-                                  : "outline"
-                              }
-                              size="sm"
-                              onClick={() => setZoomVariation(variation)}
-                              className="w-8 h-8 p-0 text-xs"
-                            >
-                              {variation}
-                            </Button>
-                          ))}
-                        </div>
-                      )}
+
                     <div className="text-sm text-gray-600">
                       Foco: {currentUser?.department || "Geral"}
                     </div>
@@ -1758,6 +1745,50 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             >
               {isSubmittingRejection ? "Rejeitando..." : "Rejeitar Etapa"}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Tela Cheia para Fluxograma */}
+      <Dialog open={isFullScreen} onOpenChange={setIsFullScreen}>
+        <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full p-0">
+          <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">Fluxograma Completo - SEAP/PB</h2>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsZoomFocused(!isZoomFocused)}
+                >
+                  {isZoomFocused ? "Foco no Setor" : "Visão Completa"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsFullScreen(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              <div className="w-full h-full flex items-center justify-center">
+                <img
+                  src={isZoomFocused ? getFlowchartImage(currentUser?.department) : "/fluxograma-completo.png"}
+                  alt="Fluxograma do Processo de Licitação SEAP"
+                  className="max-w-full max-h-full object-contain"
+                />
+              </div>
+            </div>
+            <div className="p-4 border-t bg-gray-50">
+              <p className="text-sm text-gray-600 text-center">
+                {isZoomFocused 
+                  ? `Visualizando imagem específica: ${currentUser?.department}`
+                  : "Visualizando fluxograma completo do processo de licitação"
+                }
+              </p>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
