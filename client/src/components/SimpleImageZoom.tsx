@@ -10,12 +10,22 @@ const SimpleImageZoom = ({ imageSrc, alt }: SimpleImageZoomProps) => {
   const [scale, setScale] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
+  // Níveis de zoom fixos: 100%, 300%, 500%
+  const zoomLevels = [1, 3, 5];
+  const getCurrentZoomIndex = () => zoomLevels.indexOf(scale);
+
   const zoomIn = () => {
-    setScale(prev => Math.min(prev + 0.5, 5));
+    const currentIndex = getCurrentZoomIndex();
+    if (currentIndex < zoomLevels.length - 1) {
+      setScale(zoomLevels[currentIndex + 1]);
+    }
   };
 
   const zoomOut = () => {
-    setScale(prev => Math.max(prev - 0.5, 0.5));
+    const currentIndex = getCurrentZoomIndex();
+    if (currentIndex > 0) {
+      setScale(zoomLevels[currentIndex - 1]);
+    }
   };
 
   const resetZoom = () => {

@@ -91,7 +91,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   // Função para obter a imagem específica do departamento
   const getFlowchartImage = (department: string | undefined) => {
     if (!department) {
-      return "/fluxograma-seap-1.png"; // Imagem completa
+      return "/fluxograma-seap-1.jpg"; // Imagem completa mais leve
     }
 
     // Mapeamento de departamentos para imagens específicas
@@ -100,8 +100,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Divisão de Licitação": "/fluxograma-divisao-de-licitacao.png",
       "Núcleo de Pesquisa de Preços": "/fluxograma-nucleo-de-pesquisa-de-precos.png",
       "Núcleo de Pesquisa de Preços – NPP": "/fluxograma-nucleo-de-pesquisa-de-precos.png",
-      "Procuradoria Geral do Estado - PGE": "/fluxograma-seap-1.png", // Usando fluxograma geral até ter imagem específica
-      "Assessoria Jurídica": "/fluxograma-seap-1.png", // Usando fluxograma geral até ter imagem específica
+      "Procuradoria Geral do Estado - PGE": "/fluxograma-seap-1.jpg", // Usando fluxograma geral até ter imagem específica
+      "Assessoria Jurídica": "/fluxograma-seap-1.jpg", // Usando fluxograma geral até ter imagem específica
       "Unidade de Orçamento e Finanças": "/fluxograma-unidade-de-orcamento-e-financas.png",
       "Secretário de Estado da Administração Penitenciária - SEAP": "/fluxograma-secretario-de-estado.png",
       "Secretário de Estado": "/fluxograma-secretario-de-estado.png",
@@ -109,7 +109,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
     return (
       departmentImages[department as keyof typeof departmentImages] ||
-      "/fluxograma-seap-1.png"
+      "/fluxograma-seap-1.jpg"
     );
   };
 
@@ -1799,7 +1799,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               <SimpleImageZoom
                 imageSrc={
                   fullScreenViewMode === "complete"
-                    ? "/fluxograma-seap-1.png"
+                    ? "/fluxograma-seap-1.jpg"
                     : getFlowchartImage(currentUser?.department)
                 }
                 alt="Fluxograma do Processo de Licitação SEAP"
