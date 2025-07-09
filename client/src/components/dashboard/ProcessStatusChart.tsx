@@ -125,7 +125,25 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 px-4 mt-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 px-4 mt-8">
+          <div className="flex items-center justify-center sm:justify-start">
+            <div className="w-3 h-3 bg-blue-500 rounded-full mr-3 flex-shrink-0"></div>
+            <div className="text-center sm:text-left">
+              <div className="text-sm text-gray-600">Em Andamento</div>
+              <div className="text-xs text-gray-500">
+                {data.inProgress} {data.total > 0 && `(${((data.inProgress / data.total) * 100).toFixed(1)}%)`}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-center sm:justify-start">
+            <div className="w-3 h-3 bg-red-500 rounded-full mr-3 flex-shrink-0"></div>
+            <div className="text-center sm:text-left">
+              <div className="text-sm text-gray-600">Atrasados</div>
+              <div className="text-xs text-gray-500">
+                {data.overdue} {data.total > 0 && `(${((data.overdue / data.total) * 100).toFixed(1)}%)`}
+              </div>
+            </div>
+          </div>
           <div className="flex items-center justify-center sm:justify-start">
             <div className="w-3 h-3 bg-emerald-500 rounded-full mr-3 flex-shrink-0"></div>
             <div className="text-center sm:text-left">
@@ -136,16 +154,7 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
             </div>
           </div>
           <div className="flex items-center justify-center sm:justify-start">
-            <div className="w-3 h-3 bg-blue-500 rounded-full mr-3 flex-shrink-0"></div>
-            <div className="text-center sm:text-left">
-              <div className="text-sm text-gray-600">Em Andamento</div>
-              <div className="text-xs text-gray-500">
-                {rascunhosCount} {data.total > 0 && `(${((rascunhosCount / data.total) * 100).toFixed(1)}%)`}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center justify-center sm:justify-start">
-            <div className="w-3 h-3 bg-red-500 rounded-full mr-3 flex-shrink-0"></div>
+            <div className="w-3 h-3 bg-gray-500 rounded-full mr-3 flex-shrink-0"></div>
             <div className="text-center sm:text-left">
               <div className="text-sm text-gray-600">Cancelados</div>
               <div className="text-xs text-gray-500">
