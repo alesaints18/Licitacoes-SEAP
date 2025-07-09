@@ -9,7 +9,7 @@ import {
   processParticipants, type ProcessParticipant, type InsertProcessParticipant
 } from "@shared/schema";
 import { IStorage } from "./storage";
-import { eq, and, or, count, sql, inArray } from "drizzle-orm";
+import { eq, and, or, count, sql, inArray, like } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage implements IStorage {
@@ -270,12 +270,212 @@ export class DatabaseStorage implements IStorage {
     return [];
   }
 
-  async getTemporalDistribution(): Promise<any[]> {
-    return [];
+  async getTemporalDistribution(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }, period?: string): Promise<{
+    period: string;
+    inProgress: number;
+    overdue: number;
+    completed: number;
+  }[]> {
+    console.log('getTemporalDistribution - Filtros recebidos:', filters);
+    console.log('getTemporalDistribution - Período:', period);
+
+    try {
+      // Construir query base
+      let query = db
+        .select({
+          createdAt: processes.createdAt,
+          status: processes.status,
+          deadline: processes.deadline,
+        })
+        .from(processes);
+
+      // Aplicar filtros
+      const conditions = [];
+      if (filters?.pbdocNumber) {
+        conditions.push(like(processes.pbdocNumber, `%${filters.pbdocNumber}%`));
+      }
+      if (filters?.modalityId) {
+        conditions.push(eq(processes.modalityId, filters.modalityId));
+      }
+      if (filters?.sourceId) {
+        conditions.push(eq(processes.sourceId, filters.sourceId));
+      }
+      if (filters?.responsibleId) {
+        conditions.push(eq(processes.responsibleId, filters.responsibleId));
+      }
+      if (filters?.status) {
+        conditions.push(eq(processes.status, filters.status));
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      const results = await query;
+      console.log('getTemporalDistribution - Resultados brutos:', results.length);
+
+      // Agrupar por período (mês/ano)
+      const grouped = new Map<string, {
+        inProgress: number;
+        overdue: number;
+        completed: number;
+      }>();
+
+      const now = new Date();
+
+      results.forEach(process => {
+        const date = new Date(process.createdAt);
+        const periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        if (!grouped.has(periodKey)) {
+          grouped.set(periodKey, {
+            inProgress: 0,
+            overdue: 0,
+            completed: 0
+          });
+        }
+
+        const stats = grouped.get(periodKey)!;
+        
+        // Classificar status
+        if (process.status === 'completed') {
+          stats.completed++;
+        } else if (process.status === 'overdue' || (process.deadline && new Date(process.deadline) < now)) {
+          stats.overdue++;
+        } else {
+          stats.inProgress++;
+        }
+      });
+
+      // Converter para array ordenado
+      const temporalData = Array.from(grouped.entries())
+        .map(([period, stats]) => ({
+          period,
+          ...stats
+        }))
+        .sort((a, b) => a.period.localeCompare(b.period));
+
+      console.log('getTemporalDistribution - Dados finais:', temporalData);
+      return temporalData;
+
+    } catch (error) {
+      console.error('Erro em getTemporalDistribution:', error);
+      return [];
+    }
   }
 
-  async getDepartmentRanking(): Promise<any[]> {
-    return [];
+  async getDepartmentRanking(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{
+    departmentId: number;
+    departmentName: string;
+    total: number;
+    inProgress: number;
+    overdue: number;
+    completed: number;
+  }[]> {
+    console.log('getDepartmentRanking - Filtros recebidos:', filters);
+
+    try {
+      // Construir query base
+      let query = db
+        .select({
+          currentDepartmentId: processes.currentDepartmentId,
+          status: processes.status,
+          deadline: processes.deadline,
+        })
+        .from(processes);
+
+      // Aplicar filtros
+      const conditions = [];
+      if (filters?.pbdocNumber) {
+        conditions.push(like(processes.pbdocNumber, `%${filters.pbdocNumber}%`));
+      }
+      if (filters?.modalityId) {
+        conditions.push(eq(processes.modalityId, filters.modalityId));
+      }
+      if (filters?.sourceId) {
+        conditions.push(eq(processes.sourceId, filters.sourceId));
+      }
+      if (filters?.responsibleId) {
+        conditions.push(eq(processes.responsibleId, filters.responsibleId));
+      }
+      if (filters?.status) {
+        conditions.push(eq(processes.status, filters.status));
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      const results = await query;
+      console.log('getDepartmentRanking - Resultados brutos:', results.length);
+
+      // Buscar departamentos
+      const departmentsList = await db.select().from(departments);
+      const departmentMap = new Map(departmentsList.map(d => [d.id, d.name]));
+
+      // Agrupar por departamento
+      const grouped = new Map<number, {
+        total: number;
+        inProgress: number;
+        overdue: number;
+        completed: number;
+      }>();
+
+      const now = new Date();
+
+      results.forEach(process => {
+        const deptId = process.currentDepartmentId;
+        
+        if (!grouped.has(deptId)) {
+          grouped.set(deptId, {
+            total: 0,
+            inProgress: 0,
+            overdue: 0,
+            completed: 0
+          });
+        }
+
+        const stats = grouped.get(deptId)!;
+        stats.total++;
+        
+        // Classificar status
+        if (process.status === 'completed') {
+          stats.completed++;
+        } else if (process.status === 'overdue' || (process.deadline && new Date(process.deadline) < now)) {
+          stats.overdue++;
+        } else {
+          stats.inProgress++;
+        }
+      });
+
+      // Converter para array ordenado
+      const rankingData = Array.from(grouped.entries())
+        .map(([departmentId, stats]) => ({
+          departmentId,
+          departmentName: departmentMap.get(departmentId) || 'Departamento não encontrado',
+          ...stats
+        }))
+        .sort((a, b) => b.total - a.total);
+
+      console.log('getDepartmentRanking - Dados finais:', rankingData);
+      return rankingData;
+
+    } catch (error) {
+      console.error('Erro em getDepartmentRanking:', error);
+      return [];
+    }
   }
 
   // Convenio operations - stub implementations
