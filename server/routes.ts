@@ -876,30 +876,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/processes/:id/return', isAuthenticated, async (req, res) => {
     try {
       const processId = parseInt(req.params.id);
-      const { returnComment } = req.body;
+      const { returnComment, comment } = req.body;
       const userId = req.user?.id;
 
       console.log(`=== RETORNO DE PROCESSO ===`);
       console.log(`Process ID: ${processId}`);
       console.log(`User ID: ${userId}`);
       console.log(`Request Body:`, JSON.stringify(req.body, null, 2));
+      // Suporte para ambos os formatos: returnComment (ProcessReturn) e comment (ProcessTransfer)
+      const commentText = returnComment || comment;
+      
       console.log(`returnComment value: "${returnComment}"`);
-      console.log(`returnComment type: ${typeof returnComment}`);
-      console.log(`returnComment trim: "${returnComment?.trim()}"`);
+      console.log(`comment value: "${comment}"`);
+      console.log(`commentText value: "${commentText}"`);
+      console.log(`commentText type: ${typeof commentText}`);
+      console.log(`commentText trim: "${commentText?.trim()}"`);
 
       if (!userId) {
         console.log(`❌ Usuário não autenticado`);
         return res.status(401).json({ message: "Usuário não autenticado" });
       }
 
-      if (!returnComment || returnComment.trim() === '') {
-        console.log(`❌ Comentário de retorno é obrigatório - returnComment: "${returnComment}"`);
+      if (!commentText || commentText.trim() === '') {
+        console.log(`❌ Comentário de retorno é obrigatório - commentText: "${commentText}"`);
         return res.status(400).json({ message: "Comentário de retorno é obrigatório" });
       }
 
       console.log(`✅ Validações passaram, chamando storage.returnProcess`);
 
-      const updatedProcess = await storage.returnProcess(processId, returnComment.trim(), userId);
+      const updatedProcess = await storage.returnProcess(processId, commentText.trim(), userId);
       
       if (!updatedProcess) {
         console.log(`❌ Processo não encontrado no storage`);
@@ -912,7 +917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       broadcast({
         type: 'process_returned',
         processId: processId,
-        returnComment: returnComment.trim(),
+        returnComment: commentText.trim(),
         returnedBy: userId,
         timestamp: new Date().toISOString()
       });
