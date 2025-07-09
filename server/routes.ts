@@ -879,21 +879,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { returnComment } = req.body;
       const userId = req.user?.id;
 
+      console.log(`=== RETORNO DE PROCESSO ===`);
+      console.log(`Process ID: ${processId}`);
+      console.log(`User ID: ${userId}`);
+      console.log(`Request Body:`, JSON.stringify(req.body, null, 2));
+      console.log(`returnComment value: "${returnComment}"`);
+      console.log(`returnComment type: ${typeof returnComment}`);
+      console.log(`returnComment trim: "${returnComment?.trim()}"`);
+
       if (!userId) {
+        console.log(`❌ Usuário não autenticado`);
         return res.status(401).json({ message: "Usuário não autenticado" });
       }
 
       if (!returnComment || returnComment.trim() === '') {
+        console.log(`❌ Comentário de retorno é obrigatório - returnComment: "${returnComment}"`);
         return res.status(400).json({ message: "Comentário de retorno é obrigatório" });
       }
 
-      console.log(`Usuário ${userId} retornando processo ${processId} com comentário: ${returnComment}`);
+      console.log(`✅ Validações passaram, chamando storage.returnProcess`);
 
       const updatedProcess = await storage.returnProcess(processId, returnComment.trim(), userId);
       
       if (!updatedProcess) {
+        console.log(`❌ Processo não encontrado no storage`);
         return res.status(404).json({ message: "Processo não encontrado" });
       }
+
+      console.log(`✅ Processo retornado com sucesso:`, updatedProcess);
 
       // Notificar via WebSocket sobre o retorno
       broadcast({
@@ -906,7 +919,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json(updatedProcess);
     } catch (error: any) {
-      console.error('Erro ao retornar processo:', error);
+      console.error('❌ Erro ao retornar processo:', error);
       res.status(500).json({ 
         message: "Erro interno do servidor ao retornar processo",
         error: error.message 
