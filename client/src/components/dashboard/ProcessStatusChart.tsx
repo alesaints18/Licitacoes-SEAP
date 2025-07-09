@@ -6,6 +6,7 @@ interface ProcessStatistics {
   total: number;
   completed: number;
   inProgress: number;
+  overdue: number;
   canceled: number;
 }
 
@@ -74,12 +75,12 @@ const ProcessStatusChart = ({ filters = {} }: ProcessStatusChartProps) => {
     );
   }
   
-  // Transform data for chart - incluindo rascunhos como "Em Andamento"
-  const rascunhosCount = data.total - data.completed - data.canceled;
+  // Transform data for chart com dados corretos
   const chartData = [
+    { name: "Em Andamento", value: data.inProgress, color: "#3B82F6" },
+    { name: "Atrasados", value: data.overdue, color: "#EF4444" },
     { name: "Concluídos", value: data.completed, color: "#10B981" },
-    { name: "Em Andamento", value: rascunhosCount, color: "#3B82F6" },
-    { name: "Cancelados", value: data.canceled, color: "#EF4444" },
+    { name: "Cancelados", value: data.canceled, color: "#9CA3AF" },
   ];
   
   // Filtrar apenas dados com valores > 0 para mostrar no gráfico

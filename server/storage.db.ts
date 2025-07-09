@@ -253,9 +253,101 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  // Analytics methods - stub implementations
-  async getProcessesStatistics(): Promise<any> {
-    return {};
+  // Analytics methods - implementações reais
+  async getProcessesStatistics(filters?: {
+    pbdocNumber?: string;
+    modalityId?: number;
+    sourceId?: number;
+    responsibleId?: number;
+    status?: string;
+  }): Promise<{
+    total: number;
+    inProgress: number;
+    overdue: number;
+    completed: number;
+    canceled: number;
+  }> {
+    console.log('getProcessesStatistics - Filtros recebidos:', filters);
+
+    try {
+      // Construir query base
+      let query = db
+        .select({
+          status: processes.status,
+          deadline: processes.deadline,
+        })
+        .from(processes);
+
+      // Aplicar filtros
+      const conditions = [];
+      if (filters?.pbdocNumber) {
+        conditions.push(like(processes.pbdocNumber, `%${filters.pbdocNumber}%`));
+      }
+      if (filters?.modalityId) {
+        conditions.push(eq(processes.modalityId, filters.modalityId));
+      }
+      if (filters?.sourceId) {
+        conditions.push(eq(processes.sourceId, filters.sourceId));
+      }
+      if (filters?.responsibleId) {
+        conditions.push(eq(processes.responsibleId, filters.responsibleId));
+      }
+      if (filters?.status) {
+        conditions.push(eq(processes.status, filters.status));
+      }
+
+      if (conditions.length > 0) {
+        query = query.where(and(...conditions));
+      }
+
+      const results = await query;
+      console.log('getProcessesStatistics - Resultados brutos:', results.length);
+
+      // Calcular estatísticas
+      const stats = {
+        total: results.length,
+        inProgress: 0,
+        overdue: 0,
+        completed: 0,
+        canceled: 0,
+      };
+
+      const now = new Date();
+
+      results.forEach(process => {
+        switch (process.status) {
+          case 'completed':
+            stats.completed++;
+            break;
+          case 'canceled':
+            stats.canceled++;
+            break;
+          case 'overdue':
+            stats.overdue++;
+            break;
+          default:
+            // Verificar se está atrasado baseado na deadline
+            if (process.deadline && new Date(process.deadline) < now) {
+              stats.overdue++;
+            } else {
+              stats.inProgress++;
+            }
+        }
+      });
+
+      console.log('getProcessesStatistics - Estatísticas finais:', stats);
+      return stats;
+
+    } catch (error) {
+      console.error('Erro em getProcessesStatistics:', error);
+      return {
+        total: 0,
+        inProgress: 0,
+        overdue: 0,
+        completed: 0,
+        canceled: 0,
+      };
+    }
   }
 
   async getProcessesByMonth(): Promise<any[]> {
