@@ -156,7 +156,57 @@ export class DatabaseStorage implements IStorage {
 
   // Required interface methods - stub implementations
   async returnProcess(processId: number, returnComment: string, userId: number): Promise<Process | undefined> {
-    return undefined;
+    try {
+      console.log(`Tentando retornar processo ${processId} com comentário: ${returnComment}`);
+      
+      // Buscar o processo atual
+      const [currentProcess] = await db
+        .select()
+        .from(processes)
+        .where(eq(processes.id, processId));
+      
+      if (!currentProcess) {
+        console.log(`Processo ${processId} não encontrado`);
+        return undefined;
+      }
+      
+      console.log(`Processo encontrado. Departamento atual: ${currentProcess.currentDepartmentId}`);
+      
+      // Fluxo de departamentos definido no sistema
+      const departmentFlow = [1, 2, 3, 4, 5]; // Setor Demandante, Divisão, NPP, Orçamento, Secretário
+      
+      // Encontrar o índice do departamento atual
+      const currentIndex = departmentFlow.findIndex(id => id === currentProcess.currentDepartmentId);
+      
+      if (currentIndex <= 0) {
+        console.log(`Processo no primeiro departamento, não pode ser retornado`);
+        return undefined; // Processo já está no primeiro departamento
+      }
+      
+      // Departamento anterior no fluxo
+      const previousDepartmentId = departmentFlow[currentIndex - 1];
+      
+      console.log(`Retornando processo do departamento ${currentProcess.currentDepartmentId} para ${previousDepartmentId}`);
+      
+      // Atualizar o processo com o novo departamento e comentário de retorno
+      const [updatedProcess] = await db
+        .update(processes)
+        .set({
+          currentDepartmentId: previousDepartmentId,
+          returnComments: returnComment,
+          status: 'in_progress', // Garantir que o status seja adequado
+          lastModified: new Date()
+        })
+        .where(eq(processes.id, processId))
+        .returning();
+      
+      console.log(`Processo ${processId} retornado com sucesso para departamento ${previousDepartmentId}`);
+      
+      return updatedProcess;
+    } catch (error) {
+      console.error('Erro ao retornar processo:', error);
+      return undefined;
+    }
   }
 
   async updateProcess(id: number, processData: Partial<InsertProcess>): Promise<Process | undefined> {
