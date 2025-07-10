@@ -147,6 +147,8 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 01, 2025. Ajustado sistema de zoom para níveis fixos: 100% → 300% → 500% ao invés de incremento contínuo
 - July 01, 2025. Adicionada seção "Sequência do Fluxograma para Comparação Manual" com ordem numerada dos departamentos
 - July 10, 2025. Fluxograma completo atualizado para versão otimizada (fluxograma_seap_new.png) - imagem mais nítida e ainda mais leve
+- July 10, 2025. Implementada nova versão ultra HD do fluxograma (fluxograma_seap_ultra_hd.png) com melhorias significativas de qualidade visual
+- July 10, 2025. Adicionadas propriedades CSS específicas para melhoria da renderização de imagens (image-rendering, interpolation-mode, webkit-optimization)
 
 ## User Preferences
 

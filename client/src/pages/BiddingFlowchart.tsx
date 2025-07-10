@@ -512,7 +512,7 @@ const BiddingFlowchart = () => {
               onClick={toggleFlowchartView}
             >
               <img 
-                src="/fluxograma_seap_hd.png"
+                src="/fluxograma_seap_ultra_hd.png"
                 alt="Fluxograma do Processo de Licitação SEAP"
                 className="flowchart-image"
                 draggable={false}
