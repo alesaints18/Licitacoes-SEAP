@@ -105,6 +105,7 @@ const SimpleImageZoom = ({ imageSrc, alt }: SimpleImageZoomProps) => {
           style={{
             transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
             cursor: scale > 1 ? 'grab' : 'default',
+            imageRendering: 'crisp-edges',
           }}
           onMouseDown={handleMouseDown}
           draggable={false}

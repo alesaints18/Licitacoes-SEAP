@@ -512,10 +512,15 @@ const BiddingFlowchart = () => {
               onClick={toggleFlowchartView}
             >
               <img 
-                src="/fluxograma_seap_new.png"
+                src="/fluxograma_seap_hd.png"
                 alt="Fluxograma do Processo de Licitação SEAP"
                 className="flowchart-image"
                 draggable={false}
+                style={{ 
+                  imageRendering: 'crisp-edges',
+                  WebkitImageRendering: 'high-quality',
+                  msInterpolationMode: 'bicubic'
+                }}
               />
               <div className="flowchart-overlay">
                 <div className="zoom-hint">
@@ -561,12 +566,15 @@ const BiddingFlowchart = () => {
                 object-fit: contain;
                 transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                 user-select: none;
+                image-rendering: -webkit-optimize-contrast;
+                image-rendering: crisp-edges;
+                image-rendering: pixelated;
               }
               
               .flowchart-container.focused .flowchart-image {
-                object-fit: cover;
-                object-position: center top;
-                transform: scale(1.2);
+                object-fit: contain;
+                object-position: center;
+                transform: scale(1);
               }
               
               .flowchart-container.expanded .flowchart-image {

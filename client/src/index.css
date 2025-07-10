@@ -148,3 +148,19 @@
 .priority-badge-high {
   @apply bg-red-100 text-red-800;
 }
+
+/* Melhorias globais para qualidade de imagem */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+}
+
+/* Específico para fluxogramas */
+.flowchart-image,
+img[src*="fluxograma"] {
+  image-rendering: high-quality !important;
+  image-rendering: -webkit-optimize-contrast !important;
+  image-rendering: crisp-edges !important;
+  -ms-interpolation-mode: bicubic !important;
+}
