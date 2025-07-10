@@ -11,7 +11,7 @@ const SimpleImageZoom = ({ imageSrc, alt }: SimpleImageZoomProps) => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
 
   // Níveis de zoom fixos: 100%, 300%, 500%
-  const zoomLevels = [1, 3, 5];
+  const zoomLevels = [1, 4, 6];
   const getCurrentZoomIndex = () => zoomLevels.indexOf(scale);
 
   const zoomIn = () => {
@@ -35,7 +35,7 @@ const SimpleImageZoom = ({ imageSrc, alt }: SimpleImageZoomProps) => {
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (scale <= 1) return;
-    
+
     const startX = e.clientX - position.x;
     const startY = e.clientY - position.y;
 
@@ -47,12 +47,12 @@ const SimpleImageZoom = ({ imageSrc, alt }: SimpleImageZoomProps) => {
     };
 
     const handleMouseUp = () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
     };
 
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
   };
 
   return (
@@ -104,8 +104,8 @@ const SimpleImageZoom = ({ imageSrc, alt }: SimpleImageZoomProps) => {
           className="max-w-full max-h-full object-contain select-none transition-transform duration-200"
           style={{
             transform: `scale(${scale}) translate(${position.x / scale}px, ${position.y / scale}px)`,
-            cursor: scale > 1 ? 'grab' : 'default',
-            imageRendering: 'crisp-edges',
+            cursor: scale > 1 ? "grab" : "default",
+            imageRendering: "crisp-edges",
           }}
           onMouseDown={handleMouseDown}
           draggable={false}
