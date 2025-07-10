@@ -149,6 +149,7 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 10, 2025. Fluxograma completo atualizado para versão otimizada (fluxograma_seap_new.png) - imagem mais nítida e ainda mais leve
 - July 10, 2025. Implementada nova versão ultra HD do fluxograma (fluxograma_seap_ultra_hd.png) com melhorias significativas de qualidade visual
 - July 10, 2025. Adicionadas propriedades CSS específicas para melhoria da renderização de imagens (image-rendering, interpolation-mode, webkit-optimization)
+- July 10, 2025. Substituído por versão otimizada reduzida do fluxograma (fluxograma_seap_min.png) para melhor performance e qualidade visual
 
 ## User Preferences
 
