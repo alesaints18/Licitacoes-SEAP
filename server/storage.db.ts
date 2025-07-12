@@ -204,8 +204,7 @@ export class DatabaseStorage implements IStorage {
       console.log(`Retornando processo do departamento ${currentProcess.currentDepartmentId} para ${previousDepartmentId}`);
       
       // Buscar informações do departamento para incluir no comentário
-      const department = await this.getDepartment(user.departmentId || 1);
-      const returnCommentWithUser = `${returnComment} - Retornado por: ${user.username} (${department?.name || user.department})`;
+      const returnCommentWithUser = `${returnComment} - Retornado por: ${user.username} (${user.department})`;
       
       // Atualizar o processo com o novo departamento e comentário de retorno
       const [updatedProcess] = await db
