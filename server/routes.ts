@@ -624,6 +624,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         role: 'owner',
         isActive: true
       });
+
+      // Adicionar registro ao histórico de responsabilidades
+      await storage.addProcessResponsibilityHistory({
+        processId: process.id,
+        userId: userId,
+        action: 'created',
+        description: `Processo criado por ${(req.user as any).fullName}`,
+        departmentId: currentDepartmentId
+      });
+
+      // Adicionar registro ao histórico de responsabilidades
+      await storage.addProcessResponsibilityHistory({
+        processId: process.id,
+        userId: userId,
+        action: 'created',
+        description: `Processo criado por ${(req.user as any).fullName}`,
+        departmentId: currentDepartmentId
+      });
       
       // Se o responsável pelo processo for diferente do criador, adiciona-o também
       if (process.responsibleId !== userId) {
@@ -682,6 +700,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const updatedProcess = await storage.updateProcess(id, processData);
       console.log(`Processo ${id} atualizado:`, updatedProcess);
+
+      // Adicionar registro ao histórico de responsabilidades
+      const userId = (req.user as any).id;
+      await storage.addProcessResponsibilityHistory({
+        processId: id,
+        userId: userId,
+        action: 'updated',
+        description: `Processo modificado por ${(req.user as any).fullName}`,
+        departmentId: updatedProcess?.currentDepartmentId || existingProcess.currentDepartmentId
+      });
       
       if (!updatedProcess) {
         return res.status(404).json({ message: "Processo não encontrado" });
@@ -919,6 +947,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`✅ Processo retornado com sucesso:`, updatedProcess);
 
+      // Obter dados do usuário para o histórico
+      const user = await storage.getUser(userId);
+      
+      // Adicionar ao histórico de responsabilidades
+      await storage.addProcessResponsibilityHistory({
+        processId: processId,
+        userId: userId,
+        action: 'returned',
+        description: `Processo retornado por ${user?.fullName || 'Usuário'} com comentário: ${commentText.trim()}`,
+        departmentId: updatedProcess.currentDepartmentId
+      });
+
       // Notificar via WebSocket sobre o retorno
       broadcast({
         type: 'process_returned',
@@ -1012,8 +1052,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stepName: "Transferência de Setor",
         createdAt: new Date()
       });
+
+      // 5. Adicionar ao histórico de responsabilidades
+      await storage.addProcessResponsibilityHistory({
+        processId: processId,
+        userId: userId,
+        action: 'transferred',
+        description: `Processo transferido para ${department.name} por ${user.fullName}`,
+        departmentId: departmentId
+      });
       
-      // Notificar via WebSocket sobre a transferência
+      // 6. Notificar via WebSocket sobre a transferência
       broadcast({
         type: 'process_transferred',
         processId,
@@ -1056,6 +1105,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         message: "Erro ao buscar etapas do processo", 
         error: error instanceof Error ? error.message : String(error)
       });
+    }
+  });
+
+  // Rota para buscar histórico de responsabilidades de um processo específico
+  app.get('/api/processes/:processId/responsibility-history', isAuthenticated, async (req, res) => {
+    try {
+      const processId = parseInt(req.params.processId);
+      console.log(`Buscando histórico de responsabilidades para o processo ${processId}`);
+      
+      if (isNaN(processId)) {
+        return res.status(400).json({ message: "ID de processo inválido" });
+      }
+      
+      const history = await storage.getProcessResponsibilityHistoryWithDetails(processId);
+      console.log(`Histórico encontrado para processo ${processId}: ${history.length} registros`);
+      
+      res.json(history);
+    } catch (error) {
+      console.error("Erro ao buscar histórico de responsabilidades:", error);
+      res.status(500).json({ message: "Erro ao buscar histórico de responsabilidades", error });
     }
   });
 

@@ -91,12 +91,10 @@ export const processResponsibilityHistory = pgTable('process_responsibility_hist
   id: serial('id').primaryKey(),
   processId: integer('process_id').notNull(),
   userId: integer('user_id').notNull(),
-  departmentId: integer('department_id').notNull(),
-  assignedAt: timestamp('assigned_at').notNull().defaultNow(),
-  endedAt: timestamp('ended_at'),
-  assignedBy: integer('assigned_by'), // Quem fez a transferência
-  transferComment: text('transfer_comment'), // Comentário da transferência
-  isActive: boolean('is_active').notNull().default(true),
+  action: text('action').notNull(), // 'created', 'updated', 'transferred', 'returned', etc.
+  description: text('description'), // Descrição da ação
+  timestamp: timestamp('timestamp').notNull().defaultNow(),
+  departmentId: integer('department_id'), // Departamento no momento da ação
 });
 
 export const convenios = pgTable('convenios', {
@@ -146,6 +144,11 @@ export const insertProcessParticipantSchema = createInsertSchema(processParticip
   addedAt: true,
 });
 
+export const insertProcessResponsibilityHistorySchema = createInsertSchema(processResponsibilityHistory).omit({
+  id: true,
+  timestamp: true,
+});
+
 export const insertConvenioSchema = createInsertSchema(convenios).omit({
   id: true,
   createdAt: true,
@@ -173,6 +176,9 @@ export type InsertProcessStep = z.infer<typeof insertProcessStepSchema>;
 
 export type ProcessParticipant = typeof processParticipants.$inferSelect;
 export type InsertProcessParticipant = z.infer<typeof insertProcessParticipantSchema>;
+
+export type ProcessResponsibilityHistory = typeof processResponsibilityHistory.$inferSelect;
+export type InsertProcessResponsibilityHistory = z.infer<typeof insertProcessResponsibilityHistorySchema>;
 
 export type Convenio = typeof convenios.$inferSelect;
 export type InsertConvenio = z.infer<typeof insertConvenioSchema>;

@@ -170,6 +170,11 @@ export interface IStorage {
   createConvenio(convenio: InsertConvenio): Promise<Convenio>;
   updateConvenio(id: number, convenioData: Partial<InsertConvenio>): Promise<Convenio | undefined>;
   deleteConvenio(id: number): Promise<boolean>;
+
+  // Process responsibility history operations
+  addProcessResponsibilityHistory(history: any): Promise<any>;
+  getProcessResponsibilityHistory(processId: number): Promise<any[]>;
+  getProcessResponsibilityHistoryWithDetails(processId: number): Promise<any[]>;
 }
 
 // Memory storage implementation
@@ -782,6 +787,23 @@ export class MemStorage implements IStorage {
 
   async deleteConvenio(id: number): Promise<boolean> {
     return false;
+  }
+
+  // Process responsibility history operations (stub implementations)
+  async addProcessResponsibilityHistory(history: any): Promise<any> {
+    return {
+      id: Date.now(),
+      ...history,
+      timestamp: new Date()
+    };
+  }
+
+  async getProcessResponsibilityHistory(processId: number): Promise<any[]> {
+    return [];
+  }
+
+  async getProcessResponsibilityHistoryWithDetails(processId: number): Promise<any[]> {
+    return [];
   }
 }
 

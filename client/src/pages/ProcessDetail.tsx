@@ -61,7 +61,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
-import ResponsibleTable from "@/components/dashboard/ResponsibleTable";
+
 
 interface ProcessDetailProps {
   id: string;
@@ -203,6 +203,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   // Fetch process steps to get the next step
   const { data: steps } = useQuery<ProcessStep[]>({
     queryKey: [`/api/processes/${parsedId}/steps`],
+    enabled: !!process,
+  });
+
+  // Get process responsibility history
+  const {
+    data: responsibilityHistory,
+    isLoading: historyLoading,
+  } = useQuery<any[]>({
+    queryKey: [`/api/processes/${parsedId}/responsibility-history`],
     enabled: !!process,
   });
 
@@ -830,33 +839,62 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
                     <div className="py-3 grid grid-cols-3">
                       <dt className="text-sm font-medium text-gray-500">
-                        Responsável
+                        Histórico de Responsabilidades
                       </dt>
                       <dd className="text-sm text-gray-900 col-span-2">
-                        <div className="text-xs text-gray-500">
-                          {responsible?.fullName ||
-                            `Usuário ${process.responsibleId}`}
-                          {process.responsibleSince && (
-                            <div className="mt-1 text-xs text-blue-600 flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              Responsável desde{" "}
-                              {format(
-                                new Date(process.responsibleSince),
-                                "dd/MM/yyyy",
-                                { locale: ptBR },
-                              )}
-                              (
-                              {Math.ceil(
-                                (new Date().getTime() -
-                                  new Date(
-                                    process.responsibleSince,
-                                  ).getTime()) /
-                                  (1000 * 60 * 60 * 24),
-                              )}{" "}
-                              dias)
-                            </div>
-                          )}
-                        </div>
+                        {historyLoading ? (
+                          <div className="text-xs text-gray-500">Carregando histórico...</div>
+                        ) : responsibilityHistory && responsibilityHistory.length > 0 ? (
+                          <div className="space-y-2">
+                            {responsibilityHistory.map((history, index) => (
+                              <div key={history.id} className="flex items-start space-x-2">
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                                <div className="flex-1">
+                                  <div className="text-xs text-gray-900">
+                                    <span className="font-medium">{history.fullName || history.username}</span>
+                                    {history.departmentName && (
+                                      <span className="text-gray-500"> ({history.departmentName})</span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {history.action === 'created' ? 'Criou o processo' : 
+                                     history.action === 'updated' ? 'Modificou o processo' :
+                                     history.action === 'transferred' ? 'Transferiu o processo' :
+                                     history.action === 'returned' ? 'Retornou o processo' :
+                                     history.description || history.action}
+                                  </div>
+                                  <div className="text-xs text-gray-400">
+                                    {format(new Date(history.timestamp), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-500">
+                            Responsável atual: {responsible?.fullName || `Usuário ${process.responsibleId}`}
+                            {process.responsibleSince && (
+                              <div className="mt-1 text-xs text-blue-600 flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Responsável desde{" "}
+                                {format(
+                                  new Date(process.responsibleSince),
+                                  "dd/MM/yyyy",
+                                  { locale: ptBR },
+                                )}
+                                (
+                                {Math.ceil(
+                                  (new Date().getTime() -
+                                    new Date(
+                                      process.responsibleSince,
+                                    ).getTime()) /
+                                    (1000 * 60 * 60 * 24),
+                                )}{" "}
+                                dias)
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </dd>
                     </div>
                   </dl>
@@ -1423,8 +1461,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 </Card>
               )}
 
-              {/* Responsáveis por Processos */}
-              <ResponsibleTable />
+
             </div>
           </div>
         </TabsContent>

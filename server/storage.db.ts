@@ -6,7 +6,8 @@ import {
   resourceSources, type ResourceSource, type InsertResourceSource,
   processes, type Process, type InsertProcess,
   processSteps, type ProcessStep, type InsertProcessStep,
-  processParticipants, type ProcessParticipant, type InsertProcessParticipant
+  processParticipants, type ProcessParticipant, type InsertProcessParticipant,
+  processResponsibilityHistory, type ProcessResponsibilityHistory, type InsertProcessResponsibilityHistory
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { eq, and, or, count, sql, inArray, like } from "drizzle-orm";
@@ -607,6 +608,42 @@ export class DatabaseStorage implements IStorage {
 
   async deleteConvenio(id: number): Promise<boolean> {
     return false;
+  }
+
+  // Process responsibility history operations
+  async addProcessResponsibilityHistory(history: InsertProcessResponsibilityHistory): Promise<ProcessResponsibilityHistory> {
+    const [created] = await db.insert(processResponsibilityHistory).values(history).returning();
+    return created;
+  }
+
+  async getProcessResponsibilityHistory(processId: number): Promise<ProcessResponsibilityHistory[]> {
+    return await db
+      .select()
+      .from(processResponsibilityHistory)
+      .where(eq(processResponsibilityHistory.processId, processId))
+      .orderBy(processResponsibilityHistory.timestamp);
+  }
+
+  async getProcessResponsibilityHistoryWithDetails(processId: number): Promise<any[]> {
+    return await db
+      .select({
+        id: processResponsibilityHistory.id,
+        processId: processResponsibilityHistory.processId,
+        userId: processResponsibilityHistory.userId,
+        username: users.username,
+        fullName: users.fullName,
+        userDepartment: users.department,
+        action: processResponsibilityHistory.action,
+        description: processResponsibilityHistory.description,
+        timestamp: processResponsibilityHistory.timestamp,
+        departmentId: processResponsibilityHistory.departmentId,
+        departmentName: departments.name,
+      })
+      .from(processResponsibilityHistory)
+      .leftJoin(users, eq(processResponsibilityHistory.userId, users.id))
+      .leftJoin(departments, eq(processResponsibilityHistory.departmentId, departments.id))
+      .where(eq(processResponsibilityHistory.processId, processId))
+      .orderBy(processResponsibilityHistory.timestamp);
   }
 }
 
