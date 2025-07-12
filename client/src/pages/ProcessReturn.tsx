@@ -185,7 +185,23 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
               </p>
               <div className="text-xs text-gray-400 mt-2">
                 Debug: {departments?.length || 0} departamentos carregados
+                <br />
+                Loading: {departmentsLoading ? 'Sim' : 'Não'}
+                <br />
+                Error: {departmentsError ? 'Sim' : 'Não'}
+                <br />
+                IsAdmin: {isAdmin ? 'Sim' : 'Não'}
               </div>
+              
+              {/* Forçar exibição dos departamentos para debug */}
+              {departments && departments.length > 0 && (
+                <div className="text-xs text-gray-400 mt-2 border p-2 rounded bg-gray-50">
+                  <strong>Departamentos encontrados:</strong>
+                  {departments.map(dept => (
+                    <div key={dept.id}>• {dept.name} (ID: {dept.id})</div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
