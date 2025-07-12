@@ -23,10 +23,10 @@ export function getProcessPriorityLabel(priority: string): string {
 
 export function getProcessStatusColor(status: string): string {
   const colorMap: Record<string, string> = {
-    in_progress: "text-blue-600 bg-blue-100",
-    completed: "text-green-600 bg-green-100",
-    canceled: "text-red-600 bg-red-100",
-    overdue: "text-orange-600 bg-orange-100"
+    in_progress: "text-yellow-600 bg-yellow-100",  // Amarelo para "Em Andamento"
+    completed: "text-green-600 bg-green-100",     // Verde para "Concluído"
+    canceled: "text-gray-600 bg-gray-100",        // Cinza para "Cancelado"
+    overdue: "text-red-600 bg-red-100"           // Vermelho para "Atrasado"
   };
   
   return colorMap[status] || "text-gray-600 bg-gray-100";
@@ -98,6 +98,17 @@ export function getDaysUntilDeadline(deadline: string | Date | null): number | n
   
   const diffTime = deadlineDate.getTime() - today.getTime();
   return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+export function getProcessStatusClass(status: string): string {
+  const classMap: Record<string, string> = {
+    in_progress: "status-in-progress",
+    completed: "status-completed",
+    canceled: "status-canceled",
+    overdue: "status-overdue"
+  };
+  
+  return classMap[status] || "status-default";
 }
 
 export function formatDeadlineWarning(deadline: string | Date | null): { message: string; color: string } | null {

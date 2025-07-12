@@ -89,7 +89,7 @@ export function DepartmentRanking({ filters }: DepartmentRankingProps) {
                   {dept.total} total
                 </Badge>
                 {dept.inProgress > 0 && (
-                  <Badge variant="secondary" className="flex items-center gap-1 bg-blue-100 text-blue-700 flex-shrink-0">
+                  <Badge variant="secondary" className="flex items-center gap-1 bg-yellow-100 text-yellow-700 flex-shrink-0">
                     <Clock className="h-3 w-3" />
                     {dept.inProgress} em andamento
                   </Badge>

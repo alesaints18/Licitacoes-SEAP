@@ -155,6 +155,9 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 12, 2025. Adicionada informação do responsável pelo retorno nos comentários (username e departamento)
 - July 12, 2025. Corrigido sistema de hash de senha para novos usuários registrados via formulário público
 - July 12, 2025. Administradores agora podem retornar processos para qualquer departamento, não apenas o anterior no fluxo
+- July 12, 2025. Padronizadas cores dos gráficos e legendas: Em Andamento (amarelo #F59E0B), Atrasados (vermelho #EF4444), Concluídos (verde #10B981), Cancelados (cinza #9CA3AF)
+- July 12, 2025. Corrigidas cores em ProcessStatusChart, TemporalDistributionChart, DepartmentRanking e funções utilitárias de status
+- July 12, 2025. Adicionada função getProcessStatusClass e classes CSS correspondentes para consistência visual
 
 ## User Preferences
 

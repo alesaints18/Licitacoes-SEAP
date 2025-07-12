@@ -65,23 +65,23 @@ export function TemporalDistributionChart({ filters }: TemporalDistributionChart
             <Line 
               type="monotone" 
               dataKey="Em Andamento" 
-              stroke="#3b82f6" 
+              stroke="#F59E0B" 
               strokeWidth={3}
-              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+              dot={{ fill: '#F59E0B', strokeWidth: 2, r: 4 }}
             />
             <Line 
               type="monotone" 
               dataKey="Atrasados" 
-              stroke="#ef4444" 
+              stroke="#EF4444" 
               strokeWidth={3}
-              dot={{ fill: '#ef4444', strokeWidth: 2, r: 4 }}
+              dot={{ fill: '#EF4444', strokeWidth: 2, r: 4 }}
             />
             <Line 
               type="monotone" 
               dataKey="Concluídos" 
-              stroke="#22c55e" 
+              stroke="#10B981" 
               strokeWidth={3}
-              dot={{ fill: '#22c55e', strokeWidth: 2, r: 4 }}
+              dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
             />
           </LineChart>
         </ResponsiveContainer>
