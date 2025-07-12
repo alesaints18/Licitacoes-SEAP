@@ -38,6 +38,13 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
   });
 
   const isAdmin = currentUser?.role === 'admin';
+  
+  console.log('ProcessReturn Debug:', {
+    currentUser,
+    isAdmin,
+    userRole: currentUser?.role,
+    departments: departments?.length
+  });
 
   // Return mutation
   const returnMutation = useMutation({
