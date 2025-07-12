@@ -12,6 +12,7 @@ import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
+import bcrypt from "bcrypt";
 // Removido puppeteer - usando alternativa mais simples
 
 // Configuração para meta mensal
@@ -220,9 +221,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Nome de usuário já existe" });
       }
       
+      // Hash da senha antes de armazenar
+      const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+      
       // Crie o usuário como inativo (aguardando aprovação do administrador)
       const user = await storage.createUser({
         ...validatedData,
+        password: hashedPassword,
         isActive: false // Usuário precisa ser ativado por um administrador
       });
       
@@ -876,7 +881,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/processes/:id/return', isAuthenticated, async (req, res) => {
     try {
       const processId = parseInt(req.params.id);
-      const { returnComment, comment } = req.body;
+      const { returnComment, comment, targetDepartmentId } = req.body;
       const userId = req.user?.id;
 
       console.log(`=== RETORNO DE PROCESSO ===`);
@@ -891,6 +896,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`commentText value: "${commentText}"`);
       console.log(`commentText type: ${typeof commentText}`);
       console.log(`commentText trim: "${commentText?.trim()}"`);
+      console.log(`targetDepartmentId: ${targetDepartmentId}`);
 
       if (!userId) {
         console.log(`❌ Usuário não autenticado`);
@@ -904,7 +910,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`✅ Validações passaram, chamando storage.returnProcess`);
 
-      const updatedProcess = await storage.returnProcess(processId, commentText.trim(), userId);
+      const updatedProcess = await storage.returnProcess(processId, commentText.trim(), userId, targetDepartmentId);
       
       if (!updatedProcess) {
         console.log(`❌ Processo não encontrado no storage`);

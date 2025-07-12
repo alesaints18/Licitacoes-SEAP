@@ -155,7 +155,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Required interface methods - stub implementations
-  async returnProcess(processId: number, returnComment: string, userId: number): Promise<Process | undefined> {
+  async returnProcess(processId: number, returnComment: string, userId: number, targetDepartmentId?: number): Promise<Process | undefined> {
     try {
       console.log(`Tentando retornar processo ${processId} com comentário: ${returnComment}`);
       
@@ -172,28 +172,47 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`Processo encontrado. Departamento atual: ${currentProcess.currentDepartmentId}`);
       
-      // Fluxo de departamentos definido no sistema
-      const departmentFlow = [1, 2, 3, 4, 5]; // Setor Demandante, Divisão, NPP, Orçamento, Secretário
-      
-      // Encontrar o índice do departamento atual
-      const currentIndex = departmentFlow.findIndex(id => id === currentProcess.currentDepartmentId);
-      
-      if (currentIndex <= 0) {
-        console.log(`Processo no primeiro departamento, não pode ser retornado`);
-        return undefined; // Processo já está no primeiro departamento
+      // Buscar informações do usuário que está retornando
+      const user = await this.getUser(userId);
+      if (!user) {
+        console.log(`Usuário ${userId} não encontrado`);
+        return undefined;
       }
       
-      // Departamento anterior no fluxo
-      const previousDepartmentId = departmentFlow[currentIndex - 1];
+      let previousDepartmentId: number;
+      
+      // Se o usuário é admin e especificou um departamento de destino, usar esse
+      if (user.role === 'admin' && targetDepartmentId) {
+        previousDepartmentId = targetDepartmentId;
+        console.log(`Admin retornando processo para departamento específico: ${previousDepartmentId}`);
+      } else {
+        // Fluxo normal - departamento anterior no fluxo
+        const departmentFlow = [1, 2, 3, 4, 5]; // Setor Demandante, Divisão, NPP, Orçamento, Secretário
+        
+        // Encontrar o índice do departamento atual
+        const currentIndex = departmentFlow.findIndex(id => id === currentProcess.currentDepartmentId);
+        
+        if (currentIndex <= 0) {
+          console.log(`Processo no primeiro departamento, não pode ser retornado`);
+          return undefined; // Processo já está no primeiro departamento
+        }
+        
+        // Departamento anterior no fluxo
+        previousDepartmentId = departmentFlow[currentIndex - 1];
+      }
       
       console.log(`Retornando processo do departamento ${currentProcess.currentDepartmentId} para ${previousDepartmentId}`);
+      
+      // Buscar informações do departamento para incluir no comentário
+      const department = await this.getDepartment(user.departmentId || 1);
+      const returnCommentWithUser = `${returnComment} - Retornado por: ${user.username} (${department?.name || user.department})`;
       
       // Atualizar o processo com o novo departamento e comentário de retorno
       const [updatedProcess] = await db
         .update(processes)
         .set({
           currentDepartmentId: previousDepartmentId,
-          returnComments: returnComment,
+          returnComments: returnCommentWithUser,
           status: 'in_progress', // Garantir que o status seja adequado
           lastModified: new Date()
         })

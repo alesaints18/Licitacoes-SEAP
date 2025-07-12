@@ -3,10 +3,11 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Process, Department } from "@shared/schema";
+import { Process, Department, User } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft } from "lucide-react";
 
 interface ProcessReturnProps {
@@ -18,7 +19,13 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [returnComment, setReturnComment] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("");
   const parsedId = parseInt(id);
+
+  // Get current user
+  const { data: currentUser } = useQuery<User>({
+    queryKey: ['/api/auth/status'],
+  });
 
   // Get process details
   const { data: process, isLoading: processLoading } = useQuery<Process>({
@@ -30,11 +37,14 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
     queryKey: ['/api/departments'],
   });
 
+  const isAdmin = currentUser?.role === 'admin';
+
   // Return mutation
   const returnMutation = useMutation({
-    mutationFn: async (comment: string) => {
+    mutationFn: async (data: { comment: string; targetDepartmentId?: number }) => {
       const response = await apiRequest("POST", `/api/processes/${parsedId}/return`, {
-        returnComment: comment
+        returnComment: data.comment,
+        targetDepartmentId: data.targetDepartmentId
       });
       return response.json();
     },
@@ -66,7 +76,14 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
       return;
     }
 
-    returnMutation.mutate(returnComment.trim());
+    // Se for admin e selecionou um departamento, incluir no retorno
+    const targetDepartmentId = isAdmin && selectedDepartment ? 
+      parseInt(selectedDepartment) : undefined;
+
+    returnMutation.mutate({
+      comment: returnComment.trim(),
+      targetDepartmentId
+    });
   };
 
   if (processLoading) {
@@ -108,6 +125,30 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
             </div>
           </div>
 
+          {isAdmin && (
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Departamento de Destino
+              </label>
+              <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecionar departamento (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Seguir fluxo normal (departamento anterior)</SelectItem>
+                  {departments?.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id.toString()}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-sm text-gray-500 mt-1">
+                Como administrador, você pode retornar o processo para qualquer departamento
+              </p>
+            </div>
+          )}
+
           <div>
             <label className="block text-sm font-medium mb-2">
               Motivo do Retorno <span className="text-red-500">*</span>
@@ -127,8 +168,12 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <h4 className="font-medium text-yellow-800 mb-2">Atenção</h4>
             <p className="text-sm text-yellow-700">
-              O processo será retornado para o departamento anterior no fluxo. 
-              Certifique-se de que o comentário seja claro e específico sobre as correções necessárias.
+              {isAdmin && selectedDepartment ? (
+                `O processo será retornado para ${departments?.find(d => d.id.toString() === selectedDepartment)?.name || 'o departamento selecionado'}.`
+              ) : (
+                'O processo será retornado para o departamento anterior no fluxo.'
+              )}
+              {' '}Certifique-se de que o comentário seja claro e específico sobre as correções necessárias.
             </p>
           </div>
 
