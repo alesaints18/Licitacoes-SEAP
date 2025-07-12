@@ -61,6 +61,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import ResponsibleTable from "@/components/dashboard/ResponsibleTable";
 
 interface ProcessDetailProps {
   id: string;
@@ -1421,6 +1422,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Responsáveis por Processos */}
+              <ResponsibleTable />
             </div>
           </div>
         </TabsContent>
@@ -1449,6 +1453,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 )}
               </CardContent>
             </Card>
+
           </div>
         </TabsContent>
 

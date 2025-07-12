@@ -4,7 +4,7 @@ import StatsCard from "@/components/dashboard/StatsCard";
 import ProcessStatusChart from "@/components/dashboard/ProcessStatusChart";
 import MonthlyProcessesChart from "@/components/dashboard/MonthlyProcessesChart";
 import ResourceDistributionChart from "@/components/dashboard/ResourceDistributionChart";
-import ResponsibleTable from "@/components/dashboard/ResponsibleTable";
+
 import ProcessTable from "@/components/dashboard/ProcessTable";
 import DashboardFilters from "@/components/dashboard/DashboardFilters";
 import MonthlyGoalSettings from "@/components/dashboard/MonthlyGoalSettings";
@@ -235,10 +235,9 @@ const Dashboard = () => {
       </div>
 
       {/* Charts - Second Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <DepartmentRanking filters={filters} />
         <ResourceDistributionChart filters={filters} />
-        <ResponsibleTable filters={filters} />
       </div>
 
       {/* Recent Processes Table */}

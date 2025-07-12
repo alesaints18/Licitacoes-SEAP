@@ -32,6 +32,24 @@ export function getProcessStatusColor(status: string): string {
   return colorMap[status] || "text-gray-600 bg-gray-100";
 }
 
+// Função para cores dos gráficos (valores hexadecimais)
+export function getProcessStatusChartColor(status: string): string {
+  switch (status) {
+    case 'in_progress':
+      return '#F59E0B'; // amarelo
+    case 'overdue':
+      return '#EF4444'; // vermelho
+    case 'completed':
+      return '#10B981'; // verde
+    case 'canceled':
+      return '#9CA3AF'; // cinza
+    case 'draft':
+      return '#9CA3AF'; // cinza
+    default:
+      return '#9CA3AF'; // cinza
+  }
+}
+
 export function getProcessPriorityColor(priority: string): string {
   const colorMap: Record<string, string> = {
     low: "text-green-600 bg-green-100",

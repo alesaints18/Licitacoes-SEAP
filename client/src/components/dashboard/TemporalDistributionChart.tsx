@@ -83,6 +83,13 @@ export function TemporalDistributionChart({ filters }: TemporalDistributionChart
               strokeWidth={3}
               dot={{ fill: '#10B981', strokeWidth: 2, r: 4 }}
             />
+            <Line 
+              type="monotone" 
+              dataKey="Cancelados" 
+              stroke="#9CA3AF" 
+              strokeWidth={3}
+              dot={{ fill: '#9CA3AF', strokeWidth: 2, r: 4 }}
+            />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>
