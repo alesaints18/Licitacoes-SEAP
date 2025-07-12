@@ -150,6 +150,11 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 10, 2025. Implementada nova versão ultra HD do fluxograma (fluxograma_seap_ultra_hd.png) com melhorias significativas de qualidade visual
 - July 10, 2025. Adicionadas propriedades CSS específicas para melhoria da renderização de imagens (image-rendering, interpolation-mode, webkit-optimization)
 - July 10, 2025. Substituído por versão otimizada reduzida do fluxograma (fluxograma_seap_min.png) para melhor performance e qualidade visual
+- July 12, 2025. Corrigido problema crítico de autenticação: removido campo department_id inexistente do schema de usuários
+- July 12, 2025. Implementada funcionalidade de retorno de processos para administradores com seleção de departamento de destino
+- July 12, 2025. Adicionada informação do responsável pelo retorno nos comentários (username e departamento)
+- July 12, 2025. Corrigido sistema de hash de senha para novos usuários registrados via formulário público
+- July 12, 2025. Administradores agora podem retornar processos para qualquer departamento, não apenas o anterior no fluxo
 
 ## User Preferences
 
