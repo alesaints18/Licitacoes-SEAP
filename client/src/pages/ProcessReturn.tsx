@@ -25,16 +25,43 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
   // Get current user
   const { data: currentUser } = useQuery<User>({
     queryKey: ['/api/auth/status'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/auth/status');
+      if (!response.ok) {
+        throw new Error('Failed to fetch user');
+      }
+      return response.json();
+    }
   });
 
   // Get process details
   const { data: process, isLoading: processLoading } = useQuery<Process>({
     queryKey: [`/api/processes/${parsedId}`],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/processes/${parsedId}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch process');
+      }
+      return response.json();
+    }
   });
 
   // Get departments
-  const { data: departments } = useQuery<Department[]>({
+  const { data: departments, isLoading: departmentsLoading, error: departmentsError } = useQuery<Department[]>({
     queryKey: ['/api/departments'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/departments');
+      if (!response.ok) {
+        throw new Error('Failed to fetch departments');
+      }
+      return response.json();
+    }
+  });
+  
+  console.log('Departments query:', {
+    departments,
+    loading: departmentsLoading,
+    error: departmentsError
   });
 
   const isAdmin = currentUser?.role === 'admin';
@@ -143,16 +170,22 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Seguir fluxo normal (departamento anterior)</SelectItem>
-                  {departments?.map((dept) => (
-                    <SelectItem key={dept.id} value={dept.id.toString()}>
-                      {dept.name}
-                    </SelectItem>
-                  ))}
+                  {departments?.map((dept) => {
+                    console.log('Renderizando departamento:', dept);
+                    return (
+                      <SelectItem key={dept.id} value={dept.id.toString()}>
+                        {dept.name}
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
               <p className="text-sm text-gray-500 mt-1">
                 Como administrador, você pode retornar o processo para qualquer departamento
               </p>
+              <div className="text-xs text-gray-400 mt-2">
+                Debug: {departments?.length || 0} departamentos carregados
+              </div>
             </div>
           )}
 
