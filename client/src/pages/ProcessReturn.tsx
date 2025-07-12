@@ -50,28 +50,36 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
   const { data: departments, isLoading: departmentsLoading, error: departmentsError } = useQuery<Department[]>({
     queryKey: ['/api/departments'],
     queryFn: async () => {
+      console.log('=== FETCH DEPARTMENTS ===');
+      console.log('Making request to /api/departments');
       const response = await apiRequest('GET', '/api/departments');
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+      
       if (!response.ok) {
+        console.error('Failed to fetch departments - response not ok');
         throw new Error('Failed to fetch departments');
       }
-      return response.json();
+      
+      const data = await response.json();
+      console.log('Departments response data:', data);
+      console.log('Number of departments:', data?.length || 0);
+      console.log('=== END FETCH DEPARTMENTS ===');
+      return data;
     }
   });
   
-  console.log('Departments query:', {
-    departments,
-    loading: departmentsLoading,
-    error: departmentsError
-  });
+  console.log('=== ProcessReturn Debug ===');
+  console.log('ProcessReturn - Current User:', currentUser);
+  console.log('ProcessReturn - Is Admin:', isAdmin);
+  console.log('ProcessReturn - User Role:', currentUser?.role);
+  console.log('ProcessReturn - Departments Length:', departments?.length);
+  console.log('ProcessReturn - Departments Data:', departments);
+  console.log('ProcessReturn - Departments Loading:', departmentsLoading);
+  console.log('ProcessReturn - Departments Error:', departmentsError);
+  console.log('=== End ProcessReturn Debug ===');
 
   const isAdmin = currentUser?.role === 'admin';
-  
-  console.log('ProcessReturn Debug:', {
-    currentUser,
-    isAdmin,
-    userRole: currentUser?.role,
-    departments: departments?.length
-  });
 
   // Return mutation
   const returnMutation = useMutation({
