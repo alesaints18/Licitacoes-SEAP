@@ -290,11 +290,74 @@ export class DatabaseStorage implements IStorage {
   }
 
   async restoreProcess(id: number, userId: number): Promise<Process | undefined> {
-    return undefined;
+    try {
+      console.log(`Tentando restaurar processo ID ${id} pelo usuário ${userId}`);
+      
+      // Verificar se o processo existe e está excluído
+      const [existingProcess] = await db
+        .select()
+        .from(processes)
+        .where(and(eq(processes.id, id), isNotNull(processes.deletedAt)));
+      
+      if (!existingProcess) {
+        console.log(`Processo ${id} não encontrado ou não está na lixeira`);
+        return undefined;
+      }
+
+      console.log(`Processo ${id} encontrado na lixeira, restaurando...`);
+
+      // Restaurar processo (limpar campos de exclusão)
+      const [restoredProcess] = await db
+        .update(processes)
+        .set({
+          deletedAt: null,
+          deletedBy: null,
+          deletionReason: null
+        })
+        .where(eq(processes.id, id))
+        .returning();
+
+      console.log(`Processo ${id} restaurado com sucesso`);
+      return restoredProcess;
+    } catch (error) {
+      console.error('Erro ao restaurar processo:', error);
+      return undefined;
+    }
   }
 
   async permanentlyDeleteProcess(id: number): Promise<boolean> {
-    return false;
+    try {
+      console.log(`Tentando excluir permanentemente processo ID ${id}`);
+      
+      // Verificar se o processo existe e está excluído
+      const [existingProcess] = await db
+        .select()
+        .from(processes)
+        .where(and(eq(processes.id, id), isNotNull(processes.deletedAt)));
+      
+      if (!existingProcess) {
+        console.log(`Processo ${id} não encontrado ou não está na lixeira`);
+        return false;
+      }
+
+      console.log(`Processo ${id} encontrado na lixeira, excluindo permanentemente...`);
+
+      // Primeiro, excluir registros relacionados
+      await db.delete(processSteps).where(eq(processSteps.processId, id));
+      await db.delete(processParticipants).where(eq(processParticipants.processId, id));
+      await db.delete(processResponsibilityHistory).where(eq(processResponsibilityHistory.processId, id));
+
+      // Excluir permanentemente o processo
+      const result = await db
+        .delete(processes)
+        .where(eq(processes.id, id));
+
+      console.log(`Resultado da exclusão: ${result.rowCount} linhas afetadas`);
+      return result.rowCount !== null && result.rowCount > 0;
+    } catch (error) {
+      console.error('Erro ao excluir processo permanentemente:', error);
+      return false;
+    }
   }
 
   async getProcessSteps(processId: number): Promise<ProcessStep[]> {

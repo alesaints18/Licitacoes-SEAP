@@ -765,11 +765,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const userId = (req.user as any).id;
+      
+      console.log(`Rota restaurar: processId=${id}, userId=${userId}`);
+      
       const restoredProcess = await storage.restoreProcess(id, userId);
       
       if (!restoredProcess) {
+        console.log(`Falha ao restaurar processo ${id}`);
         return res.status(404).json({ message: "Processo não encontrado na lixeira" });
       }
+      
+      console.log(`Processo ${id} restaurado com sucesso`);
       
       // Notificar restauração via WebSocket
       broadcast({
@@ -781,6 +787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(restoredProcess);
     } catch (error) {
+      console.error('Erro na rota restaurar:', error);
       res.status(500).json({ message: "Erro ao restaurar processo", error });
     }
   });
@@ -788,11 +795,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/processes/:id/permanent', isAuthenticated, isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      console.log(`Rota excluir permanente: processId=${id}`);
+      
       const deleted = await storage.permanentlyDeleteProcess(id);
       
       if (!deleted) {
-        return res.status(404).json({ message: "Processo não encontrado" });
+        console.log(`Falha ao excluir permanentemente processo ${id}`);
+        return res.status(404).json({ message: "Processo não encontrado na lixeira" });
       }
+      
+      console.log(`Processo ${id} excluído permanentemente com sucesso`);
       
       // Notificar exclusão permanente via WebSocket
       broadcast({
@@ -804,6 +817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json({ success: true });
     } catch (error) {
+      console.error('Erro na rota excluir permanente:', error);
       res.status(500).json({ message: "Erro ao excluir processo permanentemente", error });
     }
   });
