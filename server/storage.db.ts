@@ -288,6 +288,7 @@ export class DatabaseStorage implements IStorage {
           priority: processes.priority,
           status: processes.status,
           createdAt: processes.createdAt,
+          updatedAt: processes.updatedAt,
           deletedByName: users.fullName
         })
         .from(processes)

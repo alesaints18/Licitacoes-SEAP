@@ -243,7 +243,7 @@ const Trash = () => {
                       <User className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <span className="font-medium">Excluído por:</span>
-                        <p>Usuário ID: {process.deletedBy || '-'}</p>
+                        <p>{process.deletedByName || `Usuário ID: ${process.deletedBy}` || '-'}</p>
                       </div>
                     </div>
                     <div>
@@ -255,6 +255,13 @@ const Trash = () => {
                       <p>{new Date(process.updatedAt).toLocaleDateString('pt-BR')}</p>
                     </div>
                   </div>
+                  
+                  {process.deletionReason && (
+                    <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+                      <span className="font-medium text-red-800">Motivo da exclusão:</span>
+                      <p className="text-sm mt-1 text-red-700">{process.deletionReason}</p>
+                    </div>
+                  )}
                   
                   {process.returnComments && (
                     <div className="mt-4 p-3 bg-muted rounded-md">

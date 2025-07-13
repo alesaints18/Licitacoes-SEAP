@@ -171,6 +171,8 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 13, 2025. Relatório PDF agora é cópia exata da página ProcessReport.tsx com layout e estilos idênticos
 - July 13, 2025. Corrigido problema de etapas não mostrarem departamento e responsável - agora todas as etapas exibem essas informações
 - July 13, 2025. Adicionado histórico de responsabilidades completo no relatório PDF com transferências e comentários
+- July 13, 2025. Adicionado motivo da exclusão na lixeira para facilitar o manuseio pelo usuário
+- July 13, 2025. Melhorado display do usuário responsável pela exclusão (nome completo ao invés de ID)
 
 ## User Preferences
 
