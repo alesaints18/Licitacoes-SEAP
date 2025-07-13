@@ -59,11 +59,11 @@ const Sidebar = () => {
         icon: <FileText className="h-5 w-5 mr-3" />,
         label: "Processos",
       },
-      /* {
+      {
         path: "/flowchart",
         icon: <Workflow className="h-5 w-5 mr-3" />,
         label: "Fluxograma Pregão",
-      }, */
+      },
       {
         path: "/reports",
         icon: <BarChart2 className="h-5 w-5 mr-3" />,
