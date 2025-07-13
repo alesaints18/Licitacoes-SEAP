@@ -626,11 +626,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Adicionar registro ao histórico de responsabilidades
+      const currentUser = await storage.getUser(userId);
       await storage.addProcessResponsibilityHistory({
         processId: process.id,
         userId: userId,
         action: 'created',
-        description: `Processo criado por ${(req.user as any).fullName}`,
+        description: `Processo criado por ${currentUser?.fullName || 'Usuário'}`,
         departmentId: currentDepartmentId
       });
       
@@ -694,11 +695,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Adicionar registro ao histórico de responsabilidades
       const userId = (req.user as any).id;
+      const currentUser = await storage.getUser(userId);
       await storage.addProcessResponsibilityHistory({
         processId: id,
         userId: userId,
         action: 'updated',
-        description: `Processo modificado por ${(req.user as any).fullName}`,
+        description: `Processo modificado por ${currentUser?.fullName || 'Usuário'}`,
         departmentId: updatedProcess?.currentDepartmentId || existingProcess.currentDepartmentId
       });
       
