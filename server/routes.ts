@@ -51,7 +51,9 @@ async function createDefaultSteps(processId: number, modalityId: number) {
     // RETORNO DIVISÃO DE LICITAÇÃO (só após NPP completar)
     { name: "Inserir Pesquisa no Sistema", departmentId: 2, phase: "Preparação" },
     { name: "Solicitar Análise Orçamentária", departmentId: 2, phase: "Preparação" },
-    { name: "Solicitar Autorização ao O.D.", departmentId: 2, phase: "Preparação" },
+    
+    // ANÁLISE ORÇAMENTÁRIA (Unidade de Orçamento e Finanças)
+    { name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.", departmentId: 4, phase: "Execução" },
     
     // FASE 3: AUTORIZAÇÃO (Secretário SEAP)
     { name: "Autorização Final pelo Secretário SEAP", departmentId: 5, phase: "Autorização" },

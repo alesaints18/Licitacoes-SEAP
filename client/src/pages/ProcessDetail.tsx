@@ -413,10 +413,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             name: "Solicitar Análise Orçamentária",
             phase: "Execução",
           },
-          {
-            name: "Solicitar Autorização ao O.D.",
-            phase: "Execução",
-          },
         ] : []),
       ],
 
@@ -456,6 +452,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         {
           name: "Aprovação do termo de referência pela autoridade competente",
           phase: "Iniciação",
+          nextSector: "Licitações",
+        },
+        {
+          name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.",
+          phase: "Execução",
           nextSector: "Licitações",
         },
         {

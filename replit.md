@@ -185,6 +185,7 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 13, 2025. Atualizada função createDefaultSteps para seguir ordem correta do fluxograma: DFD ao invés de "Demanda identificada", NPP responsável pela pesquisa de preços, fases bem definidas
 - July 13, 2025. Reorganizado fluxograma com etapas condicionais: Divisão de Licitação volta com "Inserir Pesquisa no Sistema", "Solicitar Análise Orçamentária" e "Solicitar Autorização ao O.D." apenas após NPP completar checklist
 - July 13, 2025. Implementada lógica condicional no frontend: etapas específicas da Divisão de Licitação só aparecem após NPP completar "Pesquisa de Preços" e "Mapa Comparativo de Preços"
+- July 13, 2025. Removida etapa "Solicitar Autorização ao O.D." - fluxo vai direto de "Solicitar Análise Orçamentária" para "Informar Disponibilidade Orçamentária p/ Emissão de R.O." na Unidade de Orçamento e Finanças
 
 ## User Preferences
 
