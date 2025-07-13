@@ -100,15 +100,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
     // Mapeamento de departamentos para imagens específicas
     const departmentImages = {
-      "Setor Demandante": "/fluxograma-setor-demandante.png",
-      "Divisão de Licitação": "/fluxograma-divisao-de-licitacao.png",
-      "Núcleo de Pesquisa de Preços": "/fluxograma-nucleo-de-pesquisa-de-precos.png",
-      "Núcleo de Pesquisa de Preços – NPP": "/fluxograma-nucleo-de-pesquisa-de-precos.png",
-      "Procuradoria Geral do Estado - PGE": "/fluxograma_seap_min.png", // Usando fluxograma geral reduzido
-      "Assessoria Jurídica": "/fluxograma_seap_min.png", // Usando fluxograma geral reduzido
-      "Unidade de Orçamento e Finanças": "/fluxograma-unidade-de-orcamento-e-financas.png",
-      "Secretário de Estado da Administração Penitenciária - SEAP": "/fluxograma-secretario-de-estado.png",
-      "Secretário de Estado": "/fluxograma-secretario-de-estado.png",
+      "Setor Demandante": "/fluxograma-setor-demandante_1752443886669.png",
+      "Divisão de Licitação": "/fluxograma-divisão-de-licitação_1752443886668.png",
+      "Núcleo de Pesquisa de Preços": "/fluxograma-nucleo-de-pesquisa-de-precos-npp_1752443886668.png",
+      "Núcleo de Pesquisa de Preços – NPP": "/fluxograma-nucleo-de-pesquisa-de-precos-npp_1752443886668.png",
+      "Procuradoria Geral do Estado - PGE": "/fluxograma-procuradoria-geral-do-estado-pge_1752443886669.png",
+      "Assessoria Jurídica": "/fluxograma-procuradoria-geral-do-estado-pge_1752443886669.png",
+      "Unidade de Orçamento e Finanças": "/fluxograma-unidade-de-orcamento-e-financas_1752443886670.png",
+      "Secretário de Estado da Administração Penitenciária - SEAP": "/fluxograma-secretario-de-estado-da-administracao-penitenciaria-seap_1752443886669.png",
+      "Secretário de Estado": "/fluxograma-secretario-de-estado-da-administracao-penitenciaria-seap_1752443886669.png",
+      "Equipe de Pregão": "/fluxograma-equipe-de-pregao_1752443886668.png",
+      "Controladoria Geral do Estado - CGE": "/fluxograma-controladoria-geral-do-estado-cge_1752443886667.png",
+      "Comitê Gestor do Plano de Contingência - CGPC": "/fluxograma-comite-gestor-do-plano-de-contigencia-cgpc_1752443886667.png",
+      "Unidade Técnico Normativa": "/fluxograma-unidade-tecnico-normativa_1752443886665.png",
+      "Subgerência de Contratos e Convênios - SUBCC": "/fluxograma-subgerencia-de-contratos-e-convenios-SUBCC_1752443886670.png",
     };
 
     return (
@@ -124,8 +129,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Núcleo de Pesquisa de Preços – NPP": "Pesquisa de Preços",
       "Procuradoria Geral do Estado - PGE": "Análise Jurídica",
       "Unidade de Orçamento e Finanças": "Análise Orçamentária",
-      "Secretário de Estado da Administração Penitenciária - SEAP":
-        "Autorização Final",
+      "Secretário de Estado da Administração Penitenciária - SEAP": "Autorização Final",
+      "Equipe de Pregão": "Condução de Sessões",
+      "Controladoria Geral do Estado - CGE": "Controle e Auditoria",
+      "Comitê Gestor do Plano de Contingência - CGPC": "Análise de Contingência",
+      "Unidade Técnico Normativa": "Normas Técnicas",
+      "Subgerência de Contratos e Convênios - SUBCC": "Gestão de Contratos",
     };
 
     return focuses[department as keyof typeof focuses] || "Visão Geral";
@@ -145,6 +154,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         "Verifica disponibilidade orçamentária e autoriza empenho dos recursos necessários.",
       "Secretário de Estado da Administração Penitenciária - SEAP":
         "Autoridade máxima que aprova e autoriza o processo licitatório.",
+      "Equipe de Pregão":
+        "Equipe especializada responsável pela condução das sessões de pregão eletrônico e presencial.",
+      "Controladoria Geral do Estado - CGE":
+        "Órgão de controle interno responsável pela fiscalização e auditoria dos processos licitatórios.",
+      "Comitê Gestor do Plano de Contingência - CGPC":
+        "Comitê responsável pela análise e autorização de processos em situações de contingência ou emergência.",
+      "Unidade Técnico Normativa":
+        "Setor responsável pela elaboração e atualização de normas técnicas e procedimentos operacionais.",
+      "Subgerência de Contratos e Convênios - SUBCC":
+        "Unidade especializada no acompanhamento e gestão de contratos e convênios firmados.",
     };
 
     return (

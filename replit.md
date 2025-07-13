@@ -176,6 +176,9 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 13, 2025. Corrigidas cores dos relatórios PDF gerais para seguir padrão do sistema: Em Andamento (amarelo #F59E0B), Atrasado (vermelho #EF4444), Concluído (verde #10B981), Cancelado (cinza #9CA3AF)
 - July 13, 2025. Padronizadas cores em modernPdfGenerator.ts e timelineExport.ts para consistência visual em todos os relatórios
 - July 13, 2025. Fluxograma mantido funcional mas removido da sidebar conforme preferência do usuário
+- July 13, 2025. Integradas novas imagens específicas de fluxograma para cada departamento (11 setores adicionais)
+- July 13, 2025. Adicionados mapeamentos para novos departamentos: Equipe de Pregão, CGE, CGPC, Unidade Técnico Normativa, SUBCC
+- July 13, 2025. Atualizadas descrições departamentais com informações detalhadas sobre cada setor
 
 ## User Preferences
 
