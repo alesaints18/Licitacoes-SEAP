@@ -191,15 +191,30 @@ export class DatabaseStorage implements IStorage {
       if (user.role === 'admin' && targetDepartmentId) {
         previousDepartmentId = targetDepartmentId;
         console.log(`Admin retornando processo para departamento específico: ${previousDepartmentId}`);
-      } else {
-        // Fluxo normal - departamento anterior no fluxo
+      } else if (user.role === 'admin') {
+        // Admin sem departamento específico pode retornar para qualquer departamento do fluxo
         const departmentFlow = [1, 2, 3, 4, 5]; // Setor Demandante, Divisão, NPP, Orçamento, Secretário
         
         // Encontrar o índice do departamento atual
         const currentIndex = departmentFlow.findIndex(id => id === currentProcess.currentDepartmentId);
         
         if (currentIndex <= 0) {
-          console.log(`Processo no primeiro departamento, não pode ser retornado`);
+          // Para admin, permitir retorno do primeiro departamento para o último
+          console.log(`Admin pode retornar processo do primeiro departamento`);
+          previousDepartmentId = departmentFlow[departmentFlow.length - 1]; // Último departamento
+        } else {
+          // Departamento anterior no fluxo
+          previousDepartmentId = departmentFlow[currentIndex - 1];
+        }
+      } else {
+        // Fluxo normal para usuários não admin - departamento anterior no fluxo
+        const departmentFlow = [1, 2, 3, 4, 5]; // Setor Demandante, Divisão, NPP, Orçamento, Secretário
+        
+        // Encontrar o índice do departamento atual
+        const currentIndex = departmentFlow.findIndex(id => id === currentProcess.currentDepartmentId);
+        
+        if (currentIndex <= 0) {
+          console.log(`Usuário comum: Processo no primeiro departamento, não pode ser retornado`);
           return undefined; // Processo já está no primeiro departamento
         }
         
@@ -718,8 +733,42 @@ export class DatabaseStorage implements IStorage {
 
   // Process responsibility history operations
   async addProcessResponsibilityHistory(history: InsertProcessResponsibilityHistory): Promise<ProcessResponsibilityHistory> {
-    const [created] = await db.insert(processResponsibilityHistory).values(history).returning();
-    return created;
+    try {
+      console.log(`Tentando adicionar histórico de responsabilidade:`, history);
+      
+      // Verificar se já existe um registro muito similar (mesmo processo, usuário, ação e descrição nos últimos 5 segundos)
+      const recentHistory = await db
+        .select()
+        .from(processResponsibilityHistory)
+        .where(
+          and(
+            eq(processResponsibilityHistory.processId, history.processId),
+            eq(processResponsibilityHistory.userId, history.userId),
+            eq(processResponsibilityHistory.action, history.action),
+            eq(processResponsibilityHistory.description, history.description)
+          )
+        )
+        .orderBy(desc(processResponsibilityHistory.timestamp))
+        .limit(1);
+      
+      if (recentHistory.length > 0) {
+        const lastRecord = recentHistory[0];
+        const timeDiff = Date.now() - new Date(lastRecord.timestamp).getTime();
+        
+        // Se há um registro idêntico nos últimos 5 segundos, não criar duplicata
+        if (timeDiff < 5000) {
+          console.log(`Registro duplicado detectado, retornando registro existente`);
+          return lastRecord;
+        }
+      }
+      
+      const [created] = await db.insert(processResponsibilityHistory).values(history).returning();
+      console.log(`Histórico de responsabilidade criado com sucesso:`, created);
+      return created;
+    } catch (error) {
+      console.error('Erro ao adicionar histórico de responsabilidade:', error);
+      throw error;
+    }
   }
 
   async getProcessResponsibilityHistory(processId: number): Promise<ProcessResponsibilityHistory[]> {
@@ -756,14 +805,9 @@ export class DatabaseStorage implements IStorage {
       
       console.log(`Histórico bruto encontrado:`, history.length);
       
-      // Remove duplicatas baseado em combinação de userId, action, description, timestamp
+      // Remove duplicatas baseado em ID único (mais confiável)
       const uniqueHistory = history.filter((item, index, self) => 
-        index === self.findIndex(h => 
-          h.userId === item.userId && 
-          h.action === item.action && 
-          h.description === item.description && 
-          h.timestamp === item.timestamp
-        )
+        index === self.findIndex(h => h.id === item.id)
       );
       
       console.log(`Histórico após remoção de duplicatas:`, uniqueHistory.length);
