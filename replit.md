@@ -179,6 +179,8 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 13, 2025. Integradas novas imagens específicas de fluxograma para cada departamento (11 setores adicionais)
 - July 13, 2025. Adicionados mapeamentos para novos departamentos: Equipe de Pregão, CGE, CGPC, Unidade Técnico Normativa, SUBCC
 - July 13, 2025. Atualizadas descrições departamentais com informações detalhadas sobre cada setor
+- July 13, 2025. Corrigidos nomes dos departamentos para consistência entre cadastro de usuário e sistema de fluxogramas
+- July 13, 2025. Ajustados mapeamentos para usar nomes exatos dos departamentos cadastrados no banco de dados
 
 ## User Preferences
 
