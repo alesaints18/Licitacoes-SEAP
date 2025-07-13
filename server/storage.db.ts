@@ -10,7 +10,7 @@ import {
   processResponsibilityHistory, type ProcessResponsibilityHistory, type InsertProcessResponsibilityHistory
 } from "@shared/schema";
 import { IStorage } from "./storage";
-import { eq, and, or, count, sql, inArray, like, isNull, isNotNull } from "drizzle-orm";
+import { eq, and, or, count, sql, inArray, like, isNull, isNotNull, desc } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage implements IStorage {
@@ -257,46 +257,32 @@ export class DatabaseStorage implements IStorage {
   async getDeletedProcesses(): Promise<any[]> {
     console.log('Buscando processos excluídos...');
     try {
-      const result = await db.execute(sql`
-        SELECT 
-          p.id, 
-          p.pbdoc_number, 
-          p.description, 
-          p.deleted_at, 
-          p.deleted_by, 
-          p.deletion_reason,
-          u.full_name as deleted_by_name,
-          p.modality_id,
-          p.source_id,
-          p.responsible_id,
-          p.current_department_id,
-          p.priority,
-          p.status,
-          p.created_at
-        FROM processes p
-        LEFT JOIN users u ON p.deleted_by = u.id
-        WHERE p.deleted_at IS NOT NULL
-        ORDER BY p.deleted_at DESC
-      `);
+      // Usando ORM do Drizzle ao invés de SQL direto
+      const deletedProcesses = await db
+        .select({
+          id: processes.id,
+          pbdocNumber: processes.pbdocNumber,
+          description: processes.description,
+          deletedAt: processes.deletedAt,
+          deletedBy: processes.deletedBy,
+          deletionReason: processes.deletionReason,
+          modalityId: processes.modalityId,
+          sourceId: processes.sourceId,
+          responsibleId: processes.responsibleId,
+          currentDepartmentId: processes.currentDepartmentId,
+          priority: processes.priority,
+          status: processes.status,
+          createdAt: processes.createdAt,
+          deletedByName: users.fullName
+        })
+        .from(processes)
+        .leftJoin(users, eq(processes.deletedBy, users.id))
+        .where(isNotNull(processes.deletedAt))
+        .orderBy(desc(processes.deletedAt));
       
-      console.log(`Encontrados ${result.length} processos excluídos`);
+      console.log(`Encontrados ${deletedProcesses.length} processos excluídos`);
       
-      return result.map((process: any) => ({
-        id: process.id,
-        pbdocNumber: process.pbdoc_number,
-        description: process.description,
-        deletedAt: process.deleted_at,
-        deletedBy: process.deleted_by,
-        deletionReason: process.deletion_reason,
-        deletedByName: process.deleted_by_name,
-        modalityId: process.modality_id,
-        sourceId: process.source_id,
-        responsibleId: process.responsible_id,
-        currentDepartmentId: process.current_department_id,
-        priority: process.priority,
-        status: process.status,
-        createdAt: process.created_at
-      }));
+      return deletedProcesses;
     } catch (error) {
       console.error('Erro ao buscar processos excluídos:', error);
       return [];
