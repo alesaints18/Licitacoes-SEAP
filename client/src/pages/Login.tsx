@@ -490,17 +490,17 @@ const Login = () => {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="TI">TI</SelectItem>
-                              <SelectItem value="Licitações">
-                                Licitações
-                              </SelectItem>
-                              <SelectItem value="Jurídico">Jurídico</SelectItem>
-                              <SelectItem value="Financeiro">
-                                Financeiro
-                              </SelectItem>
-                              <SelectItem value="Administrativo">
-                                Administrativo
-                              </SelectItem>
+                              <SelectItem value="Setor Demandante">Setor Demandante</SelectItem>
+                              <SelectItem value="Divisão de Licitação">Divisão de Licitação</SelectItem>
+                              <SelectItem value="Núcleo de Pesquisa de Preços – NPP">Núcleo de Pesquisa de Preços – NPP</SelectItem>
+                              <SelectItem value="Unidade de Orçamento e Finanças">Unidade de Orçamento e Finanças</SelectItem>
+                              <SelectItem value="Secretário de Estado da Administração Penitenciária - SEAP">Secretário de Estado da Administração Penitenciária - SEAP</SelectItem>
+                              <SelectItem value="Comitê Gestor do Plano de Contingência - CGPC">Comitê Gestor do Plano de Contingência - CGPC</SelectItem>
+                              <SelectItem value="Unidade Técnico Normativa">Unidade Técnico Normativa</SelectItem>
+                              <SelectItem value="Procuradoria Geral do Estado - PGE">Procuradoria Geral do Estado - PGE</SelectItem>
+                              <SelectItem value="Controladoria Geral do Estado – CGE">Controladoria Geral do Estado – CGE</SelectItem>
+                              <SelectItem value="Equipe de Pregão">Equipe de Pregão</SelectItem>
+                              <SelectItem value="Subgerência de Contratos e  Convênios - SUBCC">Subgerência de Contratos e  Convênios - SUBCC</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />

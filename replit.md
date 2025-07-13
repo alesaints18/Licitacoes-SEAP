@@ -181,6 +181,7 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 13, 2025. Atualizadas descrições departamentais com informações detalhadas sobre cada setor
 - July 13, 2025. Corrigidos nomes dos departamentos para consistência entre cadastro de usuário e sistema de fluxogramas
 - July 13, 2025. Ajustados mapeamentos para usar nomes exatos dos departamentos cadastrados no banco de dados
+- July 13, 2025. Corrigidos setores no formulário de cadastro da página de login para usar departamentos reais do sistema
 
 ## User Preferences
 
