@@ -10,7 +10,7 @@ import {
   processResponsibilityHistory, type ProcessResponsibilityHistory, type InsertProcessResponsibilityHistory
 } from "@shared/schema";
 import { IStorage } from "./storage";
-import { eq, and, or, count, sql, inArray, like } from "drizzle-orm";
+import { eq, and, or, count, sql, inArray, like, isNull, isNotNull } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 export class DatabaseStorage implements IStorage {
@@ -115,9 +115,14 @@ export class DatabaseStorage implements IStorage {
   async getProcesses(filters?: any): Promise<Process[]> {
     let query = db.select().from(processes);
     
+    // Always filter out deleted processes
+    let whereConditions = [isNull(processes.deletedAt)];
+    
     if (filters?.currentDepartmentId) {
-      query = query.where(eq(processes.currentDepartmentId, filters.currentDepartmentId));
+      whereConditions.push(eq(processes.currentDepartmentId, filters.currentDepartmentId));
     }
+    
+    query = query.where(and(...whereConditions));
     
     return await query;
   }
@@ -250,7 +255,36 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getDeletedProcesses(): Promise<any[]> {
-    return [];
+    console.log('Buscando processos excluídos...');
+    try {
+      // Usando uma query SQL direta mais simples
+      const result = await db.execute(sql`
+        SELECT 
+          id, 
+          pbdoc_number, 
+          description, 
+          deleted_at, 
+          deleted_by, 
+          deletion_reason
+        FROM processes 
+        WHERE deleted_at IS NOT NULL
+        ORDER BY deleted_at DESC
+      `);
+      
+      console.log(`Encontrados ${result.length} processos excluídos`);
+      
+      return result.map((process: any) => ({
+        id: process.id,
+        pbdocNumber: process.pbdoc_number,
+        description: process.description,
+        deletedAt: process.deleted_at,
+        deletedBy: process.deleted_by,
+        deletionReason: process.deletion_reason
+      }));
+    } catch (error) {
+      console.error('Erro ao buscar processos excluídos:', error);
+      return [];
+    }
   }
 
   async restoreProcess(id: number, userId: number): Promise<Process | undefined> {
