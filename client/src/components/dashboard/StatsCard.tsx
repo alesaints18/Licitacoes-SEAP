@@ -12,7 +12,7 @@ interface StatsCardProps {
     value: number;
     label: string;
   };
-  color: "blue" | "green" | "yellow" | "red";
+  color: "blue" | "green" | "yellow" | "red" | "gray";
 }
 
 const StatsCard = ({ title, value, icon, progress, change, color }: StatsCardProps) => {
@@ -37,6 +37,11 @@ const StatsCard = ({ title, value, icon, progress, change, color }: StatsCardPro
       bg: "bg-red-100",
       text: "text-red-600",
       progress: "bg-red-600"
+    },
+    gray: {
+      bg: "bg-gray-100",
+      text: "text-gray-600",
+      progress: "bg-gray-600"
     }
   };
   

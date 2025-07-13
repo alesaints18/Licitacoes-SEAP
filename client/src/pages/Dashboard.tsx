@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { FileText, CheckCircle, Clock, XCircle, RefreshCw, Trophy, TrendingUp } from "lucide-react";
+import { FileText, CheckCircle, Clock, XCircle, RefreshCw, Trophy, TrendingUp, AlertTriangle } from "lucide-react";
 import StatsCard from "@/components/dashboard/StatsCard";
 import ProcessStatusChart from "@/components/dashboard/ProcessStatusChart";
 import MonthlyProcessesChart from "@/components/dashboard/MonthlyProcessesChart";
@@ -129,6 +129,8 @@ const Dashboard = () => {
 
   // Filtrar processos e calcular estatísticas no client-side
   const processosFiltrados = processos ? filtrarProcessos(processos) : [];
+  const now = new Date();
+  
   const stats = {
     total: processosFiltrados.length,
     completed: processosFiltrados.filter((p) => p.status === "completed")
@@ -136,6 +138,10 @@ const Dashboard = () => {
     inProgress: processosFiltrados.filter((p) => p.status === "in_progress")
       .length,
     canceled: processosFiltrados.filter((p) => p.status === "canceled").length,
+    overdue: processosFiltrados.filter((p) => 
+      p.status === "overdue" || 
+      (p.status !== "completed" && p.status !== "canceled" && p.deadline && new Date(p.deadline) < now)
+    ).length,
   };
 
   const handleApplyFilters = (newFilters: FilterState) => {
@@ -194,21 +200,13 @@ const Dashboard = () => {
       <DashboardFilters onApplyFilters={handleApplyFilters} />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 my-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 my-6">
         <StatsCard
           title="Total de Processos"
           value={stats?.total || 0}
           icon={<FileText className="h-6 w-6" />}
           progress={{ current: stats?.total || 0, max: monthlyGoal }}
           color="blue"
-        />
-
-        <StatsCard
-          title="Concluídos"
-          value={stats?.completed || 0}
-          icon={<CheckCircle className="h-6 w-6" />}
-          color="green"
-          change={{ value: 12, label: "" }}
         />
 
         <StatsCard
@@ -220,10 +218,26 @@ const Dashboard = () => {
         />
 
         <StatsCard
+          title="Atrasados"
+          value={stats?.overdue || 0}
+          icon={<AlertTriangle className="h-6 w-6" />}
+          color="red"
+          change={{ value: 0, label: "Necessitam atenção" }}
+        />
+
+        <StatsCard
+          title="Concluídos"
+          value={stats?.completed || 0}
+          icon={<CheckCircle className="h-6 w-6" />}
+          color="green"
+          change={{ value: 12, label: "" }}
+        />
+
+        <StatsCard
           title="Cancelados"
           value={stats?.canceled || 0}
           icon={<XCircle className="h-6 w-6" />}
-          color="red"
+          color="gray"
           change={{ value: -3, label: "" }}
         />
       </div>

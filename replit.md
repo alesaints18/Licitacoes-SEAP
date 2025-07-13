@@ -160,6 +160,8 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 12, 2025. Adicionada função getProcessStatusClass e classes CSS correspondentes para consistência visual
 - July 13, 2025. Corrigido problema de acesso à lixeira: removida proteção AdminProtectedRoute da rota /trash - todos os usuários podem acessar
 - July 13, 2025. Sistema de lixeira totalmente liberado: backend e frontend acessíveis para usuários comuns (visualizar, restaurar, excluir permanentemente)
+- July 13, 2025. Corrigidas cores dos status dos processos nos cards de estatísticas: Em Andamento (amarelo), Atrasados (vermelho), Concluídos (verde), Cancelados (cinza)
+- July 13, 2025. Adicionado card de processos atrasados no dashboard e expandido grid para 5 colunas (lg:grid-cols-5)
 
 ## User Preferences
 
