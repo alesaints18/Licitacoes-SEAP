@@ -257,18 +257,26 @@ export class DatabaseStorage implements IStorage {
   async getDeletedProcesses(): Promise<any[]> {
     console.log('Buscando processos excluídos...');
     try {
-      // Usando uma query SQL direta mais simples
       const result = await db.execute(sql`
         SELECT 
-          id, 
-          pbdoc_number, 
-          description, 
-          deleted_at, 
-          deleted_by, 
-          deletion_reason
-        FROM processes 
-        WHERE deleted_at IS NOT NULL
-        ORDER BY deleted_at DESC
+          p.id, 
+          p.pbdoc_number, 
+          p.description, 
+          p.deleted_at, 
+          p.deleted_by, 
+          p.deletion_reason,
+          u.full_name as deleted_by_name,
+          p.modality_id,
+          p.source_id,
+          p.responsible_id,
+          p.current_department_id,
+          p.priority,
+          p.status,
+          p.created_at
+        FROM processes p
+        LEFT JOIN users u ON p.deleted_by = u.id
+        WHERE p.deleted_at IS NOT NULL
+        ORDER BY p.deleted_at DESC
       `);
       
       console.log(`Encontrados ${result.length} processos excluídos`);
@@ -279,7 +287,15 @@ export class DatabaseStorage implements IStorage {
         description: process.description,
         deletedAt: process.deleted_at,
         deletedBy: process.deleted_by,
-        deletionReason: process.deletion_reason
+        deletionReason: process.deletion_reason,
+        deletedByName: process.deleted_by_name,
+        modalityId: process.modality_id,
+        sourceId: process.source_id,
+        responsibleId: process.responsible_id,
+        currentDepartmentId: process.current_department_id,
+        priority: process.priority,
+        status: process.status,
+        createdAt: process.created_at
       }));
     } catch (error) {
       console.error('Erro ao buscar processos excluídos:', error);
