@@ -39,14 +39,19 @@ async function createDefaultSteps(processId: number, modalityId: number) {
     { name: "Mapa de Risco - MR", departmentId: 1, phase: "Iniciação" },
     { name: "Termo de Referência - TR", departmentId: 1, phase: "Iniciação" },
     
-    // FASE 2: PREPARAÇÃO (Divisão de Licitação)
+    // FASE 2: PREPARAÇÃO INICIAL (Divisão de Licitação)
     { name: "Criar Processo no Órgão", departmentId: 2, phase: "Preparação" },
     { name: "Fazer Pesquisa de Preços no Órgão", departmentId: 2, phase: "Preparação" },
     { name: "Solicitar Pesquisa de Preços", departmentId: 2, phase: "Preparação" },
     
-    // ORÇAMENTO (Núcleo de Pesquisa de Preços - NPP)
+    // CHECKLIST NPP (Núcleo de Pesquisa de Preços - NPP)
     { name: "Pesquisa de Preços", departmentId: 3, phase: "Preparação" },
     { name: "Mapa Comparativo de Preços", departmentId: 3, phase: "Preparação" },
+    
+    // RETORNO DIVISÃO DE LICITAÇÃO (só após NPP completar)
+    { name: "Inserir Pesquisa no Sistema", departmentId: 2, phase: "Preparação" },
+    { name: "Solicitar Análise Orçamentária", departmentId: 2, phase: "Preparação" },
+    { name: "Solicitar Autorização ao O.D.", departmentId: 2, phase: "Preparação" },
     
     // FASE 3: AUTORIZAÇÃO (Secretário SEAP)
     { name: "Autorização Final pelo Secretário SEAP", departmentId: 5, phase: "Autorização" },
