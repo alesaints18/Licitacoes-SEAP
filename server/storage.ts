@@ -88,7 +88,7 @@ export interface IStorage {
   returnProcess(processId: number, returnComment: string, userId: number): Promise<Process | undefined>;
   createProcess(process: InsertProcess): Promise<Process>;
   updateProcess(id: number, processData: Partial<InsertProcess>): Promise<Process | undefined>;
-  deleteProcess(id: number, userId: number): Promise<boolean>;
+  deleteProcess(id: number, userId: number, deletionReason?: string): Promise<boolean>;
   
   // Lixeira eletrônica
   getDeletedProcesses(): Promise<any[]>;
@@ -493,7 +493,7 @@ export class MemStorage implements IStorage {
     return updatedProcess;
   }
 
-  async deleteProcess(id: number, userId: number): Promise<boolean> {
+  async deleteProcess(id: number, userId: number, deletionReason?: string): Promise<boolean> {
     const process = this.processes.get(id);
     if (!process) return false;
     
@@ -502,6 +502,7 @@ export class MemStorage implements IStorage {
       ...process,
       deletedAt: new Date(),
       deletedBy: userId,
+      deletionReason,
       updatedAt: new Date(),
     };
     

@@ -237,8 +237,15 @@ export class DatabaseStorage implements IStorage {
     return updated;
   }
 
-  async deleteProcess(id: number, userId: number): Promise<boolean> {
-    const result = await db.delete(processes).where(eq(processes.id, id));
+  async deleteProcess(id: number, userId: number, deletionReason?: string): Promise<boolean> {
+    const result = await db.update(processes)
+      .set({ 
+        deletedAt: new Date(),
+        deletedBy: userId,
+        deletionReason,
+        updatedAt: new Date()
+      })
+      .where(eq(processes.id, id));
     return result.rowCount !== null && result.rowCount > 0;
   }
 

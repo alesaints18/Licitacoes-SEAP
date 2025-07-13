@@ -20,7 +20,8 @@ import {
   SendHorizonal, 
   Loader2,
   X,
-  Eye
+  Eye,
+  AlertTriangle
 } from "lucide-react";
 import { 
   Dialog, 
@@ -30,6 +31,7 @@ import {
   DialogDescription,
   DialogFooter
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { getProcessStatusLabel } from "@/lib/utils/process";
 import { ColumnDef } from "@tanstack/react-table";
 import { getQueryFn, apiRequest, queryClient } from "@/lib/queryClient";
@@ -126,6 +128,109 @@ const TransferDialog = ({
   );
 };
 
+// Interface para o diálogo de exclusão
+interface DeleteDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  processId: number;
+  processName: string;
+  onDelete: (processId: number, deletionReason: string) => void;
+  isPending: boolean;
+}
+
+// Componente do diálogo de exclusão
+const DeleteDialog = ({ 
+  isOpen, 
+  onOpenChange, 
+  processId, 
+  processName,
+  onDelete,
+  isPending
+}: DeleteDialogProps) => {
+  const [deletionReason, setDeletionReason] = useState("");
+  
+  const handleDelete = () => {
+    if (!deletionReason.trim()) {
+      toast({
+        title: "Erro",
+        description: "O motivo da exclusão é obrigatório",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (deletionReason.trim().length < 10) {
+      toast({
+        title: "Erro",
+        description: "O motivo da exclusão deve ter pelo menos 10 caracteres",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    onDelete(processId, deletionReason.trim());
+  };
+  
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-red-500" />
+            Confirmar Exclusão
+          </DialogTitle>
+          <DialogDescription>
+            Você está prestes a excluir o processo <strong>{processName}</strong>.
+            <br /><br />
+            <span className="text-red-600 font-medium">
+              Atenção: O processo será movido para a lixeira e poderá ser recuperado posteriormente.
+            </span>
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <label htmlFor="deletionReason" className="text-sm font-medium">
+              Motivo da exclusão (obrigatório)
+            </label>
+            <Textarea
+              id="deletionReason"
+              placeholder="Descreva o motivo da exclusão do processo (mínimo 10 caracteres)..."
+              value={deletionReason}
+              onChange={(e) => setDeletionReason(e.target.value)}
+              rows={4}
+              className="resize-none"
+            />
+            <div className="text-xs text-gray-500">
+              {deletionReason.length}/10 caracteres mínimos
+            </div>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+            Cancelar
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={handleDelete} 
+            disabled={!deletionReason.trim() || deletionReason.trim().length < 10 || isPending}
+          >
+            {isPending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Excluindo...
+              </>
+            ) : (
+              <>Confirmar Exclusão</>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 const Processes = () => {
   const [, setLocation] = useLocation();
   const [pbdocFilter, setPbdocFilter] = useState("");
@@ -138,6 +243,10 @@ const Processes = () => {
   // Estado para controlar o diálogo de transferência
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
+  
+  // Estado para controlar o diálogo de exclusão
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedProcessForDelete, setSelectedProcessForDelete] = useState<Process | null>(null);
   
   // Get all processes
   const { data: processes, isLoading: processesLoading } = useQuery<Process[]>({
@@ -199,10 +308,11 @@ const Processes = () => {
 
   // Mutação para excluir processo
   const deleteProcessMutation = useMutation({
-    mutationFn: async (processId: number) => {
+    mutationFn: async ({ processId, deletionReason }: { processId: number; deletionReason: string }) => {
       const response = await apiRequest(
         "DELETE",
-        `/api/processes/${processId}`
+        `/api/processes/${processId}`,
+        { deletionReason }
       );
       
       if (!response.ok) {
@@ -213,9 +323,12 @@ const Processes = () => {
       return await response.json();
     },
     onSuccess: () => {
+      setDeleteDialogOpen(false);
+      setSelectedProcessForDelete(null);
+      
       toast({
         title: "Processo excluído com sucesso",
-        description: "O processo foi removido permanentemente.",
+        description: "O processo foi movido para a lixeira.",
       });
       
       // Invalidar cache para recarregar processos
@@ -243,6 +356,20 @@ const Processes = () => {
     transferMutation.mutate({
       processId: selectedProcess.id,
       departmentId
+    });
+  };
+  
+  // Função para abrir diálogo de exclusão
+  const handleDeleteClick = (process: Process) => {
+    setSelectedProcessForDelete(process);
+    setDeleteDialogOpen(true);
+  };
+  
+  // Função para realizar exclusão
+  const handleDelete = (processId: number, deletionReason: string) => {
+    deleteProcessMutation.mutate({
+      processId,
+      deletionReason
     });
   };
   
@@ -367,11 +494,7 @@ const Processes = () => {
               size="icon"
               title="Excluir"
               className="text-red-500 hover:text-red-700 hover:bg-red-50"
-              onClick={() => {
-                if (window.confirm(`Tem certeza que deseja excluir o processo ${process.pbdocNumber}?`)) {
-                  deleteProcessMutation.mutate(process.id);
-                }
-              }}
+              onClick={() => handleDeleteClick(process)}
             >
               <X className="h-5 w-5" />
             </Button>
@@ -533,6 +656,18 @@ const Processes = () => {
           processName={selectedProcess.pbdocNumber}
           onTransfer={handleTransfer}
           isPending={transferMutation.isPending}
+        />
+      )}
+
+      {/* Diálogo de Exclusão */}
+      {selectedProcessForDelete && (
+        <DeleteDialog
+          isOpen={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          processId={selectedProcessForDelete.id}
+          processName={selectedProcessForDelete.pbdocNumber}
+          onDelete={handleDelete}
+          isPending={deleteProcessMutation.isPending}
         />
       )}
     </div>

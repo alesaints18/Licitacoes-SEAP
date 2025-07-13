@@ -60,6 +60,7 @@ export const processes = pgTable('processes', {
   returnComments: text('return_comments'), // Comentários de retorno do processo
   deletedAt: timestamp('deleted_at'), // Data de exclusão (soft delete)
   deletedBy: integer('deleted_by'), // ID do usuário que excluiu
+  deletionReason: text('deletion_reason'), // Motivo da exclusão
 });
 
 // Process steps table

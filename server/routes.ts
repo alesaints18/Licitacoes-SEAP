@@ -733,7 +733,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const userId = (req.user as any).id;
-      const deleted = await storage.deleteProcess(id, userId);
+      const { deletionReason } = req.body;
+      
+      if (!deletionReason || deletionReason.trim().length < 10) {
+        return res.status(400).json({ message: "Motivo da exclusão é obrigatório (mínimo 10 caracteres)" });
+      }
+      
+      const deleted = await storage.deleteProcess(id, userId, deletionReason.trim());
       
       if (!deleted) {
         return res.status(404).json({ message: "Processo não encontrado" });
