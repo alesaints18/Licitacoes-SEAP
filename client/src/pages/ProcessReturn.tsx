@@ -179,38 +179,16 @@ const ProcessReturn = ({ id }: ProcessReturnProps) => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="">Seguir fluxo normal (departamento anterior)</SelectItem>
-                  {departments?.map((dept) => {
-                    console.log('Renderizando departamento:', dept);
-                    return (
-                      <SelectItem key={dept.id} value={dept.id.toString()}>
-                        {dept.name}
-                      </SelectItem>
-                    );
-                  })}
+                  {departments?.map((dept) => (
+                    <SelectItem key={dept.id} value={dept.id.toString()}>
+                      {dept.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               <p className="text-sm text-gray-500 mt-1">
                 Como administrador, você pode retornar o processo para qualquer departamento
               </p>
-              <div className="text-xs text-gray-400 mt-2">
-                Debug: {departments?.length || 0} departamentos carregados
-                <br />
-                Loading: {departmentsLoading ? 'Sim' : 'Não'}
-                <br />
-                Error: {departmentsError ? 'Sim' : 'Não'}
-                <br />
-                IsAdmin: {isAdmin ? 'Sim' : 'Não'}
-              </div>
-              
-              {/* Forçar exibição dos departamentos para debug */}
-              {departments && departments.length > 0 && (
-                <div className="text-xs text-gray-400 mt-2 border p-2 rounded bg-gray-50">
-                  <strong>Departamentos encontrados:</strong>
-                  {departments.map(dept => (
-                    <div key={dept.id}>• {dept.name} (ID: {dept.id})</div>
-                  ))}
-                </div>
-              )}
             </div>
           )}
 
