@@ -752,14 +752,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             Tramitar
           </Button>
 
-          <Button
-            variant="outline"
-            onClick={() => setLocation(`/processes/${process.id}/return`)}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Retornar
-          </Button>
-
           <Button variant="outline" onClick={handleEdit}>
             <Edit className="h-4 w-4 mr-2" />
             Editar

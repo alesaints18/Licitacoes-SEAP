@@ -34,6 +34,13 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     queryKey: ['/api/departments'],
   });
 
+  // Get current user
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/auth/status'],
+  });
+
+  const isAdmin = currentUser?.role === 'admin';
+
   // Get process steps
   const { data: steps } = useQuery({
     queryKey: [`/api/processes/${parsedId}/steps`],
@@ -465,7 +472,7 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
                     className="rounded border-gray-300"
                   />
                   <label htmlFor="allowAllPrevious" className="text-sm font-medium">
-                    Permitir retorno para todos os setores anteriores
+                    {isAdmin ? "Permitir retorno para todos os setores" : "Permitir retorno para todos os setores anteriores"}
                   </label>
                 </div>
                 
@@ -483,10 +490,15 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
                         const availableForReturn = [];
                         
                         if (allowAllPreviousDepartments) {
-                          // Todos os departamentos anteriores
-                          for (let i = 0; i < currentIndex; i++) {
-                            const dept = departments?.find(d => d.id === departmentFlow[i]);
-                            if (dept) availableForReturn.push(dept);
+                          if (isAdmin) {
+                            // Administradores podem retornar para TODOS os departamentos
+                            availableForReturn.push(...(departments || []));
+                          } else {
+                            // Usuários normais: apenas departamentos anteriores
+                            for (let i = 0; i < currentIndex; i++) {
+                              const dept = departments?.find(d => d.id === departmentFlow[i]);
+                              if (dept) availableForReturn.push(dept);
+                            }
                           }
                         } else {
                           // Apenas o departamento anterior
