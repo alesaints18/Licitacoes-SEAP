@@ -68,7 +68,16 @@ const Reports = () => {
     queryKey: ["/api/departments"],
   });
 
+  // Cores padronizadas para gráficos - seguindo o mesmo padrão do dashboard
   const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"];
+  
+  // Cores específicas para status dos processos (seguindo padrão dos gráficos do dashboard)
+  const STATUS_COLORS = {
+    "Em Andamento": "#F59E0B",    // amarelo
+    "Concluído": "#10B981",       // verde
+    "Cancelado": "#9CA3AF",       // cinza
+    "Atrasado": "#EF4444"         // vermelho
+  };
 
   // Filter processes based on filters
   const getFilteredProcesses = () => {
@@ -128,8 +137,16 @@ const Reports = () => {
       statusCounts[process.status as keyof typeof statusCounts]++;
     });
 
+    // Calcular processos atrasados
+    const now = new Date();
+    const overdueCount = filteredProcesses.filter(p => 
+      p.status === "overdue" || 
+      (p.status !== "completed" && p.status !== "canceled" && p.deadline && new Date(p.deadline) < now)
+    ).length;
+    
     return [
       { name: "Em Andamento", value: statusCounts.in_progress },
+      { name: "Atrasado", value: overdueCount },
       { name: "Concluído", value: statusCounts.completed },
       { name: "Cancelado", value: statusCounts.canceled },
     ];
@@ -403,7 +420,7 @@ const Reports = () => {
                       {getProcessStatusData().map((entry, index) => (
                         <Cell
                           key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
+                          fill={STATUS_COLORS[entry.name as keyof typeof STATUS_COLORS] || COLORS[index % COLORS.length]}
                         />
                       ))}
                     </Pie>

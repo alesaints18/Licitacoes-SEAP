@@ -162,6 +162,8 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 13, 2025. Sistema de lixeira totalmente liberado: backend e frontend acessíveis para usuários comuns (visualizar, restaurar, excluir permanentemente)
 - July 13, 2025. Corrigidas cores dos status dos processos nos cards de estatísticas: Em Andamento (amarelo), Atrasados (vermelho), Concluídos (verde), Cancelados (cinza)
 - July 13, 2025. Adicionado card de processos atrasados no dashboard e expandido grid para 5 colunas (lg:grid-cols-5)
+- July 13, 2025. Padronizadas cores dos gráficos da página de relatórios com as cores do dashboard: Em Andamento (amarelo #F59E0B), Atrasado (vermelho #EF4444), Concluído (verde #10B981), Cancelado (cinza #9CA3AF)
+- July 13, 2025. Adicionado status "Atrasado" no gráfico de processos por status na página de relatórios
 
 ## User Preferences
 
