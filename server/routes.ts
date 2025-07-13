@@ -403,7 +403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Process routes
   // Rotas da lixeira eletrônica (devem vir antes das rotas com parâmetros)
-  app.get('/api/processes/deleted', isAuthenticated, isAdmin, async (req, res) => {
+  app.get('/api/processes/deleted', isAuthenticated, async (req, res) => {
     try {
       console.log("Buscando processos excluídos...");
       const deletedProcesses = await storage.getDeletedProcesses();
@@ -754,7 +754,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  app.post('/api/processes/:id/restore', isAuthenticated, isAdmin, async (req, res) => {
+  app.post('/api/processes/:id/restore', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const userId = (req.user as any).id;
@@ -785,7 +785,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/processes/:id/permanent', isAuthenticated, isAdmin, async (req, res) => {
+  app.delete('/api/processes/:id/permanent', isAuthenticated, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       

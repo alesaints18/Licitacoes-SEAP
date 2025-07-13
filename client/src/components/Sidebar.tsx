@@ -201,22 +201,20 @@ const Sidebar = () => {
               </li>
             )}
 
-            {/* Lixeira - only for admin */}
-            {user?.role === "admin" && (
-              <li className="px-2">
-                <Link
-                  href="/trash"
-                  className={`flex items-center px-4 py-3 rounded-md group transition-colors ${
-                    location === "/trash"
-                      ? "text-white dark:bg-[#01001A] bg-[#396a9c] font-medium"
-                      : "text-white dark:hover:bg-[#020035] hover:bg-[#5892c2]"
-                  }`}
-                >
-                  <Trash2 className="h-5 w-5 mr-3" />
-                  <span>Lixeira</span>
-                </Link>
-              </li>
-            )}
+            {/* Lixeira - visible for all users */}
+            <li className="px-2">
+              <Link
+                href="/trash"
+                className={`flex items-center px-4 py-3 rounded-md group transition-colors ${
+                  location === "/trash"
+                    ? "text-white dark:bg-[#01001A] bg-[#396a9c] font-medium"
+                    : "text-white dark:hover:bg-[#020035] hover:bg-[#5892c2]"
+                }`}
+              >
+                <Trash2 className="h-5 w-5 mr-3" />
+                <span>Lixeira</span>
+              </Link>
+            </li>
           </ul>
         </nav>
 
