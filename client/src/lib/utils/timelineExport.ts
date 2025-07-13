@@ -94,13 +94,13 @@ export function generateTimelinePdfReport(data: ReportData): void {
     const timelineEndX = pageWidth - margin - 20;
     const timelineWidth = timelineEndX - timelineStartX;
     
-    // Cores para a timeline
+    // Cores para a timeline (seguindo padrão do sistema)
     const timelineColors = [
-      [41, 121, 255],  // Azul
-      [255, 99, 132],  // Rosa/Vermelho
-      [132, 255, 99],  // Verde
-      [255, 205, 0],   // Amarelo
-      [255, 149, 0]    // Laranja
+      [245, 158, 11],  // Amarelo #F59E0B (Em Andamento)
+      [16, 185, 129],  // Verde #10B981 (Concluído)
+      [239, 68, 68],   // Vermelho #EF4444 (Atrasado)
+      [156, 163, 175], // Cinza #9CA3AF (Cancelado)
+      [59, 130, 246]   // Azul complementar
     ];
     
     // Dados para as estatísticas

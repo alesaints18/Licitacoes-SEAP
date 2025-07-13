@@ -173,6 +173,8 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 13, 2025. Adicionado histórico de responsabilidades completo no relatório PDF com transferências e comentários
 - July 13, 2025. Adicionado motivo da exclusão na lixeira para facilitar o manuseio pelo usuário
 - July 13, 2025. Melhorado display do usuário responsável pela exclusão (nome completo ao invés de ID)
+- July 13, 2025. Corrigidas cores dos relatórios PDF gerais para seguir padrão do sistema: Em Andamento (amarelo #F59E0B), Atrasado (vermelho #EF4444), Concluído (verde #10B981), Cancelado (cinza #9CA3AF)
+- July 13, 2025. Padronizadas cores em modernPdfGenerator.ts e timelineExport.ts para consistência visual em todos os relatórios
 
 ## User Preferences
 

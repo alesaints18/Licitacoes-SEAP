@@ -215,11 +215,11 @@ export function generateModernPdf(data: ReportData): void {
     
     // Cores para os status
     const statusColors = {
-      completed: [16, 185, 129], // Verde
-      in_progress: [245, 158, 11], // Amarelo
-      draft: [156, 163, 175], // Cinza
-      canceled: [156, 163, 175], // Cinza
-      overdue: [239, 68, 68]  // Vermelho
+      completed: [16, 185, 129], // Verde #10B981
+      in_progress: [245, 158, 11], // Amarelo #F59E0B
+      draft: [156, 163, 175], // Cinza #9CA3AF
+      canceled: [156, 163, 175], // Cinza #9CA3AF
+      overdue: [239, 68, 68]  // Vermelho #EF4444
     };
     
     // Desenhar gráfico de pizza se houver processos
@@ -227,10 +227,11 @@ export function generateModernPdf(data: ReportData): void {
       // Preparar dados para o gráfico e legenda
       // Mapear diretamente as cores do COLORS para os dados de status
       const COLORS_MAP = {
-        "completed": [0, 196, 159],  // Verde
-        "in_progress": [0, 136, 254], // Azul
-        "draft": [156, 163, 175],     // Cinza
-        "canceled": [255, 128, 66]    // Laranja
+        "completed": [16, 185, 129],  // Verde #10B981
+        "in_progress": [245, 158, 11], // Amarelo #F59E0B
+        "draft": [156, 163, 175],     // Cinza #9CA3AF
+        "canceled": [156, 163, 175],  // Cinza #9CA3AF
+        "overdue": [239, 68, 68]      // Vermelho #EF4444
       };
       
       // Preparar os dados para o gráfico com cores consistentes
@@ -359,10 +360,10 @@ export function generateModernPdf(data: ReportData): void {
     
     // Cores para as barras - array de cores diferentes (mantendo cores originais para gráficos gerais)
     const barColors = [
-      [245, 158, 11],  // Amarelo (Em Andamento)
-      [16, 185, 129],  // Verde (Concluído)
-      [239, 68, 68],   // Vermelho (Atrasado)
-      [156, 163, 175], // Cinza (Cancelado)
+      [245, 158, 11],  // Amarelo #F59E0B (Em Andamento)
+      [16, 185, 129],  // Verde #10B981 (Concluído)
+      [239, 68, 68],   // Vermelho #EF4444 (Atrasado)
+      [156, 163, 175], // Cinza #9CA3AF (Cancelado)
       [59, 130, 246],  // Azul
       [168, 85, 247],  // Roxo
       [14, 165, 233],  // Azul claro
