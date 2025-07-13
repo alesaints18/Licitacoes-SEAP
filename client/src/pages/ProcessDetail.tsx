@@ -353,6 +353,19 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     console.log("getSectorSteps - Input:", { userDepartment, modalityId });
     console.log("getSectorSteps - Mapped sector:", sector);
 
+    // Verificar se NPP completou suas etapas principais
+    const isNPPCompleted = () => {
+      const nppSteps = [
+        "Pesquisa de Preços",
+        "Mapa Comparativo de Preços"
+      ];
+      
+      return nppSteps.every(stepName => {
+        const step = steps?.find(s => s.stepName === stepName);
+        return step?.isCompleted;
+      });
+    };
+
     const stepsBySector: {
       [key: string]: { name: string; phase: string; nextSector?: string }[];
     } = {
@@ -376,7 +389,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         },
       ],
 
-      // Licitações - Divisão de Licitação
+      // Licitações - Divisão de Licitação (com lógica condicional)
       Licitações: [
         {
           name: "Criar Processo - Órgão",
@@ -390,18 +403,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           name: "Solicitar Pesquisa de Preços",
           phase: "Preparação",
         },
-        {
-          name: "Inserir Pesquisa no Sistema",
-          phase: "Execução",
-        },
-        {
-          name: "Solicitar Análise Orçamentária",
-          phase: "Execução",
-        },
-        {
-          name: "Solicitar Autorização ao O.D.",
-          phase: "Execução",
-        },
+        // Estas etapas só aparecem após NPP completar
+        ...(isNPPCompleted() ? [
+          {
+            name: "Inserir Pesquisa no Sistema",
+            phase: "Execução",
+          },
+          {
+            name: "Solicitar Análise Orçamentária",
+            phase: "Execução",
+          },
+          {
+            name: "Solicitar Autorização ao O.D.",
+            phase: "Execução",
+          },
+        ] : []),
       ],
 
       // NPP - Núcleo de Pesquisa de Preços

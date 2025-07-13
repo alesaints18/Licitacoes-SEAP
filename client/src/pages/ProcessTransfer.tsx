@@ -149,6 +149,19 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   
   // Importar função para obter etapas do setor
   const getSectorSteps = (departmentName: string, modalityId: number) => {
+    // Verificar se NPP completou suas etapas principais
+    const isNPPCompleted = () => {
+      const nppSteps = [
+        "Pesquisa de Preços",
+        "Mapa Comparativo de Preços"
+      ];
+      
+      return nppSteps.every(stepName => {
+        const step = processSteps?.find(s => s.stepName === stepName);
+        return step?.isCompleted;
+      });
+    };
+
     // Lógica das etapas baseada no departamento e modalidade
     const stepsByDepartment: Record<string, any[]> = {
       "Setor Demandante": [
@@ -161,14 +174,16 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
         { name: "Criar Processo - Órgão", phase: "Preparação" },
         { name: "Fazer Pesquisa de Preço - Órgão", phase: "Preparação" },
         { name: "Solicitar Pesquisa de Preços", phase: "Preparação" },
-        { name: "Inserir Pesquisa no Sistema", phase: "Execução" },
-        { name: "Solicitar Análise Orçamentária", phase: "Execução" },
-        { name: "Solicitar Autorização ao O.D.", phase: "Execução" },
+        // Estas etapas só aparecem após NPP completar
+        ...(isNPPCompleted() ? [
+          { name: "Inserir Pesquisa no Sistema", phase: "Execução" },
+          { name: "Solicitar Análise Orçamentária", phase: "Execução" },
+          { name: "Solicitar Autorização ao O.D.", phase: "Execução" },
+        ] : [])
       ],
       "Núcleo de Pesquisa de Preços – NPP": [
         { name: "Pesquisa de Preços", phase: "Preparação" },
-        { name: "Mapa Comparativo de Preços", phase: "Preparação" },
-        { name: "Metodologia da Pesquisa de Preços", phase: "Preparação" }
+        { name: "Mapa Comparativo de Preços", phase: "Preparação" }
       ]
     };
     return stepsByDepartment[departmentName] || [];
