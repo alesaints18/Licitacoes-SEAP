@@ -287,9 +287,7 @@ function Router() {
       
       <Route path="/trash">
         <Layout>
-          <AdminProtectedRoute>
-            <Trash />
-          </AdminProtectedRoute>
+          <Trash />
         </Layout>
       </Route>
       
