@@ -287,9 +287,7 @@ const ProcessReport = ({ id }: ProcessReportProps) => {
                           </div>
                           <div className="text-sm text-gray-600 space-y-1">
                             <p><strong>Departamento:</strong> {stepDepartment?.name || "Não informado"}</p>
-                            {step.completedBy && (
-                              <p><strong>Responsável:</strong> {completedBy?.fullName || "Não informado"}</p>
-                            )}
+                            <p><strong>Responsável:</strong> {completedBy?.fullName || "Não informado"}</p>
                             {step.completedAt && (
                               <p><strong>Data de Conclusão:</strong> {format(new Date(step.completedAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
                             )}

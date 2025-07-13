@@ -1384,7 +1384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const responsible = users.find(u => u.id === process.responsibleId);
       const currentDepartment = departments.find(d => d.id === process.currentDepartmentId);
       
-      // Gerar HTML do relatório
+      // Gerar HTML do relatório - cópia exata da página ProcessReport.tsx
       const htmlContent = `
         <!DOCTYPE html>
         <html>
@@ -1392,117 +1392,205 @@ export async function registerRoutes(app: Express): Promise<Server> {
           <meta charset="UTF-8">
           <title>Relatório do Processo ${process.pbdocNumber}</title>
           <style>
-            body { font-family: Arial, sans-serif; margin: 20px; color: #333; }
-            .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #1e40af; padding-bottom: 20px; }
-            .header h1 { color: #1e40af; margin-bottom: 5px; }
-            .header h2 { color: #1e40af; font-size: 24px; }
-            .section { margin-bottom: 25px; }
-            .section-title { color: #1e40af; border-bottom: 1px solid #e5e7eb; padding-bottom: 5px; margin-bottom: 15px; }
-            .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #374151; background: #f9fafb; }
+            .container { max-width: 64rem; margin: 0 auto; padding: 20px; }
+            .card { background: white; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+            .card-header { padding: 24px; border-bottom: 1px solid #e5e7eb; text-align: center; }
+            .card-content { padding: 24px; }
+            .card-title { font-size: 20px; font-weight: 600; color: #1f2937; margin-bottom: 8px; }
+            .section { margin-bottom: 32px; }
+            .section-title { font-size: 18px; font-weight: 600; color: #1e40af; border-bottom: 1px solid #dbeafe; padding-bottom: 8px; margin-bottom: 16px; }
+            .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
             .info-item { margin-bottom: 8px; }
-            .info-label { font-weight: bold; color: #374151; }
-            .description { background: #f9fafb; padding: 15px; border-radius: 5px; border-left: 4px solid #1e40af; }
-            .steps { margin-top: 15px; }
-            .step { border: 1px solid #e5e7eb; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
-            .step.completed { background: #f0fdf4; border-left: 4px solid #10b981; }
-            .step.pending { background: #fefce8; border-left: 4px solid #f59e0b; }
-            .step.overdue { background: #fef2f2; border-left: 4px solid #ef4444; }
-            .step.canceled { background: #f9fafb; border-left: 4px solid #9ca3af; }
-            .comments { margin-top: 15px; }
-            .comment { background: #f8fafc; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 3px solid #6b7280; }
-            .comment-meta { font-size: 12px; color: #6b7280; margin-bottom: 5px; }
-            .history { margin-top: 15px; }
-            .history-item { background: #f8fafc; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 3px solid #3b82f6; }
-            .history-meta { font-size: 12px; color: #6b7280; margin-bottom: 5px; }
-            .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #6b7280; }
+            .info-label { font-weight: 500; color: #374151; display: block; }
+            .info-value { color: #1f2937; margin-top: 2px; }
+            .description { background: #f9fafb; padding: 16px; border-radius: 6px; border-left: 4px solid #3b82f6; }
+            .separator { height: 1px; background: #e5e7eb; margin: 24px 0; }
+            .step-container { border: 1px solid #e5e7eb; border-radius: 6px; padding: 16px; margin-bottom: 16px; background: #f9fafb; }
+            .step-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px; }
+            .step-title { font-weight: 500; color: #1f2937; }
+            .step-badge { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+            .step-badge.completed { background: #dcfce7; color: #166534; }
+            .step-badge.pending { background: #fef3c7; color: #92400e; }
+            .step-details { font-size: 14px; color: #6b7280; }
+            .step-details p { margin-bottom: 4px; }
+            .step-details strong { color: #374151; }
+            .comments-section { background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 16px; margin-top: 16px; }
+            .comments-title { font-weight: 600; color: #991b1b; margin-bottom: 16px; }
+            .comments-content { color: #7f1d1d; }
+            .footer { text-align: center; font-size: 14px; color: #6b7280; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 16px; }
+            .header-org { font-size: 24px; font-weight: 700; color: #1f2937; margin-bottom: 4px; }
+            .header-subtitle { color: #6b7280; margin-bottom: 16px; }
+            .main-title { font-size: 20px; font-weight: 600; color: #1f2937; }
+            .print-only { display: none; }
+            @media print { 
+              body { background: white; }
+              .container { max-width: none; margin: 0; padding: 0; }
+              .card { border-radius: 0; box-shadow: none; }
+              .print-only { display: block; }
+            }
           </style>
         </head>
         <body>
-          <div class="header">
-            <h1>SECRETARIA DE ESTADO DA ADMINISTRAÇÃO PENITENCIÁRIA</h1>
-            <h2>Relatório do Processo ${process.pbdocNumber}</h2>
-            <p>Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
-          </div>
-
-          <div class="section">
-            <h3 class="section-title">Informações Gerais</h3>
-            <div class="info-grid">
-              <div class="info-item">
-                <span class="info-label">Número PBDoc:</span> ${process.pbdocNumber}
+          <div class="container">
+            <div class="card">
+              <div class="card-header">
+                <div class="header-org">
+                  SEAP - Secretaria de Estado da Administração Penitenciária
+                </div>
+                <div class="header-subtitle">Relatório de Processo Licitatório</div>
+                <div class="main-title">Processo Nº ${process.pbdocNumber}</div>
               </div>
-              <div class="info-item">
-                <span class="info-label">Status:</span> ${process.status === 'in_progress' ? 'Em Andamento' : process.status === 'completed' ? 'Concluído' : process.status === 'overdue' ? 'Atrasado' : 'Cancelado'}
-              </div>
-              <div class="info-item">
-                <span class="info-label">Modalidade:</span> ${modality?.name || 'N/A'}
-              </div>
-              <div class="info-item">
-                <span class="info-label">Fonte de Recurso:</span> ${source?.description || 'N/A'}
-              </div>
-              <div class="info-item">
-                <span class="info-label">Responsável:</span> ${responsible?.fullName || 'N/A'}
-              </div>
-              <div class="info-item">
-                <span class="info-label">Departamento Atual:</span> ${currentDepartment?.name || 'N/A'}
-              </div>
-              <div class="info-item">
-                <span class="info-label">Prioridade:</span> ${process.priority === 'high' ? 'Alta' : process.priority === 'medium' ? 'Média' : 'Baixa'}
-              </div>
-              <div class="info-item">
-                <span class="info-label">Prazo:</span> ${process.deadline ? new Date(process.deadline).toLocaleDateString('pt-BR') : 'N/A'}
-              </div>
-            </div>
-          </div>
-
-          <div class="section">
-            <h3 class="section-title">Descrição</h3>
-            <div class="description">${process.description}</div>
-          </div>
-
-          <div class="section">
-            <h3 class="section-title">Etapas do Processo</h3>
-            <div class="steps">
-              ${steps.map(step => {
-                const stepUser = users.find(u => u.id === step.completedBy);
-                const stepDepartment = departments.find(d => d.id === step.departmentId);
-                const stepStatus = step.isCompleted ? 'completed' : 'pending';
-                
-                return `
-                  <div class="step ${stepStatus}">
-                    <strong>${step.stepName}</strong>
-                    <br>Status: ${step.isCompleted ? 'Concluída' : 'Pendente'}
-                    ${step.isCompleted && stepUser && stepDepartment ? `<br>Responsável: ${stepUser.fullName} - ${stepDepartment.name}` : ''}
-                    ${step.completedAt ? `<br>Concluída em: ${new Date(step.completedAt).toLocaleDateString('pt-BR')}` : ''}
-                    ${step.comments ? `<br><strong>Comentários:</strong> ${step.comments}` : ''}
-                  </div>
-                `;
-              }).join('')}
-            </div>
-          </div>
-
-          ${responsibilityHistory.length > 0 ? `
-          <div class="section">
-            <h3 class="section-title">Histórico de Responsabilidades</h3>
-            <div class="history">
-              ${responsibilityHistory.map(item => `
-                <div class="history-item">
-                  <div class="history-meta">
-                    ${new Date(item.transferredAt).toLocaleDateString('pt-BR')} às ${new Date(item.transferredAt).toLocaleTimeString('pt-BR')}
-                  </div>
-                  <div>
-                    <strong>Transferido para:</strong> ${item.department_name}<br>
-                    <strong>Responsável pela transferência:</strong> ${item.transferred_by_name}<br>
-                    ${item.comment ? `<strong>Comentário:</strong> ${item.comment}` : ''}
+              
+              <div class="card-content">
+                <!-- Informações Básicas -->
+                <div class="section">
+                  <h2 class="section-title">Informações Básicas</h2>
+                  <div class="info-grid">
+                    <div class="info-item">
+                      <label class="info-label">Número PBDOC:</label>
+                      <p class="info-value">${process.pbdocNumber}</p>
+                    </div>
+                    <div class="info-item">
+                      <label class="info-label">Status:</label>
+                      <p class="info-value">${process.status === 'in_progress' ? 'Em Andamento' : process.status === 'completed' ? 'Concluído' : process.status === 'overdue' ? 'Atrasado' : 'Cancelado'}</p>
+                    </div>
+                    <div class="info-item">
+                      <label class="info-label">Modalidade:</label>
+                      <p class="info-value">${modality?.name || 'Não informado'}</p>
+                    </div>
+                    <div class="info-item">
+                      <label class="info-label">Prioridade:</label>
+                      <p class="info-value">${process.priority === 'high' ? 'Alta' : process.priority === 'medium' ? 'Média' : 'Baixa'}</p>
+                    </div>
+                    <div class="info-item">
+                      <label class="info-label">Fonte de Recurso:</label>
+                      <p class="info-value">${source ? `${source.code} - ${source.description}` : 'Não informado'}</p>
+                    </div>
+                    <div class="info-item">
+                      <label class="info-label">Responsável:</label>
+                      <p class="info-value">${responsible?.fullName || 'Não informado'}</p>
+                    </div>
+                    <div class="info-item">
+                      <label class="info-label">Departamento Atual:</label>
+                      <p class="info-value">${currentDepartment?.name || 'Não informado'}</p>
+                    </div>
+                    <div class="info-item">
+                      <label class="info-label">Central de Compras:</label>
+                      <p class="info-value">${process.centralDeCompras || 'Não informado'}</p>
+                    </div>
                   </div>
                 </div>
-              `).join('')}
-            </div>
-          </div>
-          ` : ''}
 
-          <div class="footer">
-            <p>Sistema de Controle de Processos de Licitação - SEAP/PB</p>
-            <p>Relatório gerado automaticamente</p>
+                <div class="separator"></div>
+
+                <!-- Objeto -->
+                <div class="section">
+                  <h2 class="section-title">Objeto</h2>
+                  <div class="description">${process.description}</div>
+                </div>
+
+                <div class="separator"></div>
+
+                <!-- Datas -->
+                <div class="section">
+                  <h2 class="section-title">Cronograma</h2>
+                  <div class="info-grid">
+                    <div class="info-item">
+                      <label class="info-label">Data de Criação:</label>
+                      <p class="info-value">${new Date(process.createdAt).toLocaleDateString('pt-BR')} às ${new Date(process.createdAt).toLocaleTimeString('pt-BR')}</p>
+                    </div>
+                    <div class="info-item">
+                      <label class="info-label">Última Atualização:</label>
+                      <p class="info-value">${new Date(process.updatedAt).toLocaleDateString('pt-BR')} às ${new Date(process.updatedAt).toLocaleTimeString('pt-BR')}</p>
+                    </div>
+                    <div class="info-item">
+                      <label class="info-label">Prazo de Entrega:</label>
+                      <p class="info-value">${process.deadline ? new Date(process.deadline).toLocaleDateString('pt-BR') : 'Não definido'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                ${process.returnComments ? `
+                <div class="separator"></div>
+                <div class="section">
+                  <h2 class="section-title" style="color: #991b1b; border-bottom-color: #fecaca;">Comentários de Retorno</h2>
+                  <div class="comments-section">
+                    <p class="comments-content">${process.returnComments}</p>
+                  </div>
+                </div>
+                ` : ''}
+
+                ${steps.length > 0 ? `
+                <div class="separator"></div>
+                <div class="section">
+                  <h2 class="section-title">Histórico de Etapas</h2>
+                  <div class="steps-container">
+                    ${steps.map((step, index) => {
+                      const stepUser = users.find(u => u.id === step.completedBy);
+                      const stepDepartment = departments.find(d => d.id === step.departmentId);
+                      
+                      return `
+                        <div class="step-container">
+                          <div class="step-header">
+                            <h3 class="step-title">${index + 1}. ${step.stepName}</h3>
+                            <span class="step-badge ${step.isCompleted ? 'completed' : 'pending'}">
+                              ${step.isCompleted ? 'Concluída' : 'Em andamento'}
+                            </span>
+                          </div>
+                          <div class="step-details">
+                            <p><strong>Departamento:</strong> ${stepDepartment?.name || 'Não informado'}</p>
+                            <p><strong>Responsável:</strong> ${stepUser?.fullName || 'Não informado'}</p>
+                            ${step.completedAt ? `<p><strong>Data de Conclusão:</strong> ${new Date(step.completedAt).toLocaleDateString('pt-BR')} às ${new Date(step.completedAt).toLocaleTimeString('pt-BR')}</p>` : ''}
+                            ${step.observations ? `<p><strong>Observações:</strong> ${step.observations}</p>` : ''}
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+                ` : ''}
+
+                ${responsibilityHistory.length > 0 ? `
+                <div class="separator"></div>
+                <div class="section">
+                  <h2 class="section-title">Histórico de Responsabilidades</h2>
+                  <div class="steps-container">
+                    ${responsibilityHistory.map((item, index) => {
+                      const actionLabel = item.action === 'transferred' ? 'Transferido' : 
+                                         item.action === 'returned' ? 'Devolvido' : 
+                                         item.action === 'created' ? 'Criado' : 'Ação';
+                      
+                      return `
+                        <div class="step-container">
+                          <div class="step-header">
+                            <h3 class="step-title">${index + 1}. ${actionLabel}</h3>
+                            <span class="step-badge completed">
+                              ${new Date(item.timestamp).toLocaleDateString('pt-BR')}
+                            </span>
+                          </div>
+                          <div class="step-details">
+                            <p><strong>Departamento:</strong> ${item.department_name || 'Não informado'}</p>
+                            <p><strong>Responsável:</strong> ${item.user_name || 'Não informado'}</p>
+                            <p><strong>Data:</strong> ${new Date(item.timestamp).toLocaleDateString('pt-BR')} às ${new Date(item.timestamp).toLocaleTimeString('pt-BR')}</p>
+                            ${item.description ? `<p><strong>Descrição:</strong> ${item.description}</p>` : ''}
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+                ` : ''}
+
+                <div class="separator"></div>
+
+                <div class="footer">
+                  <p>Relatório gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}</p>
+                  <p>SEAP - Secretaria de Estado da Administração Penitenciária da Paraíba</p>
+                </div>
+              </div>
+            </div>
           </div>
         </body>
         </html>
