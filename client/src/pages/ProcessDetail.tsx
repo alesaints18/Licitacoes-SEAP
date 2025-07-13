@@ -73,6 +73,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deletionReason, setDeletionReason] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
   const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
@@ -641,13 +644,25 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Handle delete process
   const handleDelete = async () => {
+    if (deletionReason.trim().length < 10) {
+      toast({
+        title: "Motivo obrigatório",
+        description: "Por favor, informe o motivo da exclusão (mínimo 10 caracteres)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsDeleting(true);
     try {
-      await apiRequest("DELETE", `/api/processes/${parsedId}`, undefined);
+      await apiRequest("DELETE", `/api/processes/${parsedId}`, {
+        deletionReason: deletionReason.trim(),
+      });
 
       // Show success toast
       toast({
         title: "Processo excluído",
-        description: "O processo foi excluído com sucesso",
+        description: "O processo foi movido para a lixeira com sucesso",
       });
 
       // Redirect to processes list
@@ -664,6 +679,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         description: "Não foi possível excluir o processo",
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+      setDeletionReason("");
     }
   };
 
@@ -757,29 +776,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             Editar
           </Button>
 
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive">
-                <Trash className="h-4 w-4 mr-2" />
-                Excluir
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Tem certeza que deseja excluir este processo? Esta ação não
-                  pode ser desfeita.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete}>
-                  Excluir
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <Button 
+            variant="destructive" 
+            onClick={() => setDeleteModalOpen(true)}
+          >
+            <Trash className="h-4 w-4 mr-2" />
+            Excluir
+          </Button>
         </div>
       </div>
 
@@ -1859,6 +1862,54 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir este processo? O processo será movido para a lixeira.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Motivo da exclusão (obrigatório - mínimo 10 caracteres)
+              </label>
+              <Textarea
+                value={deletionReason}
+                onChange={(e) => setDeletionReason(e.target.value)}
+                placeholder="Informe o motivo da exclusão do processo..."
+                className="min-h-[100px]"
+                maxLength={500}
+              />
+              <div className="text-sm text-gray-500 mt-1">
+                {deletionReason.length}/500 caracteres
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setDeletionReason("");
+                }}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isDeleting || deletionReason.trim().length < 10}
+              >
+                {isDeleting ? "Excluindo..." : "Excluir"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
