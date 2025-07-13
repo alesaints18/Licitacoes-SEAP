@@ -15,6 +15,7 @@ interface ProcessReturnProps {
 }
 
 const ProcessReturn = ({ id }: ProcessReturnProps) => {
+  console.log('*** ProcessReturn component loaded with id:', id);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
