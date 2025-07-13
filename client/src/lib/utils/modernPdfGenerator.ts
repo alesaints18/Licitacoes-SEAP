@@ -185,9 +185,9 @@ export function generateModernPdf(data: ReportData): void {
     
     // Desenhar os 4 cards de estatísticas
     drawStatCard("Total de Processos", filteredProcesses.length, margin, statCardsY, 59, 130, 246); // Azul
-    drawStatCard("Em Andamento", statusCounts.in_progress, margin + cardWidth + 10, statCardsY, 14, 165, 233); // Azul claro
+    drawStatCard("Em Andamento", statusCounts.in_progress, margin + cardWidth + 10, statCardsY, 245, 158, 11); // Amarelo
     drawStatCard("Concluídos", statusCounts.completed, margin + (cardWidth + 10) * 2, statCardsY, 16, 185, 129); // Verde
-    drawStatCard("Cancelados", statusCounts.canceled, margin + (cardWidth + 10) * 3, statCardsY, 239, 68, 68); // Vermelho
+    drawStatCard("Cancelados", statusCounts.canceled, margin + (cardWidth + 10) * 3, statCardsY, 156, 163, 175); // Cinza
     
     // ----- SEÇÃO DE GRÁFICOS -----
     
@@ -216,9 +216,10 @@ export function generateModernPdf(data: ReportData): void {
     // Cores para os status
     const statusColors = {
       completed: [16, 185, 129], // Verde
-      in_progress: [59, 130, 246], // Azul
+      in_progress: [245, 158, 11], // Amarelo
       draft: [156, 163, 175], // Cinza
-      canceled: [239, 68, 68]  // Vermelho
+      canceled: [156, 163, 175], // Cinza
+      overdue: [239, 68, 68]  // Vermelho
     };
     
     // Desenhar gráfico de pizza se houver processos
@@ -356,15 +357,15 @@ export function generateModernPdf(data: ReportData): void {
     const sortedModalityData = [...modalityData].sort((a, b) => b.count - a.count);
     const maxCount = Math.max(...sortedModalityData.map(m => m.count), 1);
     
-    // Cores para as barras - array de cores diferentes
+    // Cores para as barras - array de cores diferentes (mantendo cores originais para gráficos gerais)
     const barColors = [
+      [245, 158, 11],  // Amarelo (Em Andamento)
+      [16, 185, 129],  // Verde (Concluído)
+      [239, 68, 68],   // Vermelho (Atrasado)
+      [156, 163, 175], // Cinza (Cancelado)
       [59, 130, 246],  // Azul
-      [16, 185, 129],  // Verde
-      [245, 158, 11],  // Amarelo
-      [239, 68, 68],   // Vermelho
       [168, 85, 247],  // Roxo
       [14, 165, 233],  // Azul claro
-      [34, 197, 94],   // Verde escuro
       [249, 115, 22]   // Laranja
     ];
     

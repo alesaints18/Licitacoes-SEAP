@@ -164,6 +164,10 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 13, 2025. Adicionado card de processos atrasados no dashboard e expandido grid para 5 colunas (lg:grid-cols-5)
 - July 13, 2025. Padronizadas cores dos gráficos da página de relatórios com as cores do dashboard: Em Andamento (amarelo #F59E0B), Atrasado (vermelho #EF4444), Concluído (verde #10B981), Cancelado (cinza #9CA3AF)
 - July 13, 2025. Adicionado status "Atrasado" no gráfico de processos por status na página de relatórios
+- July 13, 2025. Atualizado relatório PDF do processo com cores padronizadas e informações do responsável por cada etapa
+- July 13, 2025. Adicionado histórico de responsabilidades no relatório PDF com comentários e responsáveis pelas transferências
+- July 13, 2025. Corrigidas cores em todos os arquivos de exportação PDF: exactReportExport.ts, exactPdfExport.ts, modernPdfGenerator.ts, pdfExport.ts, export-fix.ts
+- July 13, 2025. Implementada exibição do responsável e departamento em cada etapa concluída do processo no relatório PDF
 
 ## User Preferences
 

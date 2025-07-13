@@ -164,16 +164,16 @@ export function generatePdfReport(data: ReportData): void {
   const innerRadius = 18;
   
   // Desenhar os segmentos
-  // Prioridade Baixa (verde-azulado)
-  doc.setFillColor(75, 192, 192);
+  // Prioridade Baixa (verde)
+  doc.setFillColor(16, 185, 129);
   drawDonutSegment(doc, centerX1, centerY1, innerRadius, outerRadius, 0, lowPct * 360);
   
-  // Prioridade Média (azul)
-  doc.setFillColor(54, 162, 235);
+  // Prioridade Média (amarelo)
+  doc.setFillColor(245, 158, 11);
   drawDonutSegment(doc, centerX1, centerY1, innerRadius, outerRadius, lowPct * 360, lowPct * 360 + mediumPct * 360);
   
-  // Prioridade Alta (verde escuro)
-  doc.setFillColor(75, 120, 120);
+  // Prioridade Alta (vermelho)
+  doc.setFillColor(239, 68, 68);
   drawDonutSegment(doc, centerX1, centerY1, innerRadius, outerRadius, lowPct * 360 + mediumPct * 360, 360);
   
   // Legendas dos percentuais

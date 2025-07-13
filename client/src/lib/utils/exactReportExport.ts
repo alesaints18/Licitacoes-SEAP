@@ -18,6 +18,14 @@ interface ReportData {
 }
 
 // Cores utilizadas nos gráficos
+// Cores padronizadas para status dos processos (seguindo padrão dos gráficos)
+const STATUS_COLORS = {
+  'Em Andamento': '#F59E0B',    // amarelo
+  'Concluído': '#10B981',       // verde
+  'Cancelado': '#9CA3AF',       // cinza
+  'Atrasado': '#EF4444'         // vermelho
+};
+
 const CHART_COLORS = {
   blue: '#0088FE',     // Azul
   green: '#00C49F',    // Verde

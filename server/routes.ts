@@ -1377,6 +1377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const users = await storage.getUsers();
       const departments = await storage.getDepartments();
       const steps = await storage.getProcessSteps(processId);
+      const responsibilityHistory = await storage.getProcessResponsibilityHistoryWithDetails(processId);
       
       const modality = modalities.find(m => m.id === process.modalityId);
       const source = sources.find(s => s.id === process.sourceId);
@@ -1405,6 +1406,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .step { border: 1px solid #e5e7eb; padding: 15px; margin-bottom: 10px; border-radius: 5px; }
             .step.completed { background: #f0fdf4; border-left: 4px solid #10b981; }
             .step.pending { background: #fefce8; border-left: 4px solid #f59e0b; }
+            .step.overdue { background: #fef2f2; border-left: 4px solid #ef4444; }
+            .step.canceled { background: #f9fafb; border-left: 4px solid #9ca3af; }
+            .comments { margin-top: 15px; }
+            .comment { background: #f8fafc; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 3px solid #6b7280; }
+            .comment-meta { font-size: 12px; color: #6b7280; margin-bottom: 5px; }
+            .history { margin-top: 15px; }
+            .history-item { background: #f8fafc; padding: 10px; margin-bottom: 8px; border-radius: 5px; border-left: 3px solid #3b82f6; }
+            .history-meta { font-size: 12px; color: #6b7280; margin-bottom: 5px; }
             .footer { text-align: center; margin-top: 30px; font-size: 12px; color: #6b7280; }
           </style>
         </head>
@@ -1422,7 +1431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 <span class="info-label">Número PBDoc:</span> ${process.pbdocNumber}
               </div>
               <div class="info-item">
-                <span class="info-label">Status:</span> ${process.status === 'in_progress' ? 'Em Andamento' : process.status === 'completed' ? 'Concluído' : 'Cancelado'}
+                <span class="info-label">Status:</span> ${process.status === 'in_progress' ? 'Em Andamento' : process.status === 'completed' ? 'Concluído' : process.status === 'overdue' ? 'Atrasado' : 'Cancelado'}
               </div>
               <div class="info-item">
                 <span class="info-label">Modalidade:</span> ${modality?.name || 'N/A'}
@@ -1453,15 +1462,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
           <div class="section">
             <h3 class="section-title">Etapas do Processo</h3>
             <div class="steps">
-              ${steps.map(step => `
-                <div class="step ${step.isCompleted ? 'completed' : 'pending'}">
-                  <strong>${step.stepName}</strong>
-                  <br>Status: ${step.isCompleted ? 'Concluída' : 'Pendente'}
-                  ${step.completedAt ? `<br>Concluída em: ${new Date(step.completedAt).toLocaleDateString('pt-BR')}` : ''}
+              ${steps.map(step => {
+                const stepUser = users.find(u => u.id === step.completedBy);
+                const stepDepartment = departments.find(d => d.id === step.departmentId);
+                const stepStatus = step.isCompleted ? 'completed' : 'pending';
+                
+                return `
+                  <div class="step ${stepStatus}">
+                    <strong>${step.stepName}</strong>
+                    <br>Status: ${step.isCompleted ? 'Concluída' : 'Pendente'}
+                    ${step.isCompleted && stepUser && stepDepartment ? `<br>Responsável: ${stepUser.fullName} - ${stepDepartment.name}` : ''}
+                    ${step.completedAt ? `<br>Concluída em: ${new Date(step.completedAt).toLocaleDateString('pt-BR')}` : ''}
+                    ${step.comments ? `<br><strong>Comentários:</strong> ${step.comments}` : ''}
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          ${responsibilityHistory.length > 0 ? `
+          <div class="section">
+            <h3 class="section-title">Histórico de Responsabilidades</h3>
+            <div class="history">
+              ${responsibilityHistory.map(item => `
+                <div class="history-item">
+                  <div class="history-meta">
+                    ${new Date(item.transferredAt).toLocaleDateString('pt-BR')} às ${new Date(item.transferredAt).toLocaleTimeString('pt-BR')}
+                  </div>
+                  <div>
+                    <strong>Transferido para:</strong> ${item.department_name}<br>
+                    <strong>Responsável pela transferência:</strong> ${item.transferred_by_name}<br>
+                    ${item.comment ? `<strong>Comentário:</strong> ${item.comment}` : ''}
+                  </div>
                 </div>
               `).join('')}
             </div>
           </div>
+          ` : ''}
 
           <div class="footer">
             <p>Sistema de Controle de Processos de Licitação - SEAP/PB</p>

@@ -130,7 +130,7 @@ export function generatePdfReport(data: ReportData): void {
 
     // Usar método simples de desenho para o gráfico de rosca (simulado com círculos de cor)
     // Círculo externo
-    doc.setFillColor(67, 160, 71); // Verde para alta prioridade
+    doc.setFillColor(239, 68, 68); // Vermelho para alta prioridade
     doc.circle(centerX1, centerY1, radius, "F");
 
     // Círculo interno (branco para simular rosca)
@@ -167,7 +167,7 @@ export function generatePdfReport(data: ReportData): void {
     const centerY2 = centerY1;
 
     // Círculo externo
-    doc.setFillColor(54, 162, 235); // Azul para em andamento
+    doc.setFillColor(245, 158, 11); // Amarelo para em andamento
     doc.circle(centerX2, centerY2, radius, "F");
 
     // Círculo interno (branco para simular rosca)
@@ -221,7 +221,17 @@ export function generatePdfReport(data: ReportData): void {
       const barWidth = (count / maxValue) * barMaxWidth;
 
       // Desenhar barra
-      doc.setFillColor(44, 123, 182); // Azul
+      // Cores diferentes para cada barra
+      const barColors = [
+        [245, 158, 11], // Amarelo
+        [16, 185, 129], // Verde
+        [239, 68, 68],  // Vermelho
+        [156, 163, 175], // Cinza
+        [59, 130, 246], // Azul
+        [168, 85, 247], // Roxo
+      ];
+      const color = barColors[index % barColors.length];
+      doc.setFillColor(color[0], color[1], color[2]);
       doc.rect(barStartX, barStartY + index * barGap, barWidth, barHeight, "F");
 
       // Adicionar label e valor
