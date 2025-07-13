@@ -633,15 +633,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: `Processo criado por ${(req.user as any).fullName}`,
         departmentId: currentDepartmentId
       });
-
-      // Adicionar registro ao histórico de responsabilidades
-      await storage.addProcessResponsibilityHistory({
-        processId: process.id,
-        userId: userId,
-        action: 'created',
-        description: `Processo criado por ${(req.user as any).fullName}`,
-        departmentId: currentDepartmentId
-      });
       
       // Se o responsável pelo processo for diferente do criador, adiciona-o também
       if (process.responsibleId !== userId) {
