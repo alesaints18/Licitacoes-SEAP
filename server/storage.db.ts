@@ -731,25 +731,48 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProcessResponsibilityHistoryWithDetails(processId: number): Promise<any[]> {
-    return await db
-      .select({
-        id: processResponsibilityHistory.id,
-        processId: processResponsibilityHistory.processId,
-        userId: processResponsibilityHistory.userId,
-        username: users.username,
-        fullName: users.fullName,
-        userDepartment: users.department,
-        action: processResponsibilityHistory.action,
-        description: processResponsibilityHistory.description,
-        timestamp: processResponsibilityHistory.timestamp,
-        departmentId: processResponsibilityHistory.departmentId,
-        departmentName: departments.name,
-      })
-      .from(processResponsibilityHistory)
-      .leftJoin(users, eq(processResponsibilityHistory.userId, users.id))
-      .leftJoin(departments, eq(processResponsibilityHistory.departmentId, departments.id))
-      .where(eq(processResponsibilityHistory.processId, processId))
-      .orderBy(processResponsibilityHistory.timestamp);
+    try {
+      console.log(`Buscando histórico detalhado para processo ${processId}`);
+      
+      const history = await db
+        .select({
+          id: processResponsibilityHistory.id,
+          processId: processResponsibilityHistory.processId,
+          userId: processResponsibilityHistory.userId,
+          username: users.username,
+          fullName: users.fullName,
+          userDepartment: users.department,
+          action: processResponsibilityHistory.action,
+          description: processResponsibilityHistory.description,
+          timestamp: processResponsibilityHistory.timestamp,
+          departmentId: processResponsibilityHistory.departmentId,
+          departmentName: departments.name,
+        })
+        .from(processResponsibilityHistory)
+        .leftJoin(users, eq(processResponsibilityHistory.userId, users.id))
+        .leftJoin(departments, eq(processResponsibilityHistory.departmentId, departments.id))
+        .where(eq(processResponsibilityHistory.processId, processId))
+        .orderBy(processResponsibilityHistory.timestamp);
+      
+      console.log(`Histórico bruto encontrado:`, history.length);
+      
+      // Remove duplicatas baseado em combinação de userId, action, description, timestamp
+      const uniqueHistory = history.filter((item, index, self) => 
+        index === self.findIndex(h => 
+          h.userId === item.userId && 
+          h.action === item.action && 
+          h.description === item.description && 
+          h.timestamp === item.timestamp
+        )
+      );
+      
+      console.log(`Histórico após remoção de duplicatas:`, uniqueHistory.length);
+      
+      return uniqueHistory;
+    } catch (error) {
+      console.error('Erro ao buscar histórico de responsabilidades:', error);
+      return [];
+    }
   }
 }
 

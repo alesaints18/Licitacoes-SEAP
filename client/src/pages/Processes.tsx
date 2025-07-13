@@ -413,7 +413,12 @@ const Processes = () => {
       accessorKey: "pbdocNumber",
       header: "PBDOC",
       cell: ({ row }) => (
-        <span className="font-medium">{row.getValue("pbdocNumber")}</span>
+        <button 
+          onClick={() => handleViewProcess(row.original.id)}
+          className="font-medium text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+        >
+          {row.getValue("pbdocNumber")}
+        </button>
       ),
     },
     {
