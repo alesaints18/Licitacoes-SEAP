@@ -34,39 +34,37 @@ function broadcast(data: any) {
 async function createDefaultSteps(processId: number, modalityId: number) {
   const defaultSteps = [
     // FASE 1: INICIAÇÃO (Setor Demandante)
-    { name: "Demanda identificada e documentada", departmentId: 1, phase: "Iniciação" },
+    { name: "Documento de Formalização da Demanda - DFD", departmentId: 1, phase: "Iniciação" },
     { name: "Estudo Técnico Preliminar - ETP", departmentId: 1, phase: "Iniciação" },
     { name: "Mapa de Risco - MR", departmentId: 1, phase: "Iniciação" },
     { name: "Termo de Referência - TR", departmentId: 1, phase: "Iniciação" },
     
-    // DECISÃO: Ordenador de Despesa
-    { name: "Autorização pelo Ordenador de Despesa", departmentId: 4, phase: "Iniciação" },
-    
     // FASE 2: PREPARAÇÃO (Divisão de Licitação)
     { name: "Criar Processo no Órgão", departmentId: 2, phase: "Preparação" },
-    { name: "Fazer Pesquisa de Preços", departmentId: 2, phase: "Preparação" },
-    { name: "Elaborar Mapa Comparativo de Preços", departmentId: 2, phase: "Preparação" },
-    { name: "Metodologia da Pesquisa de Preços", departmentId: 2, phase: "Preparação" },
+    { name: "Fazer Pesquisa de Preços no Órgão", departmentId: 2, phase: "Preparação" },
+    { name: "Solicitar Pesquisa de Preços", departmentId: 2, phase: "Preparação" },
     
-    // Orçamento e Finanças
-    { name: "Consultar Disponibilidade Orçamentária", departmentId: 4, phase: "Preparação" },
-    { name: "Emitir Reserva Orçamentária - R.O.", departmentId: 4, phase: "Preparação" },
+    // ORÇAMENTO (Núcleo de Pesquisa de Preços - NPP)
+    { name: "Pesquisa de Preços", departmentId: 3, phase: "Preparação" },
+    { name: "Mapa Comparativo de Preços", departmentId: 3, phase: "Preparação" },
     
     // FASE 3: AUTORIZAÇÃO (Secretário SEAP)
-    { name: "Autorização Final pelo Secretário SEAP", departmentId: 5, phase: "Execução" },
+    { name: "Autorização Final pelo Secretário SEAP", departmentId: 5, phase: "Autorização" },
     
     // FASE 4: EXECUÇÃO (Divisão de Licitação)
     { name: "Elaborar Edital e seus Anexos", departmentId: 2, phase: "Execução" },
     { name: "Consultar Comitê Gestor de Gasto Público", departmentId: 2, phase: "Execução" },
+    
+    // NOTA TÉCNICA (NPP)
     { name: "Solicitar Elaboração de Nota Técnica", departmentId: 3, phase: "Execução" },
     
-    // FASE 5: PUBLICAÇÃO E SESSÃO
-    { name: "Publicar Edital", departmentId: 2, phase: "Execução" },
-    { name: "Realizar Sessão Pública de Lances", departmentId: 2, phase: "Execução" },
-    { name: "Análise de Documentação dos Licitantes", departmentId: 2, phase: "Execução" },
-    { name: "Adjudicação e Homologação", departmentId: 2, phase: "Finalização" },
+    // FASE 5: PUBLICAÇÃO (Divisão de Licitação)
+    { name: "Publicar Edital", departmentId: 2, phase: "Publicação" },
+    { name: "Realizar Sessão Pública de Lances", departmentId: 2, phase: "Publicação" },
+    { name: "Análise de Documentação dos Licitantes", departmentId: 2, phase: "Publicação" },
+    { name: "Adjudicação e Homologação", departmentId: 2, phase: "Publicação" },
     
-    // FASE 6: FINALIZAÇÃO
+    // FASE 6: FINALIZAÇÃO (Secretário SEAP)
     { name: "Assinatura do Contrato", departmentId: 5, phase: "Finalização" },
     { name: "Publicação do Contrato", departmentId: 5, phase: "Finalização" }
   ];
