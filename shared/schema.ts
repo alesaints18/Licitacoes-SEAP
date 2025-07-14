@@ -140,6 +140,9 @@ export const insertProcessSchema = createInsertSchema(processes).omit({
 export const insertProcessStepSchema = createInsertSchema(processSteps).omit({
   id: true,
   completedAt: true,
+}).extend({
+  rejectedAt: z.string().optional(),
+  rejectionStatus: z.string().optional(),
 });
 
 export const insertProcessParticipantSchema = createInsertSchema(processParticipants).omit({

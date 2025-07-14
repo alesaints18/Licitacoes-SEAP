@@ -1189,6 +1189,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stepData.completedAt = null;
       }
       
+      // Handle rejection fields
+      if (stepData.rejectedAt) {
+        stepData.rejectedAt = new Date(stepData.rejectedAt);
+      }
+      
       console.log(`Dados processados para etapa ${stepId}:`, stepData);
       
       const updatedStep = await storage.updateProcessStep(stepId, stepData);
