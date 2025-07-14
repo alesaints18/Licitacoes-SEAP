@@ -99,7 +99,7 @@ export function generateTimelinePdfReport(data: ReportData): void {
       [245, 158, 11],  // Amarelo #F59E0B (Em Andamento)
       [16, 185, 129],  // Verde #10B981 (Concluído)
       [239, 68, 68],   // Vermelho #EF4444 (Atrasado)
-      [156, 163, 175], // Cinza #9CA3AF (Cancelado)
+      [240, 249, 255], // Azul claro quase branco #F0F9FF (Cancelado)
       [59, 130, 246]   // Azul complementar
     ];
     

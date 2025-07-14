@@ -217,8 +217,8 @@ export function generateModernPdf(data: ReportData): void {
     const statusColors = {
       completed: [16, 185, 129], // Verde #10B981
       in_progress: [245, 158, 11], // Amarelo #F59E0B
-      draft: [156, 163, 175], // Cinza #9CA3AF
-      canceled: [156, 163, 175], // Cinza #9CA3AF
+      draft: [240, 249, 255], // Azul claro quase branco #F0F9FF
+      canceled: [240, 249, 255], // Azul claro quase branco #F0F9FF
       overdue: [239, 68, 68]  // Vermelho #EF4444
     };
     

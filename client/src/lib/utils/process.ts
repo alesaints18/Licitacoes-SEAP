@@ -42,11 +42,11 @@ export function getProcessStatusChartColor(status: string): string {
     case 'completed':
       return '#10B981'; // verde
     case 'canceled':
-      return '#9CA3AF'; // cinza
+      return '#F0F9FF'; // azul claro quase branco
     case 'draft':
-      return '#9CA3AF'; // cinza
+      return '#F0F9FF'; // azul claro quase branco
     default:
-      return '#9CA3AF'; // cinza
+      return '#F0F9FF'; // azul claro quase branco
   }
 }
 

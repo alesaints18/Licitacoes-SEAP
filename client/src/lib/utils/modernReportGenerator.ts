@@ -184,7 +184,7 @@ export async function generateModernReport(data: ReportData): Promise<void> {
           --danger: #ef4444;
           --dark: #1f2937;
           --light: #f9fafb;
-          --gray: #9ca3af;
+          --gray: #F0F9FF;
         }
         
         * {
@@ -333,7 +333,7 @@ export async function generateModernReport(data: ReportData): Promise<void> {
           background: conic-gradient(
             #10b981 0% ${statusCounts.completed > 0 ? (statusCounts.completed / filteredProcesses.length) * 360 : 0}deg,
             #3b82f6 ${statusCounts.completed > 0 ? (statusCounts.completed / filteredProcesses.length) * 360 : 0}deg ${statusCounts.in_progress > 0 ? ((statusCounts.completed + statusCounts.in_progress) / filteredProcesses.length) * 360 : statusCounts.completed > 0 ? (statusCounts.completed / filteredProcesses.length) * 360 : 0}deg,
-            #9ca3af ${statusCounts.in_progress > 0 ? ((statusCounts.completed + statusCounts.in_progress) / filteredProcesses.length) * 360 : statusCounts.completed > 0 ? (statusCounts.completed / filteredProcesses.length) * 360 : 0}deg ${statusCounts.draft > 0 ? ((statusCounts.completed + statusCounts.in_progress + statusCounts.draft) / filteredProcesses.length) * 360 : (statusCounts.in_progress > 0 ? ((statusCounts.completed + statusCounts.in_progress) / filteredProcesses.length) * 360 : statusCounts.completed > 0 ? (statusCounts.completed / filteredProcesses.length) * 360 : 0)}deg,
+            #F0F9FF ${statusCounts.in_progress > 0 ? ((statusCounts.completed + statusCounts.in_progress) / filteredProcesses.length) * 360 : statusCounts.completed > 0 ? (statusCounts.completed / filteredProcesses.length) * 360 : 0}deg ${statusCounts.draft > 0 ? ((statusCounts.completed + statusCounts.in_progress + statusCounts.draft) / filteredProcesses.length) * 360 : (statusCounts.in_progress > 0 ? ((statusCounts.completed + statusCounts.in_progress) / filteredProcesses.length) * 360 : statusCounts.completed > 0 ? (statusCounts.completed / filteredProcesses.length) * 360 : 0)}deg,
             #ef4444 ${statusCounts.draft > 0 ? ((statusCounts.completed + statusCounts.in_progress + statusCounts.draft) / filteredProcesses.length) * 360 : (statusCounts.in_progress > 0 ? ((statusCounts.completed + statusCounts.in_progress) / filteredProcesses.length) * 360 : statusCounts.completed > 0 ? (statusCounts.completed / filteredProcesses.length) * 360 : 0)}deg 360deg
           );
           position: relative;
@@ -373,7 +373,7 @@ export async function generateModernReport(data: ReportData): Promise<void> {
         
         .legend-completed { background-color: #10b981; }
         .legend-progress { background-color: #3b82f6; }
-        .legend-draft { background-color: #9ca3af; }
+        .legend-draft { background-color: #F0F9FF; }
         .legend-canceled { background-color: #ef4444; }
         
         .bar-chart {

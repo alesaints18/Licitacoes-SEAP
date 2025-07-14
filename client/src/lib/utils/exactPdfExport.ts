@@ -22,7 +22,7 @@ interface ReportData {
 const STATUS_COLORS = {
   'Em Andamento': [245, 158, 11],    // amarelo #F59E0B
   'Concluído': [16, 185, 129],       // verde #10B981
-  'Cancelado': [156, 163, 175],      // cinza #9CA3AF
+  'Cancelado': [240, 249, 255],      // azul claro quase branco #F0F9FF
   'Atrasado': [239, 68, 68]          // vermelho #EF4444
 };
 
