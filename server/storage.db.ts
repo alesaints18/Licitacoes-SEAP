@@ -421,6 +421,10 @@ export class DatabaseStorage implements IStorage {
 
       // Aplicar filtros
       const conditions = [];
+      
+      // SEMPRE excluir processos na lixeira
+      conditions.push(isNull(processes.deletedAt));
+      
       if (filters?.pbdocNumber) {
         conditions.push(like(processes.pbdocNumber, `%${filters.pbdocNumber}%`));
       }
@@ -530,6 +534,10 @@ export class DatabaseStorage implements IStorage {
 
       // Aplicar filtros
       const conditions = [];
+      
+      // SEMPRE excluir processos na lixeira
+      conditions.push(isNull(processes.deletedAt));
+      
       if (filters?.pbdocNumber) {
         conditions.push(like(processes.pbdocNumber, `%${filters.pbdocNumber}%`));
       }
@@ -631,6 +639,10 @@ export class DatabaseStorage implements IStorage {
 
       // Aplicar filtros
       const conditions = [];
+      
+      // SEMPRE excluir processos na lixeira
+      conditions.push(isNull(processes.deletedAt));
+      
       if (filters?.pbdocNumber) {
         conditions.push(like(processes.pbdocNumber, `%${filters.pbdocNumber}%`));
       }
