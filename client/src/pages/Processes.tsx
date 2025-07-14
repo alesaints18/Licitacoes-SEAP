@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Process, BiddingModality, ResourceSource, User, Department } from "@shared/schema";
@@ -243,6 +243,15 @@ const Processes = () => {
   // Estado para controlar o diálogo de transferência
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [selectedProcess, setSelectedProcess] = useState<Process | null>(null);
+
+  // Refresh automático ao entrar na página
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/modalities"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/sources"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+  }, []);
   
   // Estado para controlar o diálogo de exclusão
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);

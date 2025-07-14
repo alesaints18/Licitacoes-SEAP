@@ -26,6 +26,16 @@ const Dashboard = () => {
   const [filters, setFilters] = useState<FilterState>({});
   const [monthlyGoal, setMonthlyGoal] = useState<number>(200);
 
+  // Refresh automático ao entrar na página
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["/api/analytics/process-statistics"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/analytics/temporal-distribution"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/analytics/department-ranking"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/analytics/processes-by-source"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/settings/monthly-goal"] });
+  }, []);
+
   // Verificar se o usuário é administrador
   const { data: currentUser } = useQuery({
     queryKey: ["/api/auth/status"],

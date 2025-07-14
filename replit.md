@@ -187,6 +187,7 @@ The Sistema de Controle de Processos de Licitação is a web application develop
 - July 13, 2025. Implementada lógica condicional no frontend: etapas específicas da Divisão de Licitação só aparecem após NPP completar "Pesquisa de Preços" e "Mapa Comparativo de Preços"
 - July 13, 2025. Removida etapa "Solicitar Autorização ao O.D." - fluxo vai direto de "Solicitar Análise Orçamentária" para "Informar Disponibilidade Orçamentária p/ Emissão de R.O." na Unidade de Orçamento e Finanças
 - July 13, 2025. Corrigido problema crítico: processos na lixeira não contabilizam mais no dashboard - adicionado filtro isNull(processes.deletedAt) nas funções getProcessesStatistics, getTemporalDistribution e getDepartmentRanking
+- July 14, 2025. Implementado refresh automático ao entrar nas páginas: Dashboard, Relatórios, Usuários, Processos e Lixeira com invalidateQueries para garantir dados sempre atualizados
 
 ## User Preferences
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -53,6 +53,12 @@ const Users = () => {
   const [nameFilter, setNameFilter] = useState("");
   const [openUserDialog, setOpenUserDialog] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
+
+  // Refresh automático ao entrar na página
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+  }, []);
   const [deleting, setDeleting] = useState(false);
 
   const { toast } = useToast();

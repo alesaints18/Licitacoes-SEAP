@@ -12,6 +12,11 @@ import { Process } from "@shared/schema";
 const Trash = () => {
   const { toast } = useToast();
 
+  // Refresh automático ao entrar na página
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["/api/processes/deleted"] });
+  }, []);
+
   // Buscar processos excluídos com refresh automático
   const { data: deletedProcesses = [], isLoading } = useQuery<Process[]>({
     queryKey: ["/api/processes/deleted"],

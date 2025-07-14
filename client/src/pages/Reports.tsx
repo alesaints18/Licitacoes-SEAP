@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,18 @@ const Reports = () => {
     new Date().getFullYear().toString(),
   );
   const [centralDeComprasFilter, setCentralDeComprasFilter] = useState("");
+
+  // Refresh automático ao entrar na página
+  useEffect(() => {
+    queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/departments"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/modalities"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/sources"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/analytics/process-statistics"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/analytics/temporal-distribution"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/analytics/department-ranking"] });
+  }, []);
 
   const { data: processes } = useQuery<Process[]>({
     queryKey: ["/api/processes"],
