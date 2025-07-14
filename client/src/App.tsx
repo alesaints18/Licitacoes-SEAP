@@ -24,6 +24,7 @@ import Convenios from "@/pages/Convenios";
 import FRP from "@/pages/FRP";
 import ReportExport from "@/pages/ReportExport";
 import Trash from "@/pages/Trash";
+import RejectedSteps from "@/pages/RejectedSteps";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -288,6 +289,14 @@ function Router() {
       <Route path="/trash">
         <Layout>
           <Trash />
+        </Layout>
+      </Route>
+      
+      <Route path="/rejected-steps">
+        <Layout>
+          <AdminProtectedRoute>
+            <RejectedSteps />
+          </AdminProtectedRoute>
         </Layout>
       </Route>
       

@@ -1126,6 +1126,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para buscar etapas rejeitadas (apenas para administradores)
+  app.get('/api/steps/rejected', isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const rejectedSteps = await storage.getRejectedSteps();
+      res.json(rejectedSteps);
+    } catch (error) {
+      console.error("Erro ao buscar etapas rejeitadas:", error);
+      res.status(500).json({ message: "Erro ao buscar etapas rejeitadas", error });
+    }
+  });
+
   // Rota para buscar histórico de responsabilidades de um processo específico
   app.get('/api/processes/:processId/responsibility-history', isAuthenticated, async (req, res) => {
     try {

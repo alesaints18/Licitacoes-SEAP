@@ -831,6 +831,50 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
+
+  async getRejectedSteps(): Promise<any[]> {
+    try {
+      console.log('Buscando etapas rejeitadas...');
+      
+      const rejectedSteps = await db
+        .select({
+          id: processSteps.id,
+          processId: processSteps.processId,
+          stepName: processSteps.stepName,
+          observations: processSteps.observations,
+          rejectedAt: processSteps.rejectedAt,
+          rejectionStatus: processSteps.rejectionStatus,
+          process: {
+            pbdocNumber: processes.pbdocNumber,
+            description: processes.description,
+          },
+          department: {
+            name: departments.name,
+          },
+          completedBy: {
+            username: users.username,
+          },
+        })
+        .from(processSteps)
+        .leftJoin(processes, eq(processSteps.processId, processes.id))
+        .leftJoin(departments, eq(processSteps.departmentId, departments.id))
+        .leftJoin(users, eq(processSteps.completedBy, users.id))
+        .where(
+          and(
+            eq(processSteps.rejectionStatus, 'rejected_with_approval'),
+            isNotNull(processSteps.rejectedAt)
+          )
+        )
+        .orderBy(desc(processSteps.rejectedAt));
+      
+      console.log(`Etapas rejeitadas encontradas: ${rejectedSteps.length}`);
+      
+      return rejectedSteps;
+    } catch (error) {
+      console.error('Erro ao buscar etapas rejeitadas:', error);
+      return [];
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();

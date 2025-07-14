@@ -593,9 +593,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         "PATCH",
         `/api/processes/${parsedId}/steps/${stepToReject.id}`,
         {
-          isCompleted: false,
-          observations: rejectionReason.trim(),
+          isCompleted: true, // Marcamos como concluída para permitir continuidade do fluxo
+          observations: `[REJEITADO] ${rejectionReason.trim()}`,
           rejectedAt: new Date().toISOString(),
+          rejectionStatus: "rejected_with_approval" // Novo status para identificar rejeições aprovadas
         },
       );
 
@@ -608,8 +609,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         });
 
         toast({
-          title: "Etapa rejeitada",
-          description: "A etapa foi rejeitada com sucesso.",
+          title: "Etapa rejeitada com aprovação",
+          description: "A etapa foi rejeitada mas o processo pode continuar. O administrador será notificado para revisão.",
         });
 
         setRejectModalOpen(false);

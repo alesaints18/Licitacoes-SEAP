@@ -74,6 +74,8 @@ export const processSteps = pgTable('process_steps', {
   completedAt: timestamp('completed_at'),
   completedBy: integer('completed_by'),
   dueDate: timestamp('due_date'),
+  rejectedAt: timestamp('rejected_at'), // Data da rejeição
+  rejectionStatus: text('rejection_status'), // 'rejected_with_approval' para rejeições que permitem continuidade
 });
 
 // Process participants table - controla quais usuários e setores têm acesso a cada processo

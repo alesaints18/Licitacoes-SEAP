@@ -173,6 +173,9 @@ export interface IStorage {
 
   // Process responsibility history operations
   addProcessResponsibilityHistory(history: any): Promise<any>;
+  
+  // Rejected steps operations
+  getRejectedSteps(): Promise<any[]>;
   getProcessResponsibilityHistory(processId: number): Promise<any[]>;
   getProcessResponsibilityHistoryWithDetails(processId: number): Promise<any[]>;
 }

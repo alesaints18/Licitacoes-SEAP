@@ -12,6 +12,7 @@ import {
   ChevronDown,
   ChevronRight,
   Trash2,
+  AlertTriangle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -64,6 +65,12 @@ const Sidebar = () => {
         path: "/reports",
         icon: <BarChart2 className="h-5 w-5 mr-3" />,
         label: "Relatórios",
+        adminOnly: true,
+      },
+      {
+        path: "/rejected-steps",
+        icon: <AlertTriangle className="h-5 w-5 mr-3" />,
+        label: "Etapas Rejeitadas",
         adminOnly: true,
       },
       {
