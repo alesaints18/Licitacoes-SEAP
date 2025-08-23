@@ -201,10 +201,10 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         stepDepartmentId: step.departmentId,
         currentDeptId,
         userDepartment,
-        isAdmin: currentUser?.role === 'admin'
+        isAdmin: (currentUser as any)?.role === 'admin'
       });
       // Admin pode ver todas as etapas de autorização
-      if (currentUser?.role === 'admin') {
+      if ((currentUser as any)?.role === 'admin') {
         return true;
       }
       return step.departmentId === currentDeptId;

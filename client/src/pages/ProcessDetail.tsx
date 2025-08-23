@@ -73,6 +73,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [activeTab, setActiveTab] = useState("overview");
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [authorizationModalOpen, setAuthorizationModalOpen] = useState(false);
   const [deletionReason, setDeletionReason] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
@@ -628,6 +629,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       const step = steps?.find((s) => s.id === stepId);
       if (!step) return;
+
+      // Se é etapa de Autorização pelo Secretário SEAP e está sendo marcada como concluída, abrir modal
+      if (step.stepName === "Autorização pelo Secretário SEAP" && isCompleted) {
+        console.log("🔥 Etapa de Autorização detectada - abrindo modal em branco");
+        setAuthorizationModalOpen(true);
+        return; // Não continua com a conclusão ainda
+      }
 
       const response = await apiRequest(
         "PATCH",
@@ -1955,6 +1963,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal em Branco para Autorização */}
+      <Dialog open={authorizationModalOpen} onOpenChange={setAuthorizationModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          {/* Modal em branco conforme solicitado */}
         </DialogContent>
       </Dialog>
     </div>
