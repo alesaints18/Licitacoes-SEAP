@@ -224,18 +224,42 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   // Determinar os departamentos disponíveis baseado no fluxo específico
   const availableDepartments = [];
   
+  // Função auxiliar para verificar se NPP completou suas etapas
+  const isNPPCompleted = () => {
+    const nppSteps = [
+      "Pesquisa de Preços",
+      "Mapa Comparativo de Preços"
+    ];
+    
+    return nppSteps.every(stepName => {
+      const step = processSteps?.find(s => s.stepName === stepName);
+      return step?.isCompleted;
+    });
+  };
+
   // Fluxo customizado baseado no departamento atual
   if (process.currentDepartmentId === 1) {
     // Setor Demandante → Divisão de Licitação
     const nextDepartment = departments?.find(d => d.id === 2);
     if (nextDepartment) availableDepartments.push(nextDepartment);
   } else if (process.currentDepartmentId === 2) {
-    // Divisão de Licitação → NPP
-    const nextDepartment = departments?.find(d => d.id === 3);
-    if (nextDepartment) availableDepartments.push(nextDepartment);
+    // Divisão de Licitação - lógica condicional baseada no status NPP
+    if (isNPPCompleted()) {
+      // Se NPP já completou, segunda etapa da Divisão vai direto para Orçamento
+      const nextDepartment = departments?.find(d => d.id === 4); // Unidade de Orçamento e Finanças
+      if (nextDepartment) availableDepartments.push(nextDepartment);
+    } else {
+      // Primeira etapa da Divisão vai para NPP
+      const nextDepartment = departments?.find(d => d.id === 3); // NPP
+      if (nextDepartment) availableDepartments.push(nextDepartment);
+    }
   } else if (process.currentDepartmentId === 3) {
     // NPP → Divisão de Licitação (retorno)
     const nextDepartment = departments?.find(d => d.id === 2);
+    if (nextDepartment) availableDepartments.push(nextDepartment);
+  } else if (process.currentDepartmentId === 4) {
+    // Unidade de Orçamento e Finanças → Secretário SEAP
+    const nextDepartment = departments?.find(d => d.id === 5);
     if (nextDepartment) availableDepartments.push(nextDepartment);
   } else {
     // Fluxo sequencial padrão para outros departamentos
