@@ -228,7 +228,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   const handleToggleStep = async (step: ProcessStep) => {
     try {
       // Verificar se a etapa requer decisão (específica do Secretário SEAP)
-      if (!step.isCompleted && step.stepName === "Autorização Solicitada pelo Secretário SEAP") {
+      if (!step.isCompleted && step.stepName === "Autorização pelo Secretário SEAP") {
         setStepForDecision(step);
         setPrimaryDecision("");
         setCascadeDecision("");
