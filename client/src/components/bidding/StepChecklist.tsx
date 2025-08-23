@@ -250,6 +250,42 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
       createInitialSteps();
     }
   }, [steps, processId, queryClient, modalityId, toast]);
+
+  // Função para criar etapas condicionais no setor SEAP
+  const createConditionalStepsIfNeeded = async () => {
+    const conditionalSteps = [
+      "Devolver para correção ou arquivamento",
+      "Solicitar ajuste/aditivo do plano de trabalho", 
+      "Solicitar disponibilização de orçamento",
+      "Autorizar emissão de R.O."
+    ];
+    
+    for (const stepName of conditionalSteps) {
+      const existingStep = steps?.find(s => s.stepName === stepName && s.departmentId === 5);
+      if (!existingStep) {
+        console.log(`Criando etapa condicional: ${stepName}`);
+        await apiRequest("POST", `/api/processes/${processId}/steps`, {
+          stepName: stepName,
+          departmentId: 5, // SEAP
+          isCompleted: false,
+          isLocked: true, // Bloqueada até decisão de autorização
+          observations: "Etapa condicional - aguardando decisão de autorização"
+        });
+      }
+    }
+    
+    queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
+  };
+
+  // Effect para criar etapas condicionais quando há etapa de autorização
+  useEffect(() => {
+    if (steps && processId) {
+      const hasAuthorizationStep = steps.find(s => s.stepName === "Autorização pelo Secretário SEAP");
+      if (hasAuthorizationStep) {
+        createConditionalStepsIfNeeded();
+      }
+    }
+  }, [steps, processId]);
   
   const handleStepClick = (step: ProcessStep) => {
     setActiveStep(step);
@@ -260,10 +296,21 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     console.log("🔍 handleToggleStep chamado:", {
       stepName: step.stepName,
       isCompleted: step.isCompleted,
-      stepId: step.id
+      stepId: step.id,
+      isLocked: step.isLocked
     });
     
     try {
+      // Verificar se a etapa está bloqueada
+      if (step.isLocked && !step.isCompleted) {
+        toast({
+          title: "Etapa bloqueada",
+          description: "Esta etapa precisa ser liberada primeiro através de uma decisão de autorização.",
+          variant: "destructive"
+        });
+        return;
+      }
+
       // Se é etapa de Autorização pelo Secretário SEAP, abrir modal em branco
       if (step.stepName === "Autorização pelo Secretário SEAP") {
         console.log("🔥 Etapa de Autorização detectada - abrindo modal");
@@ -348,7 +395,8 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
           stepName: step.stepName,
           departmentId: step.departmentId,
           isCompleted: true,
-          observations: null
+          observations: null,
+          isLocked: step.isLocked || false
         });
         
         if (createResponse.ok) {
@@ -436,21 +484,23 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         });
       }
       
-      // Criar próxima etapa baseada na decisão
-      let nextStepName = "";
+      // Liberar etapa específica baseada na decisão
+      let stepToUnlock = "";
       if (authorizationDecision === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL") {
-        nextStepName = "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO";
+        stepToUnlock = "Solicitar disponibilização de orçamento";
       } else if (authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA") {
-        nextStepName = "Autorizar emissão R.O";
+        stepToUnlock = "Autorizar emissão de R.O.";
       }
       
-      if (nextStepName) {
-        await apiRequest("POST", `/api/processes/${processId}/steps`, {
-          stepName: nextStepName,
-          departmentId: 5, // Secretário de Estado da Administração Penitenciária - SEAP
-          isCompleted: false,
-          observations: `Criada automaticamente pela decisão: ${authorizationDecision}`
-        });
+      // Liberar a etapa correspondente
+      if (stepToUnlock) {
+        const stepToUnlockObj = steps?.find(s => s.stepName === stepToUnlock && s.departmentId === 5);
+        if (stepToUnlockObj) {
+          await apiRequest("PATCH", `/api/processes/${processId}/steps/${stepToUnlockObj.id}`, {
+            observations: `Etapa liberada pela decisão: ${authorizationDecision}`,
+            isLocked: false // Desbloquear a etapa
+          });
+        }
       }
       
       // Refetch steps after updating
