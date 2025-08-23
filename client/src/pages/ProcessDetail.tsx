@@ -62,7 +62,6 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 
-
 interface ProcessDetailProps {
   id: string;
 }
@@ -79,6 +78,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
+  
+  // Estados para modal de aprovação
+  const [approveModalOpen, setApproveModalOpen] = useState(false);
+  const [stepToApprove, setStepToApprove] = useState<ProcessStep | null>(null);
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
   const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
@@ -101,16 +104,25 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     // Mapeamento de departamentos para imagens específicas
     const departmentImages = {
       "Setor Demandante": "/fluxograma-setor-demandante_1752443886669.png",
-      "Divisão de Licitação": "/fluxograma-divisão-de-licitação_1752443886668.png",
-      "Núcleo de Pesquisa de Preços – NPP": "/fluxograma-nucleo-de-pesquisa-de-precos-npp_1752443886668.png",
-      "Procuradoria Geral do Estado - PGE": "/fluxograma-procuradoria-geral-do-estado-pge_1752443886669.png",
-      "Unidade de Orçamento e Finanças": "/fluxograma-unidade-de-orcamento-e-financas_1752443886670.png",
-      "Secretário de Estado da Administração Penitenciária - SEAP": "/fluxograma-secretario-de-estado-da-administracao-penitenciaria-seap_1752443886669.png",
+      "Divisão de Licitação":
+        "/fluxograma-divisão-de-licitação_1752443886668.png",
+      "Núcleo de Pesquisa de Preços – NPP":
+        "/fluxograma-nucleo-de-pesquisa-de-precos-npp_1752443886668.png",
+      "Procuradoria Geral do Estado - PGE":
+        "/fluxograma-procuradoria-geral-do-estado-pge_1752443886669.png",
+      "Unidade de Orçamento e Finanças":
+        "/fluxograma-unidade-de-orcamento-e-financas_1752443886670.png",
+      "Secretário de Estado da Administração Penitenciária - SEAP":
+        "/fluxograma-secretario-de-estado-da-administracao-penitenciaria-seap_1752443886669.png",
       "Equipe de Pregão": "/fluxograma-equipe-de-pregao_1752443886668.png",
-      "Controladoria Geral do Estado – CGE": "/fluxograma-controladoria-geral-do-estado-cge_1752443886667.png",
-      "Comitê Gestor do Plano de Contingência - CGPC": "/fluxograma-comite-gestor-do-plano-de-contigencia-cgpc_1752443886667.png",
-      "Unidade Técnico Normativa": "/fluxograma-unidade-tecnico-normativa_1752443886665.png",
-      "Subgerência de Contratos e  Convênios - SUBCC": "/fluxograma-subgerencia-de-contratos-e-convenios-SUBCC_1752443886670.png",
+      "Controladoria Geral do Estado – CGE":
+        "/fluxograma-controladoria-geral-do-estado-cge_1752443886667.png",
+      "Comitê Gestor do Plano de Contingência - CGPC":
+        "/fluxograma-comite-gestor-do-plano-de-contigencia-cgpc_1752443886667.png",
+      "Unidade Técnico Normativa":
+        "/fluxograma-unidade-tecnico-normativa_1752443886665.png",
+      "Subgerência de Contratos e  Convênios - SUBCC":
+        "/fluxograma-subgerencia-de-contratos-e-convenios-SUBCC_1752443886670.png",
     };
 
     return (
@@ -126,10 +138,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Núcleo de Pesquisa de Preços – NPP": "Pesquisa de Preços",
       "Procuradoria Geral do Estado - PGE": "Análise Jurídica",
       "Unidade de Orçamento e Finanças": "Análise Orçamentária",
-      "Secretário de Estado da Administração Penitenciária - SEAP": "Autorização Final",
+      "Secretário de Estado da Administração Penitenciária - SEAP":
+        "Autorização Final",
       "Equipe de Pregão": "Condução de Sessões",
       "Controladoria Geral do Estado – CGE": "Controle e Auditoria",
-      "Comitê Gestor do Plano de Contingência - CGPC": "Análise de Contingência",
+      "Comitê Gestor do Plano de Contingência - CGPC":
+        "Análise de Contingência",
       "Unidade Técnico Normativa": "Normas Técnicas",
       "Subgerência de Contratos e  Convênios - SUBCC": "Gestão de Contratos",
     };
@@ -226,10 +240,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   });
 
   // Get process responsibility history
-  const {
-    data: responsibilityHistory,
-    isLoading: historyLoading,
-  } = useQuery<any[]>({
+  const { data: responsibilityHistory, isLoading: historyLoading } = useQuery<
+    any[]
+  >({
     queryKey: [`/api/processes/${parsedId}/responsibility-history`],
     enabled: !!process,
   });
@@ -340,7 +353,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Procuradoria Geral do Estado - PGE": "Jurídico",
       "Secretário de Estado da Administração  Penitenciária - SEAP":
         "Administrativo",
-      "Secretário de Estado da Administração Penitenciária - SEAP": "Administrativo",
+      "Secretário de Estado da Administração Penitenciária - SEAP":
+        "Administrativo",
       Planejamento: "TI", // Mapeamento para o departamento atual do usuário admin
       TI: "TI",
       Licitações: "Licitações",
@@ -356,13 +370,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
     // Verificar se NPP completou suas etapas principais
     const isNPPCompleted = () => {
-      const nppSteps = [
-        "Pesquisa de Preços",
-        "Mapa Comparativo de Preços"
-      ];
-      
-      return nppSteps.every(stepName => {
-        const step = steps?.find(s => s.stepName === stepName);
+      const nppSteps = ["Pesquisa de Preços", "Mapa Comparativo de Preços"];
+
+      return nppSteps.every((stepName) => {
+        const step = steps?.find((s) => s.stepName === stepName);
         return step?.isCompleted;
       });
     };
@@ -405,16 +416,18 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           phase: "Preparação",
         },
         // Estas etapas só aparecem após NPP completar
-        ...(isNPPCompleted() ? [
-          {
-            name: "Inserir Pesquisa no Sistema",
-            phase: "Execução",
-          },
-          {
-            name: "Solicitar Análise Orçamentária",
-            phase: "Execução",
-          },
-        ] : []),
+        ...(isNPPCompleted()
+          ? [
+              {
+                name: "Inserir Pesquisa no Sistema",
+                phase: "Execução",
+              },
+              {
+                name: "Solicitar Análise Orçamentária",
+                phase: "Execução",
+              },
+            ]
+          : []),
       ],
 
       // NPP - Núcleo de Pesquisa de Preços
@@ -453,8 +466,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         {
           name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.",
           phase: "Execução",
-          nextSector: "Administrativo"
-        }
+          nextSector: "Administrativo",
+        },
       ],
 
       // Administrativo - Secretário SEAP
@@ -466,10 +479,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           decisionOptions: {
             primary: [
               "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
-              "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-            ]
-          }
-        }
+              "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO",
+            ],
+          },
+        },
       ],
     };
 
@@ -574,7 +587,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           isCompleted: true, // Marcamos como concluída para permitir continuidade do fluxo
           observations: `[REJEITADO] ${rejectionReason.trim()}`,
           rejectedAt: new Date().toISOString(),
-          rejectionStatus: "rejected_with_approval" // Novo status para identificar rejeições aprovadas
+          rejectionStatus: "rejected_with_approval", // Novo status para identificar rejeições aprovadas
         },
       );
 
@@ -588,7 +601,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         toast({
           title: "Etapa rejeitada com aprovação",
-          description: "A etapa foi rejeitada mas o processo pode continuar. O administrador será notificado para revisão.",
+          description:
+            "A etapa foi rejeitada mas o processo pode continuar. O administrador será notificado para revisão.",
         });
 
         setRejectModalOpen(false);
@@ -665,7 +679,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     if (deletionReason.trim().length < 10) {
       toast({
         title: "Motivo obrigatório",
-        description: "Por favor, informe o motivo da exclusão (mínimo 10 caracteres)",
+        description:
+          "Por favor, informe o motivo da exclusão (mínimo 10 caracteres)",
         variant: "destructive",
       });
       return;
@@ -794,8 +809,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             Editar
           </Button>
 
-          <Button 
-            variant="destructive" 
+          <Button
+            variant="destructive"
             onClick={() => setDeleteModalOpen(true)}
           >
             <Trash className="h-4 w-4 mr-2" />
@@ -864,28 +879,48 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       </dt>
                       <dd className="text-sm text-gray-900 col-span-2">
                         {historyLoading ? (
-                          <div className="text-xs text-gray-500">Carregando histórico...</div>
-                        ) : responsibilityHistory && responsibilityHistory.length > 0 ? (
+                          <div className="text-xs text-gray-500">
+                            Carregando histórico...
+                          </div>
+                        ) : responsibilityHistory &&
+                          responsibilityHistory.length > 0 ? (
                           <div className="space-y-2">
                             {responsibilityHistory.map((history, index) => (
-                              <div key={history.id} className="flex items-start space-x-2">
+                              <div
+                                key={history.id}
+                                className="flex items-start space-x-2"
+                              >
                                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div>
                                 <div className="flex-1">
                                   <div className="text-xs text-gray-900">
-                                    <span className="font-medium">{history.fullName || history.username}</span>
+                                    <span className="font-medium">
+                                      {history.fullName || history.username}
+                                    </span>
                                     {history.departmentName && (
-                                      <span className="text-gray-500"> ({history.departmentName})</span>
+                                      <span className="text-gray-500">
+                                        {" "}
+                                        ({history.departmentName})
+                                      </span>
                                     )}
                                   </div>
                                   <div className="text-xs text-gray-500">
-                                    {history.action === 'created' ? 'Criou o processo' : 
-                                     history.action === 'updated' ? 'Modificou o processo' :
-                                     history.action === 'transferred' ? 'Transferiu o processo' :
-                                     history.action === 'returned' ? 'Retornou o processo' :
-                                     history.description || history.action}
+                                    {history.action === "created"
+                                      ? "Criou o processo"
+                                      : history.action === "updated"
+                                        ? "Modificou o processo"
+                                        : history.action === "transferred"
+                                          ? "Transferiu o processo"
+                                          : history.action === "returned"
+                                            ? "Retornou o processo"
+                                            : history.description ||
+                                              history.action}
                                   </div>
                                   <div className="text-xs text-gray-400">
-                                    {format(new Date(history.timestamp), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                                    {format(
+                                      new Date(history.timestamp),
+                                      "dd/MM/yyyy HH:mm",
+                                      { locale: ptBR },
+                                    )}
                                   </div>
                                 </div>
                               </div>
@@ -893,7 +928,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                           </div>
                         ) : (
                           <div className="text-xs text-gray-500">
-                            Responsável atual: {responsible?.fullName || `Usuário ${process.responsibleId}`}
+                            Responsável atual:{" "}
+                            {responsible?.fullName ||
+                              `Usuário ${process.responsibleId}`}
                             {process.responsibleSince && (
                               <div className="mt-1 text-xs text-blue-600 flex items-center">
                                 <Clock className="h-3 w-3 mr-1" />
@@ -1220,6 +1257,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               if (response.ok) {
                                                 const newStep =
                                                   await response.json();
+
                                                 // Rejeitar a etapa criada
                                                 handleStepReject(newStep);
                                               }
@@ -1481,8 +1519,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   </CardContent>
                 </Card>
               )}
-
-
             </div>
           </div>
         </TabsContent>
@@ -1507,11 +1543,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     processId={process.id}
                     modalityId={process.modalityId}
                     userDepartment={currentUser.department}
+                    onApproveStep={(step) => {
+                      setStepToApprove(step);
+                      setApproveModalOpen(true);
+                    }}
                   />
                 )}
               </CardContent>
             </Card>
-
           </div>
         </TabsContent>
 
@@ -1822,6 +1861,73 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         </DialogContent>
       </Dialog>
 
+      {/* Modal de Aprovação */}
+      <Dialog open={approveModalOpen} onOpenChange={setApproveModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <Check className="h-5 w-5" />
+              Aprovar Etapa
+            </DialogTitle>
+            <DialogDescription>
+              {stepToApprove && (
+                <>
+                  Você está aprovando a etapa:{" "}
+                  <strong>{stepToApprove.stepName}</strong>
+                  <br />Escolha uma das opções de autorização:
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="approval-decision"
+                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                    className="mt-1"
+                  />
+                  <span className="text-sm font-medium">
+                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                  </span>
+                </label>
+              </div>
+
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="approval-decision"
+                    value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                    className="mt-1"
+                  />
+                  <span className="text-sm font-medium">
+                    💰 RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setApproveModalOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Aprovar Etapa
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Modal de Tela Cheia para Fluxograma */}
       {isFullScreen && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
@@ -1874,7 +1980,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 {fullScreenViewMode === "complete"
                   ? "Visualizando fluxograma completo do processo de licitação"
                   : `Visualizando imagem específica: ${currentUser?.department}`}
-                {" • Use os botões +/- para alternar entre 100%, 300% e 500% de zoom. Arraste para mover a imagem"}
+                {
+                  " • Use os botões +/- para alternar entre 100%, 300% e 500% de zoom. Arraste para mover a imagem"
+                }
               </p>
             </div>
           </div>
@@ -1887,7 +1995,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           <DialogHeader>
             <DialogTitle>Confirmar Exclusão</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir este processo? O processo será movido para a lixeira.
+              Tem certeza que deseja excluir este processo? O processo será
+              movido para a lixeira.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">

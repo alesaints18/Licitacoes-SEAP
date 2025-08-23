@@ -22,9 +22,10 @@ interface StepChecklistProps {
   processId: number;
   modalityId: number;
   userDepartment: string;
+  onApproveStep?: (step: ProcessStep) => void;
 }
 
-const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistProps) => {
+const StepChecklist = ({ processId, modalityId, userDepartment, onApproveStep }: StepChecklistProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeStep, setActiveStep] = useState<ProcessStep | null>(null);
@@ -541,6 +542,11 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                             id={`step-${step.id}`} 
                             checked={step.isCompleted}
                             onCheckedChange={(checked) => {
+                              if (step.stepName === "AUTORIZAR" && checked) {
+                                // Para etapa AUTORIZAR, abrir modal especial
+                                onApproveStep?.(step);
+                                return false;
+                              }
                               handleToggleStep(step);
                             }}
                             onClick={(e) => e.stopPropagation()}
@@ -586,6 +592,11 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               variant={step.isCompleted ? "secondary" : "default"}
                               onClick={(e) => {
                                 e.stopPropagation();
+                                if (step.stepName === "AUTORIZAR") {
+                                  // Para etapa AUTORIZAR, abrir modal especial
+                                  onApproveStep?.(step);
+                                  return;
+                                }
                                 handleToggleStep(step);
                               }}
                               className="h-7 w-7 p-0"
