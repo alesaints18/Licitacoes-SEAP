@@ -539,13 +539,15 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                           <Checkbox 
                             id={`step-${step.id}`} 
                             checked={step.isCompleted}
-                            onCheckedChange={() => {
-                              console.log("🚨 CHECKBOX CLICADO:", step.stepName);
+                            onCheckedChange={(checked) => {
+                              console.log("🚨 CHECKBOX CLICADO:", step.stepName, "checked:", checked);
                               if (step.stepName === "AUTORIZAR") {
-                                console.log("⚠️ AUTORIZAR VIA CHECKBOX - FORÇANDO MODAL");
+                                console.log("⚠️ AUTORIZAR DETECTADO - IMPEDINDO ATUALIZAÇÃO");
                                 setStepForDecision(step);
+                                setPrimaryDecision("");
+                                setCascadeDecision("");
                                 setDecisionModalOpen(true);
-                                return;
+                                return false; // Impedir mudança
                               }
                               handleToggleStep(step);
                             }}

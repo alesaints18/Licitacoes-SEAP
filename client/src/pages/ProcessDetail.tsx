@@ -612,11 +612,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const handleStepToggle = async (stepId: number, isCompleted: boolean) => {
     try {
       console.log(
-        `Atualizando etapa ${stepId} para isCompleted: ${isCompleted}`,
+        `🔍 ProcessDetail handleStepToggle: ${stepId} para isCompleted: ${isCompleted}`,
       );
 
       const step = steps?.find((s) => s.id === stepId);
       if (!step) return;
+
+      // INTERCEPTAR AUTORIZAR AQUI TAMBÉM!
+      if (step.stepName === "AUTORIZAR") {
+        console.log("🔥 AUTORIZAR interceptado no ProcessDetail - ABORTANDO!");
+        return; // BLOQUEAR atualização
+      }
 
       const response = await apiRequest(
         "PATCH",
