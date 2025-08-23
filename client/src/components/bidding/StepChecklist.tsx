@@ -316,17 +316,6 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     setRejectModalOpen(true);
   };
 
-  const handleApproveStep = (step: ProcessStep) => {
-    if (step.stepName === "AUTORIZAR") {
-      setStepForDecision(step);
-      setPrimaryDecision("");
-      setCascadeDecision("");
-      setDecisionModalOpen(true);
-    } else {
-      handleToggleStep(step);
-    }
-  };
-
   const submitRejection = async () => {
     if (!stepToReject || rejectionReason.trim().length < 100) {
       toast({
@@ -552,12 +541,6 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                             id={`step-${step.id}`} 
                             checked={step.isCompleted}
                             onCheckedChange={(checked) => {
-                              console.log("🚨 CHECKBOX CLICADO:", step.stepName, "checked:", checked);
-                              if (step.stepName === "AUTORIZAR" && checked) {
-                                console.log("⚠️ AUTORIZAR DETECTADO - ABRINDO MODAL DE DECISÃO");
-                                handleApproveStep(step);
-                                return false; // Impedir mudança
-                              }
                               handleToggleStep(step);
                             }}
                             onClick={(e) => e.stopPropagation()}
@@ -603,12 +586,6 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               variant={step.isCompleted ? "secondary" : "default"}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                console.log("🚨 BOTÃO APROVAR CLICADO:", step.stepName);
-                                if (step.stepName === "AUTORIZAR") {
-                                  console.log("⚠️ ETAPA AUTORIZAR DETECTADA - ABRINDO MODAL DE DECISÃO");
-                                  handleApproveStep(step);
-                                  return;
-                                }
                                 handleToggleStep(step);
                               }}
                               className="h-7 w-7 p-0"
@@ -718,81 +695,6 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Decisão de Autorização */}
-      <Dialog open={decisionModalOpen} onOpenChange={setDecisionModalOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-blue-600">
-              <Check className="h-5 w-5" />
-              Decisão de Autorização - SEAP
-            </DialogTitle>
-            <DialogDescription>
-              Você está autorizando a etapa: <strong>{stepForDecision?.stepName}</strong>
-              <br />
-              Escolha uma das opções para processar a autorização do processo:
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <div>
-                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="decision"
-                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
-                    checked={primaryDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
-                    onChange={(e) => setPrimaryDecision(e.target.value)}
-                    className="mt-1"
-                  />
-                  <span className="text-sm font-medium">
-                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
-                  </span>
-                </label>
-              </div>
-
-              <div>
-                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="decision"
-                    value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                    checked={primaryDecision === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
-                    onChange={(e) => setPrimaryDecision(e.target.value)}
-                    className="mt-1"
-                  />
-                  <span className="text-sm font-medium">
-                    💰 RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
-                  </span>
-                </label>
-              </div>
-            </div>
-            
-            <div className="flex space-x-3">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setDecisionModalOpen(false);
-                  setPrimaryDecision("");
-                  setCascadeDecision("");
-                  setStepForDecision(null);
-                }}
-                disabled={isSubmittingDecision}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={submitDecision}
-                disabled={!primaryDecision || isSubmittingDecision}
-                className="flex-1"
-              >
-                {isSubmittingDecision ? "Processando..." : "✅ Confirmar Decisão"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
