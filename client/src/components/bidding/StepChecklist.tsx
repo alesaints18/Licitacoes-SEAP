@@ -264,13 +264,23 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
       const existingStep = steps?.find(s => s.stepName === stepName && s.departmentId === 5);
       if (!existingStep) {
         console.log(`Criando etapa condicional: ${stepName}`);
-        await apiRequest("POST", `/api/processes/${processId}/steps`, {
+        const response = await apiRequest("POST", `/api/processes/${processId}/steps`, {
           stepName: stepName,
           departmentId: 5, // SEAP
           isCompleted: false,
           isLocked: true, // Bloqueada até decisão de autorização
           observations: "Etapa condicional - aguardando decisão de autorização"
         });
+        
+        console.log(`Etapa ${stepName} criada:`, response.ok);
+        
+        // Forçar bloqueio via SQL caso não tenha funcionado no POST
+        if (response.ok) {
+          const stepData = await response.json();
+          await apiRequest("PATCH", `/api/processes/${processId}/steps/${stepData.id}`, {
+            isLocked: true
+          });
+        }
       }
     }
     
@@ -741,16 +751,23 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                       {phaseSteps.map((step) => (
                         <div 
                           key={step.id} 
-                          className={`flex items-start space-x-3 p-3 rounded-md border bg-white ${
-                            activeStep && activeStep.id === step.id ? "border-blue-500 shadow-md" : "border-gray-200"
-                          } cursor-pointer hover:shadow-sm transition-shadow`}
-                          onClick={() => handleStepClick(step)}
+                          className={`flex items-start space-x-3 p-3 rounded-md border ${
+                            step.isLocked ? 
+                              "bg-gray-100 border-gray-300 opacity-60" :
+                              activeStep && activeStep.id === step.id ? 
+                                "bg-white border-blue-500 shadow-md" : 
+                                "bg-white border-gray-200"
+                          } ${step.isLocked ? "cursor-not-allowed" : "cursor-pointer hover:shadow-sm"} transition-shadow`}
+                          onClick={() => !step.isLocked && handleStepClick(step)}
                         >
                           <Checkbox 
                             id={`step-${step.id}`} 
                             checked={step.isCompleted}
+                            disabled={step.isLocked && !step.isCompleted}
                             onCheckedChange={(checked) => {
-                              handleToggleStep(step);
+                              if (!step.isLocked) {
+                                handleToggleStep(step);
+                              }
                             }}
                             onClick={(e) => e.stopPropagation()}
                           />
@@ -758,12 +775,18 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                             <Label
                               htmlFor={`step-${step.id}`}
                               className={`text-sm font-medium ${
+                                step.isLocked ? "text-gray-400" :
                                 step.isCompleted ? "line-through text-gray-500" : 
                                 step.observations && step.observations.startsWith("REJEITADA:") ? "text-red-600" :
                                 "text-gray-800"
                               }`}
                             >
                               {step.stepName}
+                              {step.isLocked && (
+                                <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">
+                                  🔒 Bloqueada
+                                </span>
+                              )}
                             </Label>
                             <div className="flex items-center gap-3 text-xs text-gray-500">
                               <span>
