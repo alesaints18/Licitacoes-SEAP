@@ -2043,36 +2043,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                         observations: `Criada automaticamente pela decisão: ${authorizationMotivo}`
                       });
 
-                      // 4. Se for FLUXO REAVALIAÇÃO, marcar como concluído direto na criação
-                      if (nextStepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO") {
-                        // Aguardar um momento para garantir que a etapa foi criada
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        
-                        // Buscar a etapa recém-criada e marcar como concluída
-                        try {
-                          const updatedSteps = await apiRequest("GET", `/api/processes/${process.id}/steps`);
-                          const reavaliationStep = updatedSteps.find((s: any) => 
-                            s.stepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO" && 
-                            s.departmentId === 11 && 
-                            !s.isCompleted
-                          );
-                          
-                          if (reavaliationStep) {
-                            await apiRequest("PATCH", `/api/processes/${process.id}/steps/${reavaliationStep.id}`, {
-                              isCompleted: true,
-                              observations: "Processo encerrado automaticamente - Reavaliação do Plano de Trabalho concluída"
-                            });
-
-                            // Arquivar processo (enviar para lixeira)
-                            await apiRequest("DELETE", `/api/processes/${process.id}`, {
-                              deletionReason: "Processo arquivado automaticamente após reavaliação do plano de trabalho"
-                            });
-                          }
-                        } catch (autoCompleteError) {
-                          console.error("Erro no encerramento automático:", autoCompleteError);
-                          // Continua mesmo se der erro no encerramento automático
-                        }
-                      }
+                      // 4. Se for FLUXO REAVALIAÇÃO, será arquivado automaticamente na transferência para SUBCC
                     }
 
                     // 5. Atualizar dados
@@ -2082,7 +2053,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     // 6. Mensagem de feedback
                     let toastDescription = `Decisão: ${authorizationMotivo}`;
                     if (nextStepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO") {
-                      toastDescription += ". Processo arquivado e enviado para lixeira automaticamente.";
+                      toastDescription += ". Processo será arquivado ao ser transferido para SUBCC.";
                     } else if (nextStepName) {
                       toastDescription += `. Próxima etapa: ${nextStepName}`;
                     }

@@ -1115,17 +1115,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         departmentId: departmentId
       });
       
-      // 6. Notificar via WebSocket sobre a transferência
-      broadcast({
-        type: 'process_transferred',
-        processId,
-        oldDepartmentId,
-        departmentId,
-        message: `Processo ${process.pbdocNumber} transferido de ${oldDepartmentId} para ${department.name}`,
-        timestamp: new Date().toISOString()
-      });
-      
-      console.log(`Transferência concluída: Processo ${processId} transferido para departamento ${departmentId}`);
+      // 6. Se transferido para SUBCC (departmentId = 11), arquivar automaticamente
+      if (departmentId === 11) {
+        console.log(`Processo ${processId} transferido para SUBCC - arquivando automaticamente`);
+        await storage.deleteProcess(processId, userId, "Processo arquivado automaticamente ao chegar na SUBCC");
+        
+        // Notificar arquivamento via WebSocket
+        broadcast({
+          type: 'process_deleted',
+          processId: processId,
+          message: `Processo ${process.pbdocNumber} arquivado automaticamente na SUBCC`,
+          timestamp: new Date().toISOString()
+        });
+        
+        console.log(`Processo ${processId} arquivado automaticamente na SUBCC`);
+      } else {
+        // Notificar transferência normal via WebSocket
+        broadcast({
+          type: 'process_transferred',
+          processId,
+          oldDepartmentId,
+          departmentId,
+          message: `Processo ${process.pbdocNumber} transferido de ${oldDepartmentId} para ${department.name}`,
+          timestamp: new Date().toISOString()
+        });
+        
+        console.log(`Transferência concluída: Processo ${processId} transferido para departamento ${departmentId}`);
+      }
       
       res.status(200).json(updatedProcess);
     } catch (error) {
