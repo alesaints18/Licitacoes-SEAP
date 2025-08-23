@@ -544,12 +544,16 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               console.log("🚨 CHECKBOX CLICADO:", step.stepName, "checked:", checked);
                               if (step.stepName === "AUTORIZAR") {
                                 console.log("⚠️ AUTORIZAR DETECTADO - IMPEDINDO ATUALIZAÇÃO");
-                                console.log("🔥 Abrindo modal de decisão...");
+                                console.log("🔥 Abrindo modal SIMPLES...");
                                 setStepForDecision(step);
                                 setPrimaryDecision("");
                                 setCascadeDecision("");
+                                console.log("📝 Estado antes:", decisionModalOpen);
                                 setDecisionModalOpen(true);
-                                console.log("✅ Modal deveria estar aberto agora");
+                                console.log("📝 Estado depois: TRUE");
+                                setTimeout(() => {
+                                  console.log("📝 Estado depois de 100ms:", decisionModalOpen);
+                                }, 100);
                                 return false; // Impedir mudança
                               }
                               handleToggleStep(step);
@@ -599,13 +603,13 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                                 e.stopPropagation();
                                 console.log("🚨 BOTÃO CLICADO:", step.stepName);
                                 if (step.stepName === "AUTORIZAR") {
-                                  console.log("⚠️ AUTORIZAR VIA BOTÃO - FORÇANDO MODAL");
-                                  console.log("🔥 Configurando step e abrindo modal...");
+                                  console.log("⚠️ AUTORIZAR VIA BOTÃO - FORÇANDO MODAL SIMPLES");
                                   setStepForDecision(step);
                                   setPrimaryDecision("");
                                   setCascadeDecision("");
+                                  console.log("📝 Estado modal antes:", decisionModalOpen);
                                   setDecisionModalOpen(true);
-                                  console.log("✅ Modal deveria estar aberto agora, state:", true);
+                                  console.log("📝 Estado modal depois: TRUE");
                                   return;
                                 }
                                 handleToggleStep(step);
@@ -717,70 +721,62 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Decisão de Autorização */}
-      <Dialog open={decisionModalOpen} onOpenChange={setDecisionModalOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Decisão de Autorização</DialogTitle>
-            <DialogDescription>
-              Escolha uma das opções para processar a autorização:
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">Selecione uma opção:</Label>
-              
-              <div className="space-y-2">
-                <div className="flex items-start space-x-3">
+      {/* Modal Simples de Teste */}
+      {decisionModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-lg font-bold mb-4 text-center">🔥 MODAL DE AUTORIZAÇÃO FUNCIONANDO! 🔥</h2>
+            
+            <div className="space-y-3 mb-6">
+              <div>
+                <label className="flex items-start space-x-2">
                   <input
                     type="radio"
-                    id="nao-autorizar"
                     name="decision"
                     value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
                     checked={primaryDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
                     onChange={(e) => setPrimaryDecision(e.target.value)}
-                    className="mt-1"
                   />
-                  <label htmlFor="nao-autorizar" className="text-sm">
-                    NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
-                  </label>
-                </div>
+                  <span className="text-sm">NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA</span>
+                </label>
+              </div>
 
-                <div className="flex items-start space-x-3">
+              <div>
+                <label className="flex items-start space-x-2">
                   <input
                     type="radio"
-                    id="convenio-insuficiente"
                     name="decision"
                     value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
                     checked={primaryDecision === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
                     onChange={(e) => setPrimaryDecision(e.target.value)}
-                    className="mt-1"
                   />
-                  <label htmlFor="convenio-insuficiente" className="text-sm">
-                    RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
-                  </label>
-                </div>
+                  <span className="text-sm">RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO</span>
+                </label>
               </div>
             </div>
-          </div>
 
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setDecisionModalOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={submitDecision}
-              disabled={!primaryDecision || isSubmittingDecision}
-            >
-              {isSubmittingDecision ? "Processando..." : "Confirmar Decisão"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <div className="flex space-x-3">
+              <button
+                className="flex-1 px-4 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50"
+                onClick={() => {
+                  console.log("🛑 Modal cancelado");
+                  setDecisionModalOpen(false);
+                  setPrimaryDecision("");
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+                disabled={!primaryDecision || isSubmittingDecision}
+                onClick={submitDecision}
+              >
+                {isSubmittingDecision ? "Processando..." : "Confirmar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
