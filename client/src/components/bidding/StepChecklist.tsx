@@ -921,13 +921,13 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                     <input
                       type="radio"
                       name="authorization-decision"
-                      value="INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"
-                      checked={authorizationDecision === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"}
+                      value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                      checked={authorizationDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
                       onChange={(e) => setAuthorizationDecision(e.target.value)}
                       className="mt-1"
                     />
                     <span className="text-sm font-medium text-red-700">
-                      ❌ INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL
+                      ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
                     </span>
                   </label>
                 </div>
@@ -937,13 +937,13 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                     <input
                       type="radio"
                       name="authorization-decision"
-                      value="DISPONIBILIDADE ORÇAMENTÁRIA"
-                      checked={authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA"}
+                      value="OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                      checked={authorizationDecision === "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
                       onChange={(e) => setAuthorizationDecision(e.target.value)}
                       className="mt-1"
                     />
-                    <span className="text-sm font-medium text-green-700">
-                      ✅ DISPONIBILIDADE ORÇAMENTÁRIA
+                    <span className="text-sm font-medium text-orange-700">
+                      ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
                     </span>
                   </label>
                 </div>
