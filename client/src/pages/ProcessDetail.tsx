@@ -2031,7 +2031,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       targetDepartmentId = 2; // Divisão de Licitação
                     } else if (authorizationMotivo === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO") {
                       nextStepName = "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO";
-                      targetDepartmentId = process?.currentDepartmentId; // Mantém no departamento atual
+                      targetDepartmentId = 11; // Subgerência de Contratos e Convênios - SUBCC
                     }
 
                     // 3. Criar próxima etapa se especificada

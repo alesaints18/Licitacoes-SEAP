@@ -275,9 +275,9 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
         const divLicitacao = departments?.find(d => d.id === 2);
         if (divLicitacao) availableDepartments.push(divLicitacao);
       } else if (authStep.observations?.includes("RECURSO DE CONVÊNIO INSUFICIENTE")) {
-        // Mantém no mesmo departamento ou permite fluxo específico
-        const currentDept = departments?.find(d => d.id === 5);
-        if (currentDept) availableDepartments.push(currentDept);
+        // Pode transferir para SUBCC
+        const subcc = departments?.find(d => d.id === 11);
+        if (subcc) availableDepartments.push(subcc);
       }
     }
   } else {
