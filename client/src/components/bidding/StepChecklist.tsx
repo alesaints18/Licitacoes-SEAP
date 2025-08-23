@@ -316,6 +316,17 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     setRejectModalOpen(true);
   };
 
+  const handleApproveStep = (step: ProcessStep) => {
+    if (step.stepName === "AUTORIZAR") {
+      setStepForDecision(step);
+      setPrimaryDecision("");
+      setCascadeDecision("");
+      setDecisionModalOpen(true);
+    } else {
+      handleToggleStep(step);
+    }
+  };
+
   const submitRejection = async () => {
     if (!stepToReject || rejectionReason.trim().length < 100) {
       toast({
@@ -544,11 +555,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               console.log("🚨 CHECKBOX CLICADO:", step.stepName, "checked:", checked);
                               if (step.stepName === "AUTORIZAR" && checked) {
                                 console.log("⚠️ AUTORIZAR DETECTADO - ABRINDO MODAL DE DECISÃO");
-                                setStepForDecision(step);
-                                setPrimaryDecision("");
-                                setCascadeDecision("");
-                                setDecisionModalOpen(true);
-                                console.log("✅ Modal de autorização aberto");
+                                handleApproveStep(step);
                                 return false; // Impedir mudança
                               }
                               handleToggleStep(step);
@@ -599,11 +606,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                                 console.log("🚨 BOTÃO APROVAR CLICADO:", step.stepName);
                                 if (step.stepName === "AUTORIZAR") {
                                   console.log("⚠️ ETAPA AUTORIZAR DETECTADA - ABRINDO MODAL DE DECISÃO");
-                                  setStepForDecision(step);
-                                  setPrimaryDecision("");
-                                  setCascadeDecision("");
-                                  setDecisionModalOpen(true);
-                                  console.log("✅ Modal de autorização aberto");
+                                  handleApproveStep(step);
                                   return;
                                 }
                                 handleToggleStep(step);
@@ -716,17 +719,22 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
       </Dialog>
 
       {/* Modal de Decisão de Autorização */}
-      {decisionModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
-            <h2 className="text-lg font-bold mb-4 text-center text-blue-800">
-              🏛️ Decisão de Autorização - SEAP
-            </h2>
-            <p className="text-sm text-gray-600 mb-6 text-center">
+      <Dialog open={decisionModalOpen} onOpenChange={setDecisionModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-blue-600">
+              <Check className="h-5 w-5" />
+              Decisão de Autorização - SEAP
+            </DialogTitle>
+            <DialogDescription>
+              Você está autorizando a etapa: <strong>{stepForDecision?.stepName}</strong>
+              <br />
               Escolha uma das opções para processar a autorização do processo:
-            </p>
-            
-            <div className="space-y-4 mb-6">
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-3">
               <div>
                 <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                   <input
@@ -759,41 +767,32 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                 </label>
               </div>
             </div>
-
+            
             <div className="flex space-x-3">
-              <button
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+              <Button
+                variant="outline"
                 onClick={() => {
-                  console.log("🛑 Modal de autorização cancelado");
                   setDecisionModalOpen(false);
                   setPrimaryDecision("");
                   setCascadeDecision("");
                   setStepForDecision(null);
                 }}
+                disabled={isSubmittingDecision}
+                className="flex-1"
               >
                 Cancelar
-              </button>
-              <button
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
-                disabled={!primaryDecision || isSubmittingDecision}
+              </Button>
+              <Button
                 onClick={submitDecision}
+                disabled={!primaryDecision || isSubmittingDecision}
+                className="flex-1"
               >
-                {isSubmittingDecision ? (
-                  <span className="flex items-center justify-center">
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processando...
-                  </span>
-                ) : (
-                  "✅ Confirmar Decisão"
-                )}
-              </button>
+                {isSubmittingDecision ? "Processando..." : "✅ Confirmar Decisão"}
+              </Button>
             </div>
           </div>
-        </div>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
