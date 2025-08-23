@@ -459,7 +459,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       // Administrativo - Secretário SEAP
       Administrativo: [
         {
-          name: "Autorizar",
+          name: "Autorização pelo Secretário SEAP",
           phase: "Autorização",
           requiresDecision: true,
           decisionOptions: {
