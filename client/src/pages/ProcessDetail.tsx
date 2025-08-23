@@ -451,21 +451,18 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       Financeiro: [
         {
           name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.",
-          phase: "Execução",
+          phase: "Execução"
+        },
+        {
+          name: "Autorizar",
+          phase: "Autorização",
           nextSector: "Administrativo",
           requiresDecision: true,
           decisionOptions: {
-            primary: ["SIM", "NÃO"],
-            cascadeOptions: {
-              "SIM": [
-                "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL",
-                "DISPONIBILIDADE ORÇAMENTÁRIA"
-              ],
-              "NÃO": [
-                "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
-                "RECURSO DE CONVÊNIO INSUFICIENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-              ]
-            }
+            primary: [
+              "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
+              "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+            ]
           }
         }
       ],

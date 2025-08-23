@@ -227,20 +227,14 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   
   const handleToggleStep = async (step: ProcessStep) => {
     try {
-      console.log("handleToggleStep - Etapa clicada:", step.stepName);
-      console.log("handleToggleStep - isCompleted atual:", step.isCompleted);
-      
-      // Verificar se a etapa requer decisão (específica da Unidade de Orçamento e Finanças)
-      if (!step.isCompleted && step.stepName === "Informar Disponibilidade Orçamentária p/ Emissão de R.O.") {
-        console.log("DEVE ABRIR MODAL - Condições atendidas!");
+      // Verificar se a etapa requer decisão (específica da etapa Autorizar)
+      if (!step.isCompleted && step.stepName === "Autorizar") {
         setStepForDecision(step);
         setPrimaryDecision("");
         setCascadeDecision("");
         setDecisionModalOpen(true);
         return;
       }
-      
-      console.log("Modal não será aberto - condições não atendidas");
 
       // Se a etapa não existe, criar primeiro
       if (!step.id) {
@@ -358,10 +352,10 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   };
 
   const submitDecision = async () => {
-    if (!stepForDecision || !primaryDecision || !cascadeDecision) {
+    if (!stepForDecision || !primaryDecision) {
       toast({
         title: "Decisão incompleta",
-        description: "Por favor, selecione todas as opções necessárias",
+        description: "Por favor, selecione uma opção",
         variant: "destructive",
       });
       return;
@@ -370,16 +364,14 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     setIsSubmittingDecision(true);
 
     try {
-      const decisionSummary = `Decisão: ${primaryDecision} → ${cascadeDecision}`;
-      
       // Concluir a etapa com a decisão tomada
       await apiRequest("PATCH", `/api/processes/${processId}/steps/${stepForDecision.id}`, {
         isCompleted: true,
-        observations: decisionSummary
+        observations: `DECISÃO: ${primaryDecision}`
       });
       
       // Processar ações baseadas na decisão
-      await processDecisionActions(primaryDecision, cascadeDecision);
+      // (aqui podem ser adicionadas ações específicas se necessário)
       
       // Refetch steps after updating
       queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
@@ -584,8 +576,6 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               variant={step.isCompleted ? "secondary" : "default"}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                console.log("BOTÃO ✓ CLICADO! Etapa:", step.stepName);
-                                console.log("Step completo:", step);
                                 handleToggleStep(step);
                               }}
                               className="h-7 w-7 p-0"
@@ -695,84 +685,46 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Decisão da Unidade de Orçamento e Finanças */}
+      {/* Modal de Decisão de Autorização */}
       <Dialog open={decisionModalOpen} onOpenChange={setDecisionModalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-blue-600">
               <Check className="h-5 w-5" />
-              Disponibilidade Orçamentária
+              Decisão de Autorização
             </DialogTitle>
             <DialogDescription>
-              Selecione sua decisão sobre a disponibilidade orçamentária
+              Selecione sua decisão sobre a autorização da despesa
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Decisão Principal */}
+            {/* Opções de Decisão */}
             <div>
               <label className="block text-sm font-medium mb-3">
-                Decisão Principal <span className="text-red-500">*</span>
+                Selecione a Opção <span className="text-red-500">*</span>
               </label>
-              <div className="space-y-2">
-                {["SIM", "NÃO"].map((option) => (
-                  <label key={option} className="flex items-center space-x-3 cursor-pointer">
+              <div className="space-y-3">
+                {[
+                  "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
+                  "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                ].map((option) => (
+                  <label key={option} className="flex items-start space-x-3 cursor-pointer">
                     <input
                       type="radio"
                       name="primaryDecision"
                       value={option}
                       checked={primaryDecision === option}
-                      onChange={(e) => {
-                        setPrimaryDecision(e.target.value);
-                        setCascadeDecision(""); // Reset cascade when primary changes
-                      }}
-                      className="w-4 h-4 text-blue-600"
+                      onChange={(e) => setPrimaryDecision(e.target.value)}
+                      className="w-4 h-4 mt-1 text-blue-600"
                     />
-                    <span className={`text-sm ${primaryDecision === option ? "font-medium" : ""}`}>
+                    <span className={`text-sm leading-relaxed ${primaryDecision === option ? "font-medium" : ""}`}>
                       {option}
                     </span>
                   </label>
                 ))}
               </div>
             </div>
-
-            {/* Opções em Cascata */}
-            {primaryDecision && (
-              <div>
-                <label className="block text-sm font-medium mb-3">
-                  Especificação da Decisão <span className="text-red-500">*</span>
-                </label>
-                <div className="space-y-2">
-                  {(() => {
-                    const options = primaryDecision === "SIM" 
-                      ? [
-                          "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL",
-                          "DISPONIBILIDADE ORÇAMENTÁRIA"
-                        ]
-                      : [
-                          "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
-                          "RECURSO DE CONVÊNIO INSUFICIENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                        ];
-                    
-                    return options.map((option) => (
-                      <label key={option} className="flex items-start space-x-3 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="cascadeDecision"
-                          value={option}
-                          checked={cascadeDecision === option}
-                          onChange={(e) => setCascadeDecision(e.target.value)}
-                          className="w-4 h-4 mt-1 text-blue-600"
-                        />
-                        <span className={`text-sm leading-relaxed ${cascadeDecision === option ? "font-medium" : ""}`}>
-                          {option}
-                        </span>
-                      </label>
-                    ));
-                  })()}
-                </div>
-              </div>
-            )}
             
             <div className="flex space-x-3 pt-4">
               <Button
@@ -789,7 +741,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
               </Button>
               <Button
                 onClick={submitDecision}
-                disabled={!primaryDecision || !cascadeDecision || isSubmittingDecision}
+                disabled={!primaryDecision || isSubmittingDecision}
                 className="flex-1"
               >
                 {isSubmittingDecision ? "Processando..." : "Confirmar Decisão"}
