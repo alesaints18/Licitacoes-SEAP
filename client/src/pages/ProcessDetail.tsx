@@ -2168,13 +2168,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-rejection-decision"
-                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
-                    checked={authorizationRejectionDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
+                    value="INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"
+                    checked={authorizationRejectionDecision === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"}
                     onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
                     className="mt-1"
                   />
                   <span className="text-sm font-medium text-red-700">
-                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                    ❌ INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL
                   </span>
                 </label>
               </div>
@@ -2184,13 +2184,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-rejection-decision"
-                    value="OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                    checked={authorizationRejectionDecision === "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                    value="DISPONIBILIDADE ORÇAMENTÁRIA"
+                    checked={authorizationRejectionDecision === "DISPONIBILIDADE ORÇAMENTÁRIA"}
                     onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
                     className="mt-1"
                   />
-                  <span className="text-sm font-medium text-orange-700">
-                    ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                  <span className="text-sm font-medium text-green-700">
+                    ✅ DISPONIBILIDADE ORÇAMENTÁRIA
                   </span>
                 </label>
               </div>
