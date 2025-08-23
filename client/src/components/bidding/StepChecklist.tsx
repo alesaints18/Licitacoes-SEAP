@@ -164,10 +164,15 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   
   // Filtrar etapas do setor atual, mostrando apenas as pendentes (não concluídas)
   const filteredSteps = steps?.filter(step => {
-    const sectorSteps = getSectorSpecificSteps();
-    const isFromCurrentSector = sectorSteps.some(sectorStep => step.stepName === sectorStep.name);
-    // Mostrar apenas etapas do setor atual que NÃO estão concluídas
-    return isFromCurrentSector && !step.isCompleted;
+    const currentDeptId = departmentMap[userDepartment];
+    
+    // Excluir etapas de "Transferência de Setor" (são automáticas)
+    if (step.stepName === "Transferência de Setor") {
+      return false;
+    }
+    
+    // Mostrar apenas etapas do departamento atual que NÃO estão concluídas
+    return step.departmentId === currentDeptId && !step.isCompleted;
   }) || [];
 
   // Create initial steps if none exist
@@ -400,18 +405,19 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
             <div className="space-y-6">
               {/* Resumo de etapas concluídas */}
               {(() => {
-                const sectorSteps = getSectorSpecificSteps();
-                const completedSteps = steps?.filter(step => {
-                  const isFromCurrentSector = sectorSteps.some(sectorStep => step.stepName === sectorStep.name);
-                  return isFromCurrentSector && step.isCompleted;
-                }) || [];
+                const currentDeptId = departmentMap[userDepartment];
+                const allSectorSteps = steps?.filter(step => 
+                  step.departmentId === currentDeptId && 
+                  step.stepName !== "Transferência de Setor"
+                ) || [];
+                const completedSteps = allSectorSteps.filter(step => step.isCompleted);
                 
                 if (completedSteps.length > 0) {
                   return (
                     <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-medium text-green-800">
-                          ✓ {completedSteps.length} de {sectorSteps.length} etapas concluídas
+                          ✓ {completedSteps.length} de {allSectorSteps.length} etapas concluídas
                         </span>
                         <span className="text-xs text-green-600">
                           (etapas concluídas ocultas)
