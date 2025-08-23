@@ -451,12 +451,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       Financeiro: [
         {
           name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.",
-          phase: "Execução"
-        },
+          phase: "Execução",
+          nextSector: "Administrativo"
+        }
+      ],
+
+      // Administrativo - Secretário SEAP
+      Administrativo: [
         {
           name: "Autorizar",
           phase: "Autorização",
-          nextSector: "Administrativo",
           requiresDecision: true,
           decisionOptions: {
             primary: [
@@ -464,14 +468,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
             ]
           }
-        }
-      ],
-
-      // Administrativo - Secretário SEAP
-      Administrativo: [
-        {
-          name: "Autorização pelo Secretário SEAP",
-          phase: "Autorização"
         }
       ],
     };
