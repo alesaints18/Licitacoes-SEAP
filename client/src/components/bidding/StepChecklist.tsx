@@ -227,8 +227,8 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   
   const handleToggleStep = async (step: ProcessStep) => {
     try {
-      // Verificar se a etapa requer decisão (específica do Secretário SEAP)
-      if (!step.isCompleted && step.stepName === "Autorização pelo Secretário SEAP") {
+      // Verificar se a etapa requer decisão (específica da Unidade de Orçamento e Finanças)
+      if (!step.isCompleted && step.stepName === "Informar Disponibilidade Orçamentária p/ Emissão de R.O.") {
         setStepForDecision(step);
         setPrimaryDecision("");
         setCascadeDecision("");
@@ -687,16 +687,16 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Decisão do Secretário SEAP */}
+      {/* Modal de Decisão da Unidade de Orçamento e Finanças */}
       <Dialog open={decisionModalOpen} onOpenChange={setDecisionModalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-blue-600">
               <Check className="h-5 w-5" />
-              Autorização do Secretário SEAP
+              Disponibilidade Orçamentária
             </DialogTitle>
             <DialogDescription>
-              Selecione sua decisão sobre a autorização da despesa
+              Selecione sua decisão sobre a disponibilidade orçamentária
             </DialogDescription>
           </DialogHeader>
           

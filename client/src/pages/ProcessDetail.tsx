@@ -453,14 +453,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.",
           phase: "Execução",
           nextSector: "Administrativo",
-        }
-      ],
-
-      // Administrativo - Secretário SEAP
-      Administrativo: [
-        {
-          name: "Autorização pelo Secretário SEAP",
-          phase: "Autorização",
           requiresDecision: true,
           decisionOptions: {
             primary: ["SIM", "NÃO"],
@@ -475,6 +467,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               ]
             }
           }
+        }
+      ],
+
+      // Administrativo - Secretário SEAP
+      Administrativo: [
+        {
+          name: "Autorização pelo Secretário SEAP",
+          phase: "Autorização"
         }
       ],
     };
