@@ -2096,13 +2096,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-decision"
-                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
-                    checked={authorizationDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
+                    value="INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"
+                    checked={authorizationDecision === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"}
                     onChange={(e) => setAuthorizationDecision(e.target.value)}
                     className="mt-1"
                   />
                   <span className="text-sm font-medium text-red-700">
-                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                    ❌ INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL
                   </span>
                 </label>
               </div>
@@ -2112,13 +2112,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-decision"
-                    value="OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                    checked={authorizationDecision === "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                    value="DISPONIBILIDADE ORÇAMENTÁRIA"
+                    checked={authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA"}
                     onChange={(e) => setAuthorizationDecision(e.target.value)}
                     className="mt-1"
                   />
-                  <span className="text-sm font-medium text-orange-700">
-                    ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                  <span className="text-sm font-medium text-green-700">
+                    ✅ DISPONIBILIDADE ORÇAMENTÁRIA
                   </span>
                 </label>
               </div>
@@ -2168,13 +2168,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-rejection-decision"
-                    value="INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"
-                    checked={authorizationRejectionDecision === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"}
+                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                    checked={authorizationRejectionDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
                     onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
                     className="mt-1"
                   />
                   <span className="text-sm font-medium text-red-700">
-                    ❌ INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL
+                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
                   </span>
                 </label>
               </div>
@@ -2184,13 +2184,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-rejection-decision"
-                    value="DISPONIBILIDADE ORÇAMENTÁRIA"
-                    checked={authorizationRejectionDecision === "DISPONIBILIDADE ORÇAMENTÁRIA"}
+                    value="OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                    checked={authorizationRejectionDecision === "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
                     onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
                     className="mt-1"
                   />
-                  <span className="text-sm font-medium text-green-700">
-                    ✅ DISPONIBILIDADE ORÇAMENTÁRIA
+                  <span className="text-sm font-medium text-orange-700">
+                    ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
                   </span>
                 </label>
               </div>
