@@ -1515,6 +1515,29 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           </div>
         </TabsContent>
 
+        {/* BOTÃO DE TESTE MODAL - TEMPORÁRIO */}
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 9999,
+          backgroundColor: '#dc2626',
+          color: 'white',
+          padding: '15px 25px',
+          borderRadius: '8px',
+          border: '3px solid #991b1b',
+          fontSize: '18px',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          boxShadow: '0 6px 12px rgba(0,0,0,0.4)'
+        }}
+        onClick={() => {
+          alert('🔥 TESTE: Se você vê este alerta, o clique funciona!');
+          console.log('🧪 TESTE DIRETO FUNCIONOU - BOTÃO NA PÁGINA!');
+        }}>
+          🧪 TESTE MODAL
+        </div>
+
         <TabsContent value="flow">
           <div className="space-y-6">
             <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border">
