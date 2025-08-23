@@ -22,7 +22,6 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   const [showReturnPanel, setShowReturnPanel] = useState(false);
   const [allowAllPreviousDepartments, setAllowAllPreviousDepartments] = useState(false);
   const [selectedReturnDepartment, setSelectedReturnDepartment] = useState<string>("");
-  const [authorizationDecision, setAuthorizationDecision] = useState<string>("");
   const parsedId = parseInt(id);
 
   // Get process details
@@ -294,55 +293,6 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
           <div>
             <label className="block text-sm font-medium mb-4">Fluxo de Transferência</label>
             
-            {/* Campo de Autorização - aparece apenas quando Autorização pelo Secretário SEAP foi concluída e segue para próxima etapa */}
-            {(() => {
-              // Verificar se existe etapa Autorização pelo Secretário SEAP, se ela está concluída e não foi rejeitada
-              const authorizationStep = steps?.find(step => step.stepName === "Autorização pelo Secretário SEAP");
-              const hasCompletedAuthorizationStep = authorizationStep && 
-                authorizationStep.isCompleted && 
-                !authorizationStep.observations?.startsWith("REJEITADA:");
-              
-              return hasCompletedAuthorizationStep && (
-                <div className="mb-6 p-4 border border-gray-200 rounded-lg bg-yellow-50">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Decisão de Autorização (SEAP)
-                  </label>
-                  <div className="space-y-3">
-                    <div>
-                      <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="authorization-decision"
-                          value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
-                          checked={authorizationDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
-                          onChange={(e) => setAuthorizationDecision(e.target.value)}
-                          className="mt-1"
-                        />
-                        <span className="text-sm font-medium text-red-700">
-                          ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
-                        </span>
-                      </label>
-                    </div>
-
-                    <div>
-                      <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="authorization-decision"
-                          value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                          checked={authorizationDecision === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
-                          onChange={(e) => setAuthorizationDecision(e.target.value)}
-                          className="mt-1"
-                        />
-                        <span className="text-sm font-medium text-orange-700">
-                          💰 RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
             
             {/* Visualização do fluxo de departamentos */}
             <div className="space-y-4">

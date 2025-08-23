@@ -40,6 +40,8 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   const [primaryDecision, setPrimaryDecision] = useState<string>("");
   const [cascadeDecision, setCascadeDecision] = useState<string>("");
   const [isSubmittingDecision, setIsSubmittingDecision] = useState(false);
+  const [showAuthorizationField, setShowAuthorizationField] = useState(false);
+  const [authorizationDecision, setAuthorizationDecision] = useState("");
   
   // Fetch process steps
   const { data: steps, isLoading, error } = useQuery<ProcessStep[]>({
@@ -234,6 +236,13 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     });
     
     try {
+      // Se é etapa de Autorização pelo Secretário SEAP e está sendo marcada como concluída, mostrar campo de autorização
+      if (step.stepName === "Autorização pelo Secretário SEAP" && !step.isCompleted) {
+        console.log("🔥 Etapa de Autorização detectada - mostrando campo de decisão");
+        setShowAuthorizationField(true);
+        setActiveStep(step); // Define como etapa ativa para exibir o campo
+        return; // Não continua com a conclusão ainda
+      }
 
       // Se a etapa não existe, criar primeiro
       if (!step.id) {
@@ -305,6 +314,50 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     setStepToReject(step);
     setRejectionReason("");
     setRejectModalOpen(true);
+  };
+
+  // Função para completar a autorização com a decisão escolhida
+  const handleAuthorizationComplete = async () => {
+    if (!activeStep || !authorizationDecision) return;
+    
+    try {
+      // Completar a etapa com a decisão de autorização como observação
+      if (!activeStep.id) {
+        // Criar etapa se não existe
+        await apiRequest("POST", `/api/processes/${processId}/steps`, {
+          stepName: activeStep.stepName,
+          departmentId: activeStep.departmentId,
+          isCompleted: true,
+          observations: `AUTORIZAÇÃO: ${authorizationDecision}`
+        });
+      } else {
+        // Atualizar etapa existente
+        await apiRequest("PATCH", `/api/processes/${processId}/steps/${activeStep.id}`, {
+          isCompleted: true,
+          observations: `AUTORIZAÇÃO: ${authorizationDecision}`
+        });
+      }
+      
+      // Refetch steps after updating
+      queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
+      
+      toast({
+        title: "Etapa de Autorização concluída",
+        description: `Decisão: ${authorizationDecision}`,
+      });
+      
+      // Limpar estados
+      setShowAuthorizationField(false);
+      setAuthorizationDecision("");
+      setActiveStep(null);
+      
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível completar a autorização",
+        variant: "destructive",
+      });
+    }
   };
 
   const submitRejection = async () => {
@@ -624,6 +677,77 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                 />
               </div>
               <Button onClick={saveObservation}>Salvar Observações</Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Campo de Autorização - aparece apenas quando clica em "Etapa concluída" na etapa de autorização */}
+      {showAuthorizationField && activeStep?.stepName === "Autorização pelo Secretário SEAP" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-yellow-600">
+              🏛️ Decisão de Autorização (SEAP)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600 mb-4">
+                Escolha uma das opções de autorização antes de concluir a etapa:
+              </p>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="authorization-decision"
+                      value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                      checked={authorizationDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
+                      onChange={(e) => setAuthorizationDecision(e.target.value)}
+                      className="mt-1"
+                    />
+                    <span className="text-sm font-medium text-red-700">
+                      ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                    </span>
+                  </label>
+                </div>
+
+                <div>
+                  <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="authorization-decision"
+                      value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                      checked={authorizationDecision === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                      onChange={(e) => setAuthorizationDecision(e.target.value)}
+                      className="mt-1"
+                    />
+                    <span className="text-sm font-medium text-orange-700">
+                      💰 RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setShowAuthorizationField(false);
+                    setAuthorizationDecision("");
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  className="bg-green-600 hover:bg-green-700 text-white"
+                  disabled={!authorizationDecision}
+                  onClick={handleAuthorizationComplete}
+                >
+                  Confirmar e Concluir Etapa
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
