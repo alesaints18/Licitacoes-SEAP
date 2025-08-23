@@ -79,9 +79,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
   
-  // Estados para modal de aprovação
-  const [approveModalOpen, setApproveModalOpen] = useState(false);
-  const [stepToApprove, setStepToApprove] = useState<ProcessStep | null>(null);
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
   const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
@@ -1543,10 +1540,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     processId={process.id}
                     modalityId={process.modalityId}
                     userDepartment={currentUser.department}
-                    onApproveStep={(step) => {
-                      setStepToApprove(step);
-                      setApproveModalOpen(true);
-                    }}
                   />
                 )}
               </CardContent>
@@ -1861,72 +1854,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal de Aprovação */}
-      <Dialog open={approveModalOpen} onOpenChange={setApproveModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-green-600">
-              <Check className="h-5 w-5" />
-              Aprovar Etapa
-            </DialogTitle>
-            <DialogDescription>
-              {stepToApprove && (
-                <>
-                  Você está aprovando a etapa:{" "}
-                  <strong>{stepToApprove.stepName}</strong>
-                  <br />Escolha uma das opções de autorização:
-                </>
-              )}
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4">
-            <div className="space-y-3">
-              <div>
-                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="approval-decision"
-                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
-                    className="mt-1"
-                  />
-                  <span className="text-sm font-medium">
-                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
-                  </span>
-                </label>
-              </div>
-
-              <div>
-                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="approval-decision"
-                    value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                    className="mt-1"
-                  />
-                  <span className="text-sm font-medium">
-                    💰 RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
-                  </span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex gap-3 justify-end mt-6">
-            <Button
-              variant="outline"
-              onClick={() => setApproveModalOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              Aprovar Etapa
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Modal de Tela Cheia para Fluxograma */}
       {isFullScreen && (
