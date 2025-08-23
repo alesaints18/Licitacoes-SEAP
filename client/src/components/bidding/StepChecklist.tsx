@@ -233,14 +233,14 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     });
     
     try {
-      // Verificar se a etapa requer decisão (específica da etapa AUTORIZAR)
-      if (!step.isCompleted && step.stepName === "AUTORIZAR") {
-        console.log("🔥 AUTORIZAR detectado - abrindo modal");
+      // SEMPRE interceptar AUTORIZAR - não importa o status
+      if (step.stepName === "AUTORIZAR") {
+        console.log("🔥 AUTORIZAR detectado - BLOQUEANDO ATUALIZAÇÃO e abrindo modal");
         setStepForDecision(step);
         setPrimaryDecision("");
         setCascadeDecision("");
         setDecisionModalOpen(true);
-        return; // Não prosseguir com a atualização ainda
+        return; // BLOQUEAR qualquer atualização
       }
 
       // Se a etapa não existe, criar primeiro
