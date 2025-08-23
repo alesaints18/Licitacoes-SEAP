@@ -227,14 +227,20 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   
   const handleToggleStep = async (step: ProcessStep) => {
     try {
+      console.log("handleToggleStep - Etapa clicada:", step.stepName);
+      console.log("handleToggleStep - isCompleted atual:", step.isCompleted);
+      
       // Verificar se a etapa requer decisão (específica da Unidade de Orçamento e Finanças)
       if (!step.isCompleted && step.stepName === "Informar Disponibilidade Orçamentária p/ Emissão de R.O.") {
+        console.log("DEVE ABRIR MODAL - Condições atendidas!");
         setStepForDecision(step);
         setPrimaryDecision("");
         setCascadeDecision("");
         setDecisionModalOpen(true);
         return;
       }
+      
+      console.log("Modal não será aberto - condições não atendidas");
 
       // Se a etapa não existe, criar primeiro
       if (!step.id) {
