@@ -79,6 +79,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
   const [authorizationModalOpen, setAuthorizationModalOpen] = useState(false);
+  const [authorizationDecision, setAuthorizationDecision] = useState("");
+  const [stepForAuthorization, setStepForAuthorization] = useState<ProcessStep | null>(null);
 
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
@@ -632,8 +634,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       // Verificar se é a etapa de Autorização pelo Secretário SEAP
       if (step.stepName.includes("Autorização pelo Secretário SEAP") && isCompleted) {
-        console.log("🔥 Etapa de Autorização detectada - abrindo modal de autorização");
+        console.log("🔥 ProcessDetail - Etapa de Autorização detectada - abrindo modal de autorização");
+        setStepForAuthorization(step);
         setAuthorizationModalOpen(true);
+        setAuthorizationDecision(""); // Limpar seleção anterior
         return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
       }
 
@@ -668,6 +672,52 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       toast({
         title: "Erro",
         description: "Não foi possível atualizar a etapa.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Função para completar autorização depois de escolher a opção
+  const handleAuthorizationComplete = async () => {
+    if (!stepForAuthorization || !authorizationDecision) {
+      return;
+    }
+
+    try {
+      console.log("🔥 ProcessDetail - Completando autorização com decisão:", authorizationDecision);
+      
+      const response = await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepForAuthorization.id}`,
+        {
+          isCompleted: true,
+          comment: `Autorização: ${authorizationDecision}`,
+          userId: currentUser?.id,
+        },
+      );
+
+      if (response.ok) {
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}`],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}/steps`],
+        });
+
+        toast({
+          title: "✅ Etapa Aprovada",
+          description: `Autorização concluída: ${authorizationDecision}`,
+        });
+
+        // Fechar modal e limpar estados
+        setAuthorizationModalOpen(false);
+        setAuthorizationDecision("");
+        setStepForAuthorization(null);
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao completar autorização",
         variant: "destructive",
       });
     }
@@ -1542,8 +1592,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     processId={process.id}
                     modalityId={process.modalityId}
                     userDepartment={currentUser.department}
-                    authorizationModalOpen={authorizationModalOpen}
-                    setAuthorizationModalOpen={setAuthorizationModalOpen}
                   />
                 )}
               </CardContent>
@@ -1962,6 +2010,78 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 disabled={isDeleting || deletionReason.trim().length < 10}
               >
                 {isDeleting ? "Excluindo..." : "Excluir"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para Aprovar Etapa de Autorização */}
+      <Dialog open={authorizationModalOpen} onOpenChange={setAuthorizationModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <Check className="h-5 w-5" />
+              Aprovar Etapa de Autorização
+            </DialogTitle>
+            <DialogDescription>
+              Selecione uma das opções de autorização para a etapa: <strong>Autorização pelo Secretário SEAP</strong>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="authorization-decision"
+                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                    checked={authorizationDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
+                    onChange={(e) => setAuthorizationDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <span className="text-sm font-medium text-red-700">
+                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                  </span>
+                </label>
+              </div>
+
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="authorization-decision"
+                    value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                    checked={authorizationDecision === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                    onChange={(e) => setAuthorizationDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <span className="text-sm font-medium text-orange-700">
+                    ⚠️ RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                  </span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAuthorizationModalOpen(false);
+                  setAuthorizationDecision("");
+                  setStepForAuthorization(null);
+                }}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                disabled={!authorizationDecision}
+                onClick={handleAuthorizationComplete}
+              >
+                Confirmar Aprovação
               </Button>
             </div>
           </div>
