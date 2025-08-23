@@ -78,6 +78,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
+  const [authorizationModalOpen, setAuthorizationModalOpen] = useState(false);
 
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
@@ -628,6 +629,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       const step = steps?.find((s) => s.id === stepId);
       if (!step) return;
+
+      // Verificar se é a etapa de Autorização pelo Secretário SEAP
+      if (step.stepName.includes("Autorização pelo Secretário SEAP") && isCompleted) {
+        console.log("🔥 Etapa de Autorização detectada - abrindo modal de autorização");
+        setAuthorizationModalOpen(true);
+        return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
+      }
 
       const response = await apiRequest(
         "PATCH",
@@ -1534,6 +1542,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     processId={process.id}
                     modalityId={process.modalityId}
                     userDepartment={currentUser.department}
+                    authorizationModalOpen={authorizationModalOpen}
+                    setAuthorizationModalOpen={setAuthorizationModalOpen}
                   />
                 )}
               </CardContent>
