@@ -2063,10 +2063,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                               observations: "Processo encerrado automaticamente - Reavaliação do Plano de Trabalho concluída"
                             });
 
-                            // Marcar processo como concluído
-                            await apiRequest("PATCH", `/api/processes/${process.id}`, {
-                              status: "completed",
-                              statusObservations: "Processo arquivado automaticamente após reavaliação do plano de trabalho"
+                            // Arquivar processo (enviar para lixeira)
+                            await apiRequest("DELETE", `/api/processes/${process.id}`, {
+                              deletionReason: "Processo arquivado automaticamente após reavaliação do plano de trabalho"
                             });
                           }
                         } catch (autoCompleteError) {
@@ -2083,7 +2082,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     // 6. Mensagem de feedback
                     let toastDescription = `Decisão: ${authorizationMotivo}`;
                     if (nextStepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO") {
-                      toastDescription += ". Processo encerrado e arquivado automaticamente.";
+                      toastDescription += ". Processo arquivado e enviado para lixeira automaticamente.";
                     } else if (nextStepName) {
                       toastDescription += `. Próxima etapa: ${nextStepName}`;
                     }
