@@ -30,54 +30,86 @@ function broadcast(data: any) {
   });
 }
 
-// Função para criar etapas padrão baseadas na modalidade
+// Função para criar etapas padrão baseadas na modalidade - NOVO FLUXOGRAMA
 async function createDefaultSteps(processId: number, modalityId: number) {
+  // Helper para calcular data de vencimento baseada em dias úteis
+  const addBusinessDays = (date: Date, days: number) => {
+    const result = new Date(date);
+    let count = 0;
+    while (count < days) {
+      result.setDate(result.getDate() + 1);
+      if (result.getDay() !== 0 && result.getDay() !== 6) { // Não é domingo (0) ou sábado (6)
+        count++;
+      }
+    }
+    return result;
+  };
+
+  const today = new Date();
+
   const defaultSteps = [
-    // FASE 1: INICIAÇÃO (Setor Demandante)
-    { name: "Documento de Formalização da Demanda - DFD", departmentId: 1, phase: "Iniciação" },
-    { name: "Estudo Técnico Preliminar - ETP", departmentId: 1, phase: "Iniciação" },
-    { name: "Mapa de Risco - MR", departmentId: 1, phase: "Iniciação" },
-    { name: "Termo de Referência - TR", departmentId: 1, phase: "Iniciação" },
+    // SETOR DEMANDANTE
+    { name: "Documento de Formalização da Demanda - DFD", departmentId: 1, phase: "Iniciação", daysLimit: 10 },
+    { name: "Estudo Técnico Preliminar - ETP", departmentId: 1, phase: "Iniciação", daysLimit: 10 },
+    { name: "Mapa de Risco - MR", departmentId: 1, phase: "Iniciação", daysLimit: 10 },
+    { name: "Termo de Referência - TR", departmentId: 1, phase: "Iniciação", daysLimit: 10 },
     
-    // FASE 2: PREPARAÇÃO INICIAL (Divisão de Licitação)
-    { name: "Criar Processo no Órgão", departmentId: 2, phase: "Preparação" },
-    { name: "Fazer Pesquisa de Preços no Órgão", departmentId: 2, phase: "Preparação" },
-    { name: "Solicitar Pesquisa de Preços", departmentId: 2, phase: "Preparação" },
+    // DIVISÃO DE LICITAÇÃO - PRIMEIRA ETAPA
+    { name: "Criar Processo - Órgão", departmentId: 2, phase: "Preparação", daysLimit: 2 },
+    { name: "Fazer Pesquisa de Preço - Órgão", departmentId: 2, phase: "Preparação", daysLimit: 2 },
+    { name: "Solicitar Pesquisa de Preços", departmentId: 2, phase: "Preparação", daysLimit: 2 },
     
-    // CHECKLIST NPP (Núcleo de Pesquisa de Preços - NPP)
-    { name: "Pesquisa de Preços", departmentId: 3, phase: "Preparação" },
-    { name: "Mapa Comparativo de Preços", departmentId: 3, phase: "Preparação" },
+    // NÚCLEO DE PESQUISA DE PREÇOS - NPP
+    { name: "Pesquisa de Preços", departmentId: 3, phase: "Preparação", daysLimit: 10 },
+    { name: "Mapa Comparativo de Preços", departmentId: 3, phase: "Preparação", daysLimit: 10 },
+    { name: "Metodologia da Pesquisa de Preços", departmentId: 3, phase: "Preparação", daysLimit: 10 },
     
-    // RETORNO DIVISÃO DE LICITAÇÃO (só após NPP completar)
-    { name: "Inserir Pesquisa no Sistema", departmentId: 2, phase: "Preparação" },
-    { name: "Solicitar Análise Orçamentária", departmentId: 2, phase: "Preparação" },
+    // DIVISÃO DE LICITAÇÃO - SEGUNDA ETAPA
+    { name: "Inserir Pesquisa no Sistema", departmentId: 2, phase: "Preparação", daysLimit: 1 },
+    { name: "Solicitar Análise Orçamentária", departmentId: 2, phase: "Preparação", daysLimit: 1 },
     
-    // ANÁLISE ORÇAMENTÁRIA (Unidade de Orçamento e Finanças)
-    { name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.", departmentId: 4, phase: "Execução" },
+    // UNIDADE DE ORÇAMENTO E FINANÇAS
+    { name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.", departmentId: 4, phase: "Execução", daysLimit: 1 },
     
-    // FASE 3: AUTORIZAÇÃO (Secretário SEAP)
-    { name: "Autorização Final pelo Secretário SEAP", departmentId: 5, phase: "Autorização" },
+    // SECRETÁRIO DE ESTADO DA ADMINISTRAÇÃO PENITENCIÁRIA - SEAP (AUTORIZAÇÃO)
+    { name: "Autorização pelo Secretário SEAP", departmentId: 5, phase: "Autorização", daysLimit: 2 },
     
-    // FASE 4: EXECUÇÃO (Divisão de Licitação)
-    { name: "Elaborar Edital e seus Anexos", departmentId: 2, phase: "Execução" },
-    { name: "Consultar Comitê Gestor de Gasto Público", departmentId: 2, phase: "Execução" },
+    // CONTINUAÇÃO DO FLUXO - ETAPAS CONDICIONAIS BÁSICAS
+    // Estas etapas serão criadas dinamicamente baseadas nas decisões anteriores
+    { name: "Inserir Dotação Orçamentária", departmentId: 2, phase: "Execução", daysLimit: 10 },
+    { name: "Elaborar Edital e seus Anexos", departmentId: 2, phase: "Execução", daysLimit: 10 },
+    { name: "Consultar Comitê Gestor de Gasto Público - CGGP", departmentId: 2, phase: "Execução", daysLimit: 10 },
     
-    // NOTA TÉCNICA (NPP)
-    { name: "Solicitar Elaboração de Nota Técnica", departmentId: 3, phase: "Execução" },
+    // COMITÊ GESTOR DE PLANO DE CONTINGÊNCIA - CGPC (ID verificado: 6)
+    { name: "Autorizar - Comitê Gestor de Plano de Contingência", departmentId: 6, phase: "Execução", daysLimit: 3 },
     
-    // FASE 5: PUBLICAÇÃO (Divisão de Licitação)
-    { name: "Publicar Edital", departmentId: 2, phase: "Publicação" },
-    { name: "Realizar Sessão Pública de Lances", departmentId: 2, phase: "Publicação" },
-    { name: "Análise de Documentação dos Licitantes", departmentId: 2, phase: "Publicação" },
-    { name: "Adjudicação e Homologação", departmentId: 2, phase: "Publicação" },
+    // UNIDADE TÉCNICO NORMATIVA (ID verificado: 7)
+    { name: "Elaborar Nota Técnica", departmentId: 7, phase: "Execução", daysLimit: 3 },
     
-    // FASE 6: FINALIZAÇÃO (Secretário SEAP)
-    { name: "Assinatura do Contrato", departmentId: 5, phase: "Finalização" },
-    { name: "Publicação do Contrato", departmentId: 5, phase: "Finalização" }
+    // SECRETÁRIO SEAP - SOLICITAR PARECER PGE (usando ID do Secretário: 5)
+    { name: "Solicitar Parecer da PGE", departmentId: 5, phase: "Execução", daysLimit: 2 },
+    
+    // PROCURADORIA GERAL DO ESTADO - PGE (usando ID 8 temporariamente - verificar se existe)
+    { name: "Parecer Jurídico - PGE", departmentId: 8, phase: "Execução", daysLimit: 10 },
+    
+    // FINALIZAÇÃO - DIVISÃO DE LICITAÇÃO
+    { name: "Publicar Edital", departmentId: 2, phase: "Publicação", daysLimit: 5 },
+    { name: "Realizar Sessão Pública de Lances", departmentId: 2, phase: "Publicação", daysLimit: 5 },
+    { name: "Análise de Documentação dos Licitantes", departmentId: 2, phase: "Publicação", daysLimit: 5 },
+    { name: "Adjudicação e Homologação", departmentId: 2, phase: "Publicação", daysLimit: 5 },
+    
+    // FINALIZAÇÃO - SECRETÁRIO SEAP
+    { name: "Assinatura do Contrato", departmentId: 5, phase: "Finalização", daysLimit: 5 },
+    { name: "Publicação do Contrato", departmentId: 5, phase: "Finalização", daysLimit: 5 }
   ];
 
-  // Criar todas as etapas para o processo
+  // Criar todas as etapas para o processo com prazos calculados
+  let currentDate = new Date();
+  
   for (const step of defaultSteps) {
+    // Calcular prazo baseado nos dias úteis especificados para cada etapa
+    const dueDate = addBusinessDays(currentDate, step.daysLimit);
+    
     await storage.createProcessStep({
       processId: processId,
       stepName: step.name,
@@ -85,11 +117,14 @@ async function createDefaultSteps(processId: number, modalityId: number) {
       isCompleted: false,
       observations: null,
       completedBy: null,
-      dueDate: null
+      dueDate: dueDate
     });
+    
+    // Atualizar a data base para a próxima etapa (considerar que a etapa atual pode ser finalizada imediatamente)
+    currentDate = dueDate;
   }
   
-  console.log(`Criadas ${defaultSteps.length} etapas padrão para o processo ${processId}`);
+  console.log(`Criadas ${defaultSteps.length} etapas padrão para o processo ${processId} com novo fluxograma`);
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {

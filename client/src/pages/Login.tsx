@@ -169,16 +169,26 @@ const Login = () => {
         description: "Você será redirecionado para o dashboard",
       });
 
-      // Forçar atualização da página e redirecionamento
-      console.log("Redirecionando para dashboard");
+      console.log("Login bem-sucedido, invalidando cache e redirecionando");
       
-      // Primeiro tenta usar wouter
+      // Importar e invalidar o cache do React Query para forçar atualização do estado de auth
+      const { queryClient } = await import("../lib/queryClient");
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] });
+      
+      // Aguardar um pouco para garantir que o cache foi invalidado
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // Redirecionar para o dashboard
+      console.log("Redirecionando para dashboard");
       setLocation("/");
       
-      // Depois de um breve atraso, como fallback, força redirecionamento direto
+      // Fallback com window.location se wouter não funcionar - aumentar tempo para dar chance ao React Query
       setTimeout(() => {
-        window.location.href = "/";
-      }, 100);
+        if (window.location.pathname === "/login") {
+          console.log("Fallback: forçando redirecionamento com window.location");
+          window.location.href = "/";
+        }
+      }, 400);
     } catch (error) {
       console.error("Erro no login:", error);
 
