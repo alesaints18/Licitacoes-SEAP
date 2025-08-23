@@ -539,7 +539,10 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                           <Checkbox 
                             id={`step-${step.id}`} 
                             checked={step.isCompleted}
-                            onCheckedChange={() => handleToggleStep(step)}
+                            onCheckedChange={() => {
+                              console.log("🚨 CHECKBOX CLICADO:", step.stepName);
+                              handleToggleStep(step);
+                            }}
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div className="grid gap-1.5 leading-none flex-1">
@@ -583,6 +586,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               variant={step.isCompleted ? "secondary" : "default"}
                               onClick={(e) => {
                                 e.stopPropagation();
+                                console.log("🚨 BOTÃO CLICADO:", step.stepName);
                                 handleToggleStep(step);
                               }}
                               className="h-7 w-7 p-0"
