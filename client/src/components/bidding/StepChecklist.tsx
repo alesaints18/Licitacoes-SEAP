@@ -22,9 +22,17 @@ interface StepChecklistProps {
   processId: number;
   modalityId: number;
   userDepartment: string;
+  authorizationModalOpen?: boolean;
+  setAuthorizationModalOpen?: (open: boolean) => void;
 }
 
-const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistProps) => {
+const StepChecklist = ({ 
+  processId, 
+  modalityId, 
+  userDepartment,
+  authorizationModalOpen: externalAuthModalOpen,
+  setAuthorizationModalOpen: setExternalAuthModalOpen,
+}: StepChecklistProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeStep, setActiveStep] = useState<ProcessStep | null>(null);
@@ -42,7 +50,9 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   const [isSubmittingDecision, setIsSubmittingDecision] = useState(false);
   const [showAuthorizationField, setShowAuthorizationField] = useState(false);
   const [authorizationDecision, setAuthorizationDecision] = useState("");
-  const [authorizationModalOpen, setAuthorizationModalOpen] = useState(false);
+  // Usar modal externo se fornecido, senão usar interno
+  const authorizationModalOpen = externalAuthModalOpen ?? false;
+  const setAuthorizationModalOpen = setExternalAuthModalOpen ?? (() => {});
   
   // Fetch process steps
   const { data: steps, isLoading, error } = useQuery<ProcessStep[]>({
