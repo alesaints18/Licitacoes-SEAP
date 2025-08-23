@@ -492,6 +492,22 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
           </p>
         </CardHeader>
         <CardContent>
+          {/* BOTÃO DE TESTE */}
+          <div className="bg-red-50 border border-red-200 p-3 rounded mb-4">
+            <p className="text-sm font-medium text-red-800 mb-2">🧪 TESTE DE MODAL:</p>
+            <button
+              onClick={() => {
+                console.log("🧪 BOTÃO DE TESTE CLICADO!");
+                setDecisionModalOpen(true);
+                console.log("🧪 Modal state definido como TRUE");
+              }}
+              className="px-4 py-2 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700"
+            >
+              🔥 FORÇAR MODAL DE TESTE
+            </button>
+            <p className="text-xs text-red-600 mt-1">Estado modal: {decisionModalOpen ? "ABERTO" : "FECHADO"}</p>
+          </div>
+
           {steps.length === 0 ? (
             <p>Nenhuma etapa cadastrada para este processo</p>
           ) : (
