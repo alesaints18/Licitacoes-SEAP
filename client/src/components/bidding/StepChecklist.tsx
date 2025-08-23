@@ -901,76 +901,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         </Card>
       )}
 
-      {/* Campo de Autorização - aparece apenas quando clica em "Etapa concluída" na etapa de autorização */}
-      {showAuthorizationField && activeStep?.stepName === "Autorização pelo Secretário SEAP" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-yellow-600">
-              🏛️ Decisão de Autorização
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <p className="text-sm text-gray-600 mb-4">
-                Escolha uma das opções de autorização antes de concluir a etapa:
-              </p>
-              
-              <div className="space-y-3">
-                <div>
-                  <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="authorization-decision"
-                      value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
-                      checked={authorizationDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
-                      onChange={(e) => setAuthorizationDecision(e.target.value)}
-                      className="mt-1"
-                    />
-                    <span className="text-sm font-medium text-red-700">
-                      ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
-                    </span>
-                  </label>
-                </div>
-
-                <div>
-                  <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="authorization-decision"
-                      value="OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                      checked={authorizationDecision === "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
-                      onChange={(e) => setAuthorizationDecision(e.target.value)}
-                      className="mt-1"
-                    />
-                    <span className="text-sm font-medium text-orange-700">
-                      ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
-                    </span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setShowAuthorizationField(false);
-                    setAuthorizationDecision("");
-                  }}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  className="bg-green-600 hover:bg-green-700 text-white"
-                  disabled={!authorizationDecision}
-                  onClick={handleAuthorizationComplete}
-                >
-                  Confirmar e Concluir Etapa
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* REMOVIDO: Modal antigo de autorização */}
 
       {/* Modal de Rejeição */}
       <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
@@ -1029,10 +960,74 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         </DialogContent>
       </Dialog>
 
-      {/* Modal em Branco para Autorização */}
+      {/* Novo Modal para Aprovar Etapa de Autorização */}
       <Dialog open={authorizationModalOpen} onOpenChange={setAuthorizationModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          {/* Modal em branco conforme solicitado */}
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <Check className="h-5 w-5" />
+              Aprovar Etapa de Autorização
+            </DialogTitle>
+            <DialogDescription>
+              Selecione uma das opções de autorização para a etapa: <strong>Autorização pelo Secretário SEAP</strong>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="new-authorization-decision"
+                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                    checked={authorizationDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
+                    onChange={(e) => setAuthorizationDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <span className="text-sm font-medium text-red-700">
+                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                  </span>
+                </label>
+              </div>
+
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="new-authorization-decision"
+                    value="OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                    checked={authorizationDecision === "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                    onChange={(e) => setAuthorizationDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <span className="text-sm font-medium text-orange-700">
+                    ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                  </span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAuthorizationModalOpen(false);
+                  setAuthorizationDecision("");
+                }}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                className="bg-green-600 hover:bg-green-700 text-white flex-1"
+                disabled={!authorizationDecision}
+                onClick={handleAuthorizationComplete}
+              >
+                Confirmar Aprovação
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
 
