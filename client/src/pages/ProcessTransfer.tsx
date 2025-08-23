@@ -270,14 +270,14 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     const authStep = processSteps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
     if (authStep) {
       // Baseado na decisão da autorização, liberar departamentos específicos
-      if (authStep.observations?.includes("NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA")) {
-        // Pode transferir para Divisão de Licitação
-        const divLicitacao = departments?.find(d => d.id === 2);
-        if (divLicitacao) availableDepartments.push(divLicitacao);
-      } else if (authStep.observations?.includes("RECURSO DE CONVÊNIO INSUFICIENTE")) {
-        // Pode transferir para SUBCC
-        const subcc = departments?.find(d => d.id === 11);
-        if (subcc) availableDepartments.push(subcc);
+      if (authStep.observations?.includes("INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL")) {
+        // Pode transferir para Unidade de Orçamento e Finanças (Fluxo Repror)
+        const orcamentoFinancas = departments?.find(d => d.id === 6);
+        if (orcamentoFinancas) availableDepartments.push(orcamentoFinancas);
+      } else if (authStep.observations?.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
+        // Permanece no mesmo setor (SEAP) para AUTORIZAR EMISSÃO DE R.O.
+        const seap = departments?.find(d => d.id === 5);
+        if (seap) availableDepartments.push(seap);
       }
     }
   } else {

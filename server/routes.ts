@@ -1115,7 +1115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         departmentId: departmentId
       });
       
-      // 6. Se transferido para SUBCC (departmentId = 11), arquivar automaticamente
+      // 6. Se transferido para SUBCC (departmentId = 11) ou Unidade de Orçamento e Finanças para Fluxo Repror (departmentId = 6), arquivar automaticamente
       if (departmentId === 11) {
         console.log(`Processo ${processId} transferido para SUBCC - arquivando automaticamente`);
         await storage.deleteProcess(processId, userId, "Processo arquivado automaticamente ao chegar na SUBCC");
@@ -1129,6 +1129,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         console.log(`Processo ${processId} arquivado automaticamente na SUBCC`);
+      } else if (departmentId === 6) {
+        // Verificar se é para Fluxo Repror (indisponibilidade orçamentária)
+        const processSteps = await storage.getProcessSteps(processId);
+        const hasReprorStep = processSteps.find(s => s.stepName === "Fluxo Repror");
+        
+        if (hasReprorStep) {
+          console.log(`Processo ${processId} transferido para Unidade de Orçamento e Finanças (Fluxo Repror) - arquivando automaticamente`);
+          await storage.deleteProcess(processId, userId, "Processo arquivado automaticamente - Fluxo Repror (Indisponibilidade Orçamentária)");
+          
+          // Notificar arquivamento via WebSocket
+          broadcast({
+            type: 'process_deleted',
+            processId: processId,
+            message: `Processo ${process.pbdocNumber} arquivado automaticamente - Fluxo Repror`,
+            timestamp: new Date().toISOString()
+          });
+          
+          console.log(`Processo ${processId} arquivado automaticamente - Fluxo Repror`);
+        }
       } else {
         // Notificar transferência normal via WebSocket
         broadcast({

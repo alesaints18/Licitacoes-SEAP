@@ -272,6 +272,48 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         return; // Não continua com a conclusão ainda
       }
 
+      // Se é etapa "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO", criar próxima etapa baseada na decisão da autorização
+      if (step.stepName === "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO" && !step.isCompleted) {
+        // Buscar a etapa de autorização anterior para saber qual foi a decisão
+        const authStep = steps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
+        
+        if (authStep?.observations) {
+          let nextStepName = "";
+          let nextDepartmentId = step.departmentId; // Por padrão, mesmo departamento
+          
+          if (authStep.observations.includes("INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL")) {
+            nextStepName = "Fluxo Repror";
+            nextDepartmentId = 6; // Unidade de Orçamento e Finanças
+          } else if (authStep.observations.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
+            nextStepName = "AUTORIZAR EMISSÃO DE R.O.";
+            nextDepartmentId = 5; // Mesmo setor (SEAP)
+          }
+          
+          // Concluir a etapa atual primeiro
+          const updateResponse = await apiRequest("PATCH", `/api/processes/${processId}/steps/${step.id}`, {
+            isCompleted: true,
+            observations: `Etapa concluída baseada na decisão: ${authStep.observations}`
+          });
+          
+          if (updateResponse.ok && nextStepName) {
+            // Criar próxima etapa
+            await apiRequest("POST", `/api/processes/${processId}/steps`, {
+              stepName: nextStepName,
+              departmentId: nextDepartmentId,
+              isCompleted: false,
+              observations: `Criada automaticamente após conclusão de SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO`
+            });
+          }
+          
+          queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
+          toast({
+            title: "Etapa concluída",
+            description: nextStepName ? `Próxima etapa: ${nextStepName}` : "Etapa concluída com sucesso"
+          });
+          return;
+        }
+      }
+
       // Se a etapa não existe, criar primeiro
       if (!step.id) {
         const createResponse = await apiRequest("POST", `/api/processes/${processId}/steps`, {

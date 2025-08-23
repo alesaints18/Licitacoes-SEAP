@@ -478,8 +478,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           requiresDecision: true,
           decisionOptions: {
             primary: [
-              "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
-              "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO",
+              "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL",
+              "DISPONIBILIDADE ORÇAMENTÁRIA",
             ],
           },
         },
@@ -1925,7 +1925,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogTitle>Confirmar Arquiva</DialogTitle>
             <DialogDescription>
               Tem certeza que deseja excluir este processo? O processo será
               movido para a lixeira.
@@ -1991,12 +1991,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Selecione uma opção...</option>
-                <option value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA">
-                  NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                <option value="INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL">
+                  INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL
                 </option>
-                <option value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO">
-                  RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA
-                  MAIOR QUE O VALOR CONVENIADO
+                <option value="DISPONIBILIDADE ORÇAMENTÁRIA">
+                  DISPONIBILIDADE ORÇAMENTÁRIA
                 </option>
               </select>
             </div>
@@ -2037,16 +2036,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
                     if (
                       authorizationMotivo ===
-                      "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                      "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"
                     ) {
-                      nextStepName = "devolver para correção";
-                      targetDepartmentId = 2; // Divisão de Licitação
+                      nextStepName = "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO";
+                      targetDepartmentId = 5; // Mesmo setor (SEAP)
                     } else if (
                       authorizationMotivo ===
-                      "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                      "DISPONIBILIDADE ORÇAMENTÁRIA"
                     ) {
-                      nextStepName = "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO";
-                      targetDepartmentId = 11; // Subgerência de Contratos e Convênios - SUBCC
+                      nextStepName = "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO";
+                      targetDepartmentId = 5; // Mesmo setor (SEAP)
                     }
 
                     // 3. Criar próxima etapa se especificada
@@ -2075,12 +2074,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
                     // 6. Mensagem de feedback
                     let toastDescription = `Decisão: ${authorizationMotivo}`;
-                    if (
-                      nextStepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO"
-                    ) {
-                      toastDescription +=
-                        ". Processo será arquivado ao ser transferido para SUBCC.";
-                    } else if (nextStepName) {
+                    if (nextStepName) {
                       toastDescription += `. Próxima etapa: ${nextStepName}`;
                     }
 
