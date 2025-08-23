@@ -340,6 +340,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Procuradoria Geral do Estado - PGE": "Jurídico",
       "Secretário de Estado da Administração  Penitenciária - SEAP":
         "Administrativo",
+      "Secretário de Estado da Administração Penitenciária - SEAP": "Administrativo",
       Planejamento: "TI", // Mapeamento para o departamento atual do usuário admin
       TI: "TI",
       Licitações: "Licitações",
