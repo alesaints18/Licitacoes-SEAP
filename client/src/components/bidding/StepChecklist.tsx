@@ -492,22 +492,6 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
           </p>
         </CardHeader>
         <CardContent>
-          {/* BOTÃO DE TESTE */}
-          <div className="bg-red-50 border border-red-200 p-3 rounded mb-4">
-            <p className="text-sm font-medium text-red-800 mb-2">🧪 TESTE DE MODAL:</p>
-            <button
-              onClick={() => {
-                console.log("🧪 BOTÃO DE TESTE CLICADO!");
-                setDecisionModalOpen(true);
-                console.log("🧪 Modal state definido como TRUE");
-              }}
-              className="px-4 py-2 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700"
-            >
-              🔥 FORÇAR MODAL DE TESTE
-            </button>
-            <p className="text-xs text-red-600 mt-1">Estado modal: {decisionModalOpen ? "ABERTO" : "FECHADO"}</p>
-          </div>
-
           {steps.length === 0 ? (
             <p>Nenhuma etapa cadastrada para este processo</p>
           ) : (
@@ -737,57 +721,80 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         </DialogContent>
       </Dialog>
 
-      {/* Modal Simples de Teste */}
+      {/* Modal de Decisão de Autorização */}
       {decisionModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-lg font-bold mb-4 text-center">🔥 MODAL DE AUTORIZAÇÃO FUNCIONANDO! 🔥</h2>
+          <div className="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+            <h2 className="text-lg font-bold mb-4 text-center text-blue-800">
+              🏛️ Decisão de Autorização - SEAP
+            </h2>
+            <p className="text-sm text-gray-600 mb-6 text-center">
+              Escolha uma das opções para processar a autorização do processo:
+            </p>
             
-            <div className="space-y-3 mb-6">
+            <div className="space-y-4 mb-6">
               <div>
-                <label className="flex items-start space-x-2">
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                   <input
                     type="radio"
                     name="decision"
                     value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
                     checked={primaryDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
                     onChange={(e) => setPrimaryDecision(e.target.value)}
+                    className="mt-1"
                   />
-                  <span className="text-sm">NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA</span>
+                  <span className="text-sm font-medium">
+                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                  </span>
                 </label>
               </div>
 
               <div>
-                <label className="flex items-start space-x-2">
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                   <input
                     type="radio"
                     name="decision"
                     value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
                     checked={primaryDecision === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
                     onChange={(e) => setPrimaryDecision(e.target.value)}
+                    className="mt-1"
                   />
-                  <span className="text-sm">RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO</span>
+                  <span className="text-sm font-medium">
+                    💰 RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                  </span>
                 </label>
               </div>
             </div>
 
             <div className="flex space-x-3">
               <button
-                className="flex-1 px-4 py-2 border border-gray-300 rounded text-sm hover:bg-gray-50"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
                 onClick={() => {
-                  console.log("🛑 Modal cancelado");
+                  console.log("🛑 Modal de autorização cancelado");
                   setDecisionModalOpen(false);
                   setPrimaryDecision("");
+                  setCascadeDecision("");
+                  setStepForDecision(null);
                 }}
               >
                 Cancelar
               </button>
               <button
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700 disabled:opacity-50"
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 disabled={!primaryDecision || isSubmittingDecision}
                 onClick={submitDecision}
               >
-                {isSubmittingDecision ? "Processando..." : "Confirmar"}
+                {isSubmittingDecision ? (
+                  <span className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processando...
+                  </span>
+                ) : (
+                  "✅ Confirmar Decisão"
+                )}
               </button>
             </div>
           </div>
