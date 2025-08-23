@@ -450,35 +450,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       // Financeiro - Ordenador de Despesa
       Financeiro: [
         {
-          name: "Aprovação do termo de referência pela autoridade competente",
-          phase: "Iniciação",
-          nextSector: "Licitações",
-        },
-        {
           name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.",
           phase: "Execução",
-          nextSector: "Licitações",
-        },
-        {
-          name: "Aprovação do edital pela autoridade competente",
-          phase: "Preparação",
-          nextSector: "Licitações",
-        },
-        {
-          name: "Adjudicação do objeto",
-          phase: "Finalização",
           nextSector: "Administrativo",
-        },
-        {
-          name: "Homologação do resultado",
-          phase: "Finalização",
-          nextSector: "Administrativo",
-        },
-        {
-          name: "Empenho da despesa",
-          phase: "Finalização",
-          nextSector: "Administrativo",
-        },
+        }
       ],
 
       // Administrativo - Gestão Contratual
