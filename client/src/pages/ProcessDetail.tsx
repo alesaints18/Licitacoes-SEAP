@@ -483,30 +483,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             ],
           },
         },
-        {
-          name: "Devolver para correção ou arquivamento",
-          phase: "Autorização",
-          isConditional: true,
-          lockedUntilDecision: true,
-        },
-        {
-          name: "Solicitar ajuste/aditivo do plano de trabalho",
-          phase: "Autorização", 
-          isConditional: true,
-          lockedUntilDecision: true,
-        },
-        {
-          name: "Solicitar disponibilização de orçamento",
-          phase: "Autorização",
-          isConditional: true,
-          lockedUntilDecision: true,
-        },
-        {
-          name: "Autorizar emissão de R.O.",
-          phase: "Autorização",
-          isConditional: true,
-          lockedUntilDecision: true,
-        },
+        // REMOVIDAS: 4 etapas condicionais excluídas permanentemente
+        // - Devolver para correção ou arquivamento
+        // - Solicitar ajuste/aditivo do plano de trabalho  
+        // - Solicitar disponibilização de orçamento
+        // - Autorizar emissão de R.O.
       ],
     };
 
