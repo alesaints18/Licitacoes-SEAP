@@ -186,6 +186,9 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
       ],
       "Unidade de Orçamento e Finanças": [
         { name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.", phase: "Execução" }
+      ],
+      "Secretário de Estado da Administração Penitenciária - SEAP": [
+        { name: "Autorização pelo Secretário SEAP", phase: "Autorização" }
       ]
     };
     return stepsByDepartment[departmentName] || [];
@@ -261,6 +264,22 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     // Unidade de Orçamento e Finanças → Secretário SEAP
     const nextDepartment = departments?.find(d => d.id === 5);
     if (nextDepartment) availableDepartments.push(nextDepartment);
+  } else if (process.currentDepartmentId === 5) {
+    // Secretário SEAP - depois da autorização, pode ir para diferentes fluxos
+    // Verificar se tem etapa de autorização concluída
+    const authStep = processSteps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
+    if (authStep) {
+      // Baseado na decisão da autorização, liberar departamentos específicos
+      if (authStep.observations?.includes("NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA")) {
+        // Pode transferir para Divisão de Licitação
+        const divLicitacao = departments?.find(d => d.id === 2);
+        if (divLicitacao) availableDepartments.push(divLicitacao);
+      } else if (authStep.observations?.includes("RECURSO DE CONVÊNIO INSUFICIENTE")) {
+        // Mantém no mesmo departamento ou permite fluxo específico
+        const currentDept = departments?.find(d => d.id === 5);
+        if (currentDept) availableDepartments.push(currentDept);
+      }
+    }
   } else {
     // Fluxo sequencial padrão para outros departamentos
     if (currentIndex !== -1 && currentIndex < departmentFlow.length - 1) {

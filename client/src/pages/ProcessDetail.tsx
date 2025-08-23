@@ -2022,19 +2022,23 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       }
                     );
 
-                    // 2. Determinar próxima etapa baseada na decisão
+                    // 2. Determinar próxima etapa e departamento baseado na decisão
                     let nextStepName = "";
+                    let targetDepartmentId = process?.currentDepartmentId;
+                    
                     if (authorizationMotivo === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA") {
-                      nextStepName = "DEVOLVER PARA CORREÇÃO OU ARQUIVAMENTO";
+                      nextStepName = "devolver para correção";
+                      targetDepartmentId = 2; // Divisão de Licitação
                     } else if (authorizationMotivo === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO") {
-                      nextStepName = "SOLICITAR AJUSTE / ADITIVO DO PLANO DE TRABALHO";
+                      nextStepName = "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO";
+                      targetDepartmentId = process?.currentDepartmentId; // Mantém no departamento atual
                     }
 
                     // 3. Criar próxima etapa se especificada
-                    if (nextStepName && process) {
+                    if (nextStepName && process && targetDepartmentId) {
                       await apiRequest("POST", `/api/processes/${process.id}/steps`, {
                         stepName: nextStepName,
-                        departmentId: process.currentDepartmentId,
+                        departmentId: targetDepartmentId,
                         isCompleted: false,
                         observations: `Criada automaticamente pela decisão: ${authorizationMotivo}`
                       });
