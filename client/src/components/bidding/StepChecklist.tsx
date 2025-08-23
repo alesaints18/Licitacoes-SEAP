@@ -229,11 +229,12 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     try {
       // Verificar se a etapa requer decisão (específica da etapa AUTORIZAR)
       if (!step.isCompleted && step.stepName === "AUTORIZAR") {
+        console.log("🔥 AUTORIZAR detectado - abrindo modal");
         setStepForDecision(step);
         setPrimaryDecision("");
         setCascadeDecision("");
         setDecisionModalOpen(true);
-        return;
+        return; // Não prosseguir com a atualização ainda
       }
 
       // Se a etapa não existe, criar primeiro
