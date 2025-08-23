@@ -284,9 +284,6 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
           if (authStep.observations.includes("INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL")) {
             nextStepName = "Fluxo Repror";
             nextDepartmentId = 6; // Unidade de Orçamento e Finanças
-          } else if (authStep.observations.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
-            nextStepName = "AUTORIZAR EMISSÃO DE R.O.";
-            nextDepartmentId = 5; // Mesmo setor (SEAP)
           }
           
           // Concluir a etapa atual primeiro
@@ -312,6 +309,37 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
           });
           return;
         }
+      }
+
+      // Se é etapa "Fluxo Repror", arquivar automaticamente quando concluída
+      if (step.stepName === "Fluxo Repror" && !step.isCompleted) {
+        // Concluir a etapa
+        const updateResponse = await apiRequest("PATCH", `/api/processes/${processId}/steps/${step.id}`, {
+          isCompleted: true,
+          observations: "Fluxo Repror concluído - processo será arquivado automaticamente"
+        });
+        
+        if (updateResponse.ok) {
+          // Arquivar o processo automaticamente
+          const archiveResponse = await apiRequest("DELETE", `/api/processes/${processId}`, {
+            reason: "Processo arquivado automaticamente após conclusão do Fluxo Repror (Indisponibilidade Orçamentária)"
+          });
+          
+          if (archiveResponse.ok) {
+            queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+            toast({
+              title: "Processo arquivado",
+              description: "Fluxo Repror concluído. Processo arquivado automaticamente por indisponibilidade orçamentária.",
+              variant: "default"
+            });
+            
+            // Redirecionar para lista de processos
+            setTimeout(() => {
+              window.location.href = "/processes";
+            }, 2000);
+          }
+        }
+        return;
       }
 
       // Se a etapa não existe, criar primeiro
@@ -408,20 +436,29 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         });
       }
       
-      // Criar automaticamente a próxima etapa "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO"
-      await apiRequest("POST", `/api/processes/${processId}/steps`, {
-        stepName: "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO",
-        departmentId: activeStep.departmentId, // Mesmo setor (SEAP)
-        isCompleted: false,
-        observations: `Criada automaticamente pela decisão: ${authorizationDecision}`
-      });
+      // Criar próxima etapa baseada na decisão
+      let nextStepName = "";
+      if (authorizationDecision === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL") {
+        nextStepName = "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO";
+      } else if (authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA") {
+        nextStepName = "Autorizar emissão R.O";
+      }
+      
+      if (nextStepName) {
+        await apiRequest("POST", `/api/processes/${processId}/steps`, {
+          stepName: nextStepName,
+          departmentId: activeStep.departmentId, // Mesmo setor (SEAP)
+          isCompleted: false,
+          observations: `Criada automaticamente pela decisão: ${authorizationDecision}`
+        });
+      }
       
       // Refetch steps after updating
       queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
       
       toast({
         title: "Etapa de Autorização concluída",
-        description: `Decisão: ${authorizationDecision}. Próxima etapa: SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO`,
+        description: `Decisão: ${authorizationDecision}. Próxima etapa: ${nextStepName}`,
       });
       
       // Limpar estados

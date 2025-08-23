@@ -2088,7 +2088,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       authorizationMotivo ===
                       "DISPONIBILIDADE ORÇAMENTÁRIA"
                     ) {
-                      nextStepName = "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO";
+                      nextStepName = "Autorizar emissão R.O";
                       targetDepartmentId = 5; // Mesmo setor (SEAP)
                     }
 
