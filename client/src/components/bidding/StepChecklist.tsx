@@ -13,6 +13,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -543,10 +544,12 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               console.log("🚨 CHECKBOX CLICADO:", step.stepName, "checked:", checked);
                               if (step.stepName === "AUTORIZAR") {
                                 console.log("⚠️ AUTORIZAR DETECTADO - IMPEDINDO ATUALIZAÇÃO");
+                                console.log("🔥 Abrindo modal de decisão...");
                                 setStepForDecision(step);
                                 setPrimaryDecision("");
                                 setCascadeDecision("");
                                 setDecisionModalOpen(true);
+                                console.log("✅ Modal deveria estar aberto agora");
                                 return false; // Impedir mudança
                               }
                               handleToggleStep(step);
@@ -597,8 +600,12 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                                 console.log("🚨 BOTÃO CLICADO:", step.stepName);
                                 if (step.stepName === "AUTORIZAR") {
                                   console.log("⚠️ AUTORIZAR VIA BOTÃO - FORÇANDO MODAL");
+                                  console.log("🔥 Configurando step e abrindo modal...");
                                   setStepForDecision(step);
+                                  setPrimaryDecision("");
+                                  setCascadeDecision("");
                                   setDecisionModalOpen(true);
+                                  console.log("✅ Modal deveria estar aberto agora, state:", true);
                                   return;
                                 }
                                 handleToggleStep(step);
@@ -714,65 +721,64 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
       <Dialog open={decisionModalOpen} onOpenChange={setDecisionModalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-blue-600">
-              <Check className="h-5 w-5" />
-              Decisão de Autorização
-            </DialogTitle>
+            <DialogTitle>Decisão de Autorização</DialogTitle>
             <DialogDescription>
-              Selecione sua decisão sobre a autorização da despesa
+              Escolha uma das opções para processar a autorização:
             </DialogDescription>
           </DialogHeader>
-          
-          <div className="space-y-6">
-            {/* Opções de Decisão */}
-            <div>
-              <label className="block text-sm font-medium mb-3">
-                Selecione a Opção <span className="text-red-500">*</span>
-              </label>
-              <div className="space-y-3">
-                {[
-                  "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
-                  "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                ].map((option) => (
-                  <label key={option} className="flex items-start space-x-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="primaryDecision"
-                      value={option}
-                      checked={primaryDecision === option}
-                      onChange={(e) => setPrimaryDecision(e.target.value)}
-                      className="w-4 h-4 mt-1 text-blue-600"
-                    />
-                    <span className={`text-sm leading-relaxed ${primaryDecision === option ? "font-medium" : ""}`}>
-                      {option}
-                    </span>
+
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Selecione uma opção:</Label>
+              
+              <div className="space-y-2">
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="radio"
+                    id="nao-autorizar"
+                    name="decision"
+                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                    checked={primaryDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
+                    onChange={(e) => setPrimaryDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <label htmlFor="nao-autorizar" className="text-sm">
+                    NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
                   </label>
-                ))}
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <input
+                    type="radio"
+                    id="convenio-insuficiente"
+                    name="decision"
+                    value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                    checked={primaryDecision === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                    onChange={(e) => setPrimaryDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <label htmlFor="convenio-insuficiente" className="text-sm">
+                    RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                  </label>
+                </div>
               </div>
             </div>
-            
-            <div className="flex space-x-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setDecisionModalOpen(false);
-                  setPrimaryDecision("");
-                  setCascadeDecision("");
-                }}
-                disabled={isSubmittingDecision}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
-              <Button
-                onClick={submitDecision}
-                disabled={!primaryDecision || isSubmittingDecision}
-                className="flex-1"
-              >
-                {isSubmittingDecision ? "Processando..." : "Confirmar Decisão"}
-              </Button>
-            </div>
           </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setDecisionModalOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              onClick={submitDecision}
+              disabled={!primaryDecision || isSubmittingDecision}
+            >
+              {isSubmittingDecision ? "Processando..." : "Confirmar Decisão"}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
