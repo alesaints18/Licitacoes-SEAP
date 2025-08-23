@@ -74,6 +74,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [authorizationModalOpen, setAuthorizationModalOpen] = useState(false);
+  const [authorizationMotivo, setAuthorizationMotivo] = useState("");
   const [deletionReason, setDeletionReason] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
   const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
@@ -1966,10 +1967,59 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         </DialogContent>
       </Dialog>
 
-      {/* Modal em Branco para Autorização */}
+      {/* Modal para Autorização */}
       <Dialog open={authorizationModalOpen} onOpenChange={setAuthorizationModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          {/* Modal em branco conforme solicitado */}
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Motivo</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Selecione o motivo da decisão:
+              </label>
+              <select 
+                value={authorizationMotivo}
+                onChange={(e) => setAuthorizationMotivo(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Selecione uma opção...</option>
+                <option value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA">
+                  NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                </option>
+                <option value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO">
+                  RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                </option>
+              </select>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAuthorizationModalOpen(false);
+                  setAuthorizationMotivo("");
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                disabled={!authorizationMotivo}
+                onClick={() => {
+                  // TODO: Implementar lógica de salvar
+                  toast({
+                    title: "Motivo selecionado",
+                    description: authorizationMotivo,
+                  });
+                  setAuthorizationModalOpen(false);
+                  setAuthorizationMotivo("");
+                }}
+              >
+                Confirmar
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
