@@ -1239,38 +1239,70 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                         onClick={async () => {
                                           if (!userCanEdit) return;
 
-                                          if (existingStep) {
-                                            // Etapa existe, apenas rejeitar
-                                            handleStepReject(existingStep);
-                                          } else {
-                                            // Etapa não existe, criar primeiro para poder rejeitar
-                                            try {
-                                              const response = await apiRequest(
-                                                "POST",
-                                                `/api/processes/${process.id}/steps`,
-                                                {
-                                                  stepName: sectorStep.name,
-                                                  departmentId:
-                                                    process.currentDepartmentId,
-                                                  isCompleted: false,
-                                                  observations: null,
-                                                },
-                                              );
+                                          // Para etapa de Autorização, abrir modal de aprovação
+                                          if (sectorStep.name === "Autorização pelo Secretário SEAP") {
+                                            if (existingStep) {
+                                              setAuthorizationModalOpen(true);
+                                            } else {
+                                              // Criar etapa primeiro
+                                              try {
+                                                const response = await apiRequest(
+                                                  "POST",
+                                                  `/api/processes/${process.id}/steps`,
+                                                  {
+                                                    stepName: sectorStep.name,
+                                                    departmentId:
+                                                      process.currentDepartmentId,
+                                                    isCompleted: false,
+                                                    observations: null,
+                                                  },
+                                                );
 
-                                              if (response.ok) {
-                                                const newStep =
-                                                  await response.json();
-
-                                                // Rejeitar a etapa criada
-                                                handleStepReject(newStep);
+                                                if (response.ok) {
+                                                  queryClient.invalidateQueries({
+                                                    queryKey: [`/api/processes/${parsedId}/steps`],
+                                                  });
+                                                  setAuthorizationModalOpen(true);
+                                                }
+                                              } catch (error) {
+                                                toast({
+                                                  title: "Erro",
+                                                  description: "Não foi possível criar a etapa",
+                                                  variant: "destructive",
+                                                });
                                               }
-                                            } catch (error) {
-                                              toast({
-                                                title: "Erro",
-                                                description:
-                                                  "Não foi possível criar a etapa para rejeição",
-                                                variant: "destructive",
-                                              });
+                                            }
+                                          } else {
+                                            // Para outras etapas, usar rejeição normal
+                                            if (existingStep) {
+                                              handleStepReject(existingStep);
+                                            } else {
+                                              try {
+                                                const response = await apiRequest(
+                                                  "POST",
+                                                  `/api/processes/${process.id}/steps`,
+                                                  {
+                                                    stepName: sectorStep.name,
+                                                    departmentId:
+                                                      process.currentDepartmentId,
+                                                    isCompleted: false,
+                                                    observations: null,
+                                                  },
+                                                );
+
+                                                if (response.ok) {
+                                                  const newStep =
+                                                    await response.json();
+                                                  handleStepReject(newStep);
+                                                }
+                                              } catch (error) {
+                                                toast({
+                                                  title: "Erro",
+                                                  description:
+                                                    "Não foi possível criar a etapa para rejeição",
+                                                  variant: "destructive",
+                                                });
+                                              }
                                             }
                                           }
                                         }}

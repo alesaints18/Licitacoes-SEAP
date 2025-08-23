@@ -711,7 +711,13 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               variant="destructive"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleRejectStep(step);
+                                // Para etapa de Autorização, abrir modal de aprovação
+                                if (step.stepName === "Autorização pelo Secretário SEAP") {
+                                  setAuthorizationModalOpen(true);
+                                  setActiveStep(step);
+                                } else {
+                                  handleRejectStep(step);
+                                }
                               }}
                               className="h-7 w-7 p-0"
                               disabled={step.isCompleted}
@@ -738,7 +744,9 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
           <CardContent>
             <div className="space-y-4">
               <div>
-                <p className="text-sm font-medium mb-2">Etapa: {activeStep.stepName}</p>
+                <p className="text-sm font-medium mb-2">
+                  Etapa: {activeStep.stepName === "Autorização pelo Secretário SEAP" ? "Autorização" : activeStep.stepName}
+                </p>
                 <Textarea
                   value={observation}
                   onChange={(e) => setObservation(e.target.value)}
@@ -757,7 +765,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-yellow-600">
-              🏛️ Decisão de Autorização (SEAP)
+              🏛️ Decisão de Autorização
             </CardTitle>
           </CardHeader>
           <CardContent>
