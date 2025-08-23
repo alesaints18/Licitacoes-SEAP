@@ -226,6 +226,12 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   };
   
   const handleToggleStep = async (step: ProcessStep) => {
+    console.log("🔍 handleToggleStep chamado:", {
+      stepName: step.stepName,
+      isCompleted: step.isCompleted,
+      stepId: step.id
+    });
+    
     try {
       // Verificar se a etapa requer decisão (específica da etapa AUTORIZAR)
       if (!step.isCompleted && step.stepName === "AUTORIZAR") {
