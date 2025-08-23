@@ -533,7 +533,7 @@ const StepChecklist = ({
       
       toast({
         title: "Etapa de Autorização concluída",
-        description: `Decisão: ${authorizationDecision}. Próxima etapa: ${nextStepName}`,
+        description: `Decisão: ${authorizationDecision}`,
       });
       
       // Limpar estados
@@ -788,7 +788,7 @@ const StepChecklist = ({
                         >
                           <Checkbox 
                             id={`step-${step.id}`} 
-                            checked={step.isCompleted}
+                            checked={step.isCompleted || false}
                             disabled={step.isLocked && !step.isCompleted}
                             onCheckedChange={(checked) => {
                               // Primeira validação: bloquear no frontend

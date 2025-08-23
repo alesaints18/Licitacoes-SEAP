@@ -74,83 +74,550 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletionReason, setDeletionReason] = useState("");
-  const [authorizationModalOpen, setAuthorizationModalOpen] = useState(false);
-  const [authorizationMotivo, setAuthorizationMotivo] = useState("");
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
 
-  // New flowchart states
-  const [currentFlowchart, setCurrentFlowchart] = useState<string>("full");
-  const [showFlowchartModal, setShowFlowchartModal] = useState(false);
-  const [currentImageSrc, setCurrentImageSrc] = useState("");
-  const [imageTitle, setImageTitle] = useState("");
+  const [showTransferPanel, setShowTransferPanel] = useState(false);
+  const [allowForcedReturn, setAllowForcedReturn] = useState(false);
+  const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
+  const [isZoomFocused, setIsZoomFocused] = useState(true);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const [fullScreenViewMode, setFullScreenViewMode] = useState<
+    "focused" | "complete"
+  >("complete");
 
-  // Zoom states for flowchart
-  const [zoomLevel, setZoomLevel] = useState(100);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number } | null>(
-    null,
-  );
-  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState(false);
-  const imageRef = useRef<HTMLImageElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const flowchartRef = useRef<HTMLDivElement>(null);
+  const fullScreenImageRef = useRef<HTMLImageElement>(null);
+  const parsedId = parseInt(id);
 
-  // Fetch process data
+  // Função para obter a imagem específica do departamento
+  const getFlowchartImage = (department: string | undefined) => {
+    if (!department) {
+      return "/fluxograma_seap_min.png"; // Imagem completa reduzida
+    }
+
+    // Mapeamento de departamentos para imagens específicas
+    const departmentImages = {
+      "Setor Demandante": "/fluxograma-setor-demandante_1752443886669.png",
+      "Divisão de Licitação":
+        "/fluxograma-divisão-de-licitação_1752443886668.png",
+      "Núcleo de Pesquisa de Preços – NPP":
+        "/fluxograma-nucleo-de-pesquisa-de-precos-npp_1752443886668.png",
+      "Procuradoria Geral do Estado - PGE":
+        "/fluxograma-procuradoria-geral-do-estado-pge_1752443886669.png",
+      "Unidade de Orçamento e Finanças":
+        "/fluxograma-unidade-de-orcamento-e-financas_1752443886670.png",
+      "Secretário de Estado da Administração Penitenciária - SEAP":
+        "/fluxograma-secretario-de-estado-da-administracao-penitenciaria-seap_1752443886669.png",
+      "Equipe de Pregão": "/fluxograma-equipe-de-pregao_1752443886668.png",
+      "Controladoria Geral do Estado – CGE":
+        "/fluxograma-controladoria-geral-do-estado-cge_1752443886667.png",
+      "Comitê Gestor do Plano de Contingência - CGPC":
+        "/fluxograma-comite-gestor-do-plano-de-contigencia-cgpc_1752443886667.png",
+      "Unidade Técnico Normativa":
+        "/fluxograma-unidade-tecnico-normativa_1752443886665.png",
+      "Subgerência de Contratos e  Convênios - SUBCC":
+        "/fluxograma-subgerencia-de-contratos-e-convenios-SUBCC_1752443886670.png",
+    };
+
+    return (
+      departmentImages[department as keyof typeof departmentImages] ||
+      "/fluxograma_seap_min.png"
+    );
+  };
+
+  const getDepartmentFocus = (department: string | undefined) => {
+    const focuses = {
+      "Setor Demandante": "Iniciação",
+      "Divisão de Licitação": "Preparação & Execução",
+      "Núcleo de Pesquisa de Preços – NPP": "Pesquisa de Preços",
+      "Procuradoria Geral do Estado - PGE": "Análise Jurídica",
+      "Unidade de Orçamento e Finanças": "Análise Orçamentária",
+      "Secretário de Estado da Administração Penitenciária - SEAP":
+        "Autorização Final",
+      "Equipe de Pregão": "Condução de Sessões",
+      "Controladoria Geral do Estado – CGE": "Controle e Auditoria",
+      "Comitê Gestor do Plano de Contingência - CGPC":
+        "Análise de Contingência",
+      "Unidade Técnico Normativa": "Normas Técnicas",
+      "Subgerência de Contratos e  Convênios - SUBCC": "Gestão de Contratos",
+    };
+
+    return focuses[department as keyof typeof focuses] || "Visão Geral";
+  };
+
+  const getDepartmentDescription = (department: string | undefined) => {
+    const descriptions = {
+      "Setor Demandante":
+        "Responsável pela criação do DFD, ETP, Mapa de Risco e Termo de Referência. Esta é a fase inicial onde a necessidade é formalizada.",
+      "Divisão de Licitação":
+        "Coordena todo o processo licitatório, desde a criação até a execução. Gerencia prazos e documentação.",
+      "Núcleo de Pesquisa de Preços – NPP":
+        "Realiza pesquisa de mercado e análise de preços para garantir economicidade na contratação.",
+      "Procuradoria Geral do Estado - PGE":
+        "Analisa juridicamente todos os documentos e procedimentos para garantir conformidade legal.",
+      "Unidade de Orçamento e Finanças":
+        "Verifica disponibilidade orçamentária e autoriza empenho dos recursos necessários.",
+      "Secretário de Estado da Administração Penitenciária - SEAP":
+        "Autoridade máxima que aprova e autoriza o processo licitatório.",
+      "Equipe de Pregão":
+        "Equipe especializada responsável pela condução das sessões de pregão eletrônico e presencial.",
+      "Controladoria Geral do Estado – CGE":
+        "Órgão de controle interno responsável pela fiscalização e auditoria dos processos licitatórios.",
+      "Comitê Gestor do Plano de Contingência - CGPC":
+        "Comitê responsável pela análise e autorização de processos em situações de contingência ou emergência.",
+      "Unidade Técnico Normativa":
+        "Setor responsável pela elaboração e atualização de normas técnicas e procedimentos operacionais.",
+      "Subgerência de Contratos e  Convênios - SUBCC":
+        "Unidade especializada no acompanhamento e gestão de contratos e convênios firmados.",
+    };
+
+    return (
+      descriptions[department as keyof typeof descriptions] ||
+      "Visualização geral do processo de licitação."
+    );
+  };
+
+  // Get process details
   const {
     data: process,
     isLoading: processLoading,
-    error: processError,
-  } = useQuery<
-    Process & {
-      modality: BiddingModality;
-      source: ResourceSource;
-      responsible: User;
-    }
-  >({
-    queryKey: [`/api/processes/${id}`],
+    error,
+  } = useQuery<Process>({
+    queryKey: [`/api/processes/${parsedId}`],
   });
 
-  // Fetch process steps
-  const {
-    data: steps,
-    isLoading: stepsLoading,
-    error: stepsError,
-  } = useQuery<ProcessStep[]>({
-    queryKey: [`/api/processes/${id}/steps`],
+  // Get modality details
+  const { data: modalities } = useQuery<BiddingModality[]>({
+    queryKey: ["/api/modalities"],
+    enabled: !!process,
   });
 
-  // Fetch responsibility history
-  const {
-    data: responsibilityHistory,
-    isLoading: historyLoading,
-    error: historyError,
-  } = useQuery<
-    Array<{
-      id: number;
-      processId: number;
-      userId: number;
-      username: string;
-      fullName?: string;
-      departmentId: number;
-      departmentName?: string;
-      action: string;
-      description?: string;
-      timestamp: string;
-      comments?: string;
-    }>
-  >({
-    queryKey: [`/api/processes/${id}/responsibility-history`],
+  // Get source details
+  const { data: sources } = useQuery<ResourceSource[]>({
+    queryKey: ["/api/sources"],
+    enabled: !!process,
   });
 
-  // Get the current user to check permissions
+  // Get current user
   const { data: currentUser } = useQuery<User>({
     queryKey: ["/api/auth/status"],
   });
 
-  // Get departments for transfer options
-  const { data: departments } = useQuery<
-    Array<{ id: number; name: string; description?: string }>
-  >({
-    queryKey: ["/api/departments"],
+  // Get user details
+  const { data: users } = useQuery<User[]>({
+    queryKey: ["/api/users"],
+    enabled: !!process,
   });
+
+  // Get current modality
+  const modality =
+    process && modalities
+      ? modalities.find((m) => m.id === process.modalityId)
+      : undefined;
+
+  // Get source
+  const source =
+    process && sources
+      ? sources.find((s) => s.id === process.sourceId)
+      : undefined;
+
+  // Get responsible user
+  const responsible =
+    process && users
+      ? users.find((u) => u.id === process.responsibleId)
+      : undefined;
+
+  // Fetch process steps to get the next step
+  const { data: steps } = useQuery<ProcessStep[]>({
+    queryKey: [`/api/processes/${parsedId}/steps`],
+    enabled: !!process,
+  });
+
+  // Get process responsibility history
+  const { data: responsibilityHistory, isLoading: historyLoading } = useQuery<
+    any[]
+  >({
+    queryKey: [`/api/processes/${parsedId}/responsibility-history`],
+    enabled: !!process,
+  });
+
+  // Auto-create steps if none exist - only run once per process
+  useEffect(() => {
+    if (process && steps !== undefined && steps.length === 0) {
+      const defaultSteps = [
+        "Demanda identificada pela unidade requisitante",
+        "Encaminhamento da demanda ao setor de licitações",
+        "Elaboração dos estudos técnicos preliminares",
+        "Análise de viabilidade e adequação orçamentária",
+        "Elaboração do termo de referência ou projeto básico",
+        "Aprovação do termo de referência pela autoridade competente",
+        "Designação do pregoeiro e equipe de apoio",
+        "Elaboração do edital de licitação",
+        "Análise jurídica do edital",
+        "Aprovação do edital pela autoridade competente",
+        "Publicação do aviso de licitação",
+        "Disponibilização do edital aos interessados",
+        "Período para envio de propostas",
+        "Sessão pública do pregão eletrônico",
+        "Análise e julgamento das propostas",
+        "Fase de lances",
+        "Análise da documentação do vencedor",
+        "Adjudicação do objeto",
+        "Homologação do resultado",
+        "Assinatura do contrato ou emissão da ordem",
+        "Publicação do extrato do contrato",
+      ];
+
+      // Create steps in a single batch to avoid race conditions
+      const createSteps = async () => {
+        try {
+          const promises = defaultSteps.map((stepName) =>
+            apiRequest("POST", `/api/processes/${parsedId}/steps`, {
+              stepName,
+              departmentId: process.currentDepartmentId,
+              isCompleted: false,
+            }),
+          );
+
+          await Promise.all(promises);
+
+          // Refresh steps after creation
+          queryClient.invalidateQueries({
+            queryKey: [`/api/processes/${parsedId}/steps`],
+          });
+
+          toast({
+            title: "Checklist criado",
+            description:
+              "As etapas do pregão eletrônico foram criadas automaticamente.",
+          });
+        } catch (error) {
+          console.error("Erro ao criar etapas padrão:", error);
+        }
+      };
+
+      createSteps();
+    }
+  }, [process?.id, steps?.length]); // More specific dependencies
+
+  // Fetch departments for step details
+  const { data: departments } = useQuery<any[]>({
+    queryKey: ["/api/departments"],
+    enabled: !!process,
+  });
+
+  // Find the next incomplete step
+  const nextStep = steps?.find((step) => !step.isCompleted);
+  const stepDepartment =
+    nextStep && Array.isArray(departments)
+      ? departments.find((d: any) => d.id === nextStep.departmentId)
+      : undefined;
+
+  // Get current department from process
+  const currentDepartment =
+    process && Array.isArray(departments)
+      ? departments.find((d: any) => d.id === process.currentDepartmentId)
+      : undefined;
+
+  // Mapeamento de departamentos por ID - usando nomes exatos do banco
+  const departmentIdMap: { [key: string]: number } = {
+    TI: 1,
+    "Setor Demandante": 1,
+    Licitações: 2,
+    "Núcleo de Pesquisa de Preços – NPP": 2,
+    Jurídico: 3,
+    "Setor Jurídico": 3,
+    Financeiro: 4,
+    "Unidade de Orçamento e Finanças": 4,
+    Administrativo: 5,
+    "Setor Administrativo": 5,
+  };
+
+  // Function to get sector-specific steps
+  const getSectorSteps = (userDepartment: string, modalityId: number) => {
+    // Funciona para todas as modalidades de pregão
+
+    // Mapeamento dos nomes de departamentos do banco para os setores do fluxo
+    const departmentToSectorMap: { [key: string]: string } = {
+      "Setor Demandante": "TI",
+      "Divisão de Licitação": "Licitações",
+      Licitação: "Licitações", // Nome do departamento atual no banco
+      "Núcleo de Pesquisa de Preços – NPP": "NPP",
+      "Unidade de Orçamento e Finanças": "Financeiro",
+      "Procuradoria Geral do Estado - PGE": "Jurídico",
+      "Secretário de Estado da Administração  Penitenciária - SEAP":
+        "Administrativo",
+      "Secretário de Estado da Administração Penitenciária - SEAP":
+        "Administrativo",
+      Planejamento: "TI", // Mapeamento para o departamento atual do usuário admin
+      TI: "TI",
+      Licitações: "Licitações",
+      Jurídico: "Jurídico",
+      Financeiro: "Financeiro",
+      Administrativo: "Administrativo",
+    };
+
+    const sector = departmentToSectorMap[userDepartment] || userDepartment;
+
+    console.log("getSectorSteps - Input:", { userDepartment, modalityId });
+    console.log("getSectorSteps - Mapped sector:", sector);
+
+    // Verificar se NPP completou suas etapas principais
+    const isNPPCompleted = () => {
+      const nppSteps = ["Pesquisa de Preços", "Mapa Comparativo de Preços"];
+
+      return nppSteps.every((stepName) => {
+        const step = steps?.find((s) => s.stepName === stepName);
+        return step?.isCompleted;
+      });
+    };
+
+    const stepsBySector: {
+      [key: string]: { name: string; phase: string; nextSector?: string }[];
+    } = {
+      // TI - Setor Demandante (Fase de Iniciação)
+      TI: [
+        {
+          name: "Documento de Formalização da Demanda - DFD",
+          phase: "Iniciação",
+        },
+        {
+          name: "Estudo Técnico Preliminar - ETP",
+          phase: "Iniciação",
+        },
+        {
+          name: "Mapa de Risco - MR",
+          phase: "Iniciação",
+        },
+        {
+          name: "Termo de Referência - TR",
+          phase: "Iniciação",
+        },
+      ],
+
+      // Licitações - Divisão de Licitação (com lógica condicional)
+      Licitações: [
+        {
+          name: "Criar Processo - Órgão",
+          phase: "Preparação",
+        },
+        {
+          name: "Fazer Pesquisa de Preço - Órgão",
+          phase: "Preparação",
+        },
+        {
+          name: "Solicitar Pesquisa de Preços",
+          phase: "Preparação",
+        },
+        // Estas etapas só aparecem após NPP completar
+        ...(isNPPCompleted()
+          ? [
+              {
+                name: "Inserir Pesquisa no Sistema",
+                phase: "Execução",
+              },
+              {
+                name: "Solicitar Análise Orçamentária",
+                phase: "Execução",
+              },
+            ]
+          : []),
+      ],
+
+      // NPP - Núcleo de Pesquisa de Preços
+      NPP: [
+        {
+          name: "Pesquisa de Preços",
+          phase: "Preparação",
+        },
+        {
+          name: "Mapa Comparativo de Preços",
+          phase: "Preparação",
+        },
+        {
+          name: "Metodologia da Pesquisa de Preços",
+          phase: "Preparação",
+        },
+      ],
+
+      // Jurídico - Assessoria Jurídica
+      Jurídico: [
+        {
+          name: "Análise jurídica do edital",
+          phase: "Preparação",
+          nextSector: "Financeiro",
+        },
+        { name: "Análise de recursos administrativos", phase: "Execução" },
+        {
+          name: "Elaboração da minuta do contrato",
+          phase: "Finalização",
+          nextSector: "Administrativo",
+        },
+      ],
+
+      // Financeiro - Ordenador de Despesa
+      Financeiro: [
+        {
+          name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.",
+          phase: "Execução",
+          nextSector: "Administrativo",
+        },
+      ],
+
+      // Administrativo - Secretário SEAP
+      Administrativo: [
+        {
+          name: "Autorização pelo Secretário SEAP",
+          phase: "Autorização",
+          requiresDecision: true,
+          decisionOptions: {
+            primary: [
+              "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
+              "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO",
+            ],
+          },
+        },
+      ],
+    };
+
+    const result = stepsBySector[sector] || [];
+    console.log(
+      "getSectorSteps - stepsBySector keys:",
+      Object.keys(stepsBySector),
+    );
+    console.log("getSectorSteps - Final result:", result);
+    return result;
+  };
+
+  // Function to get next sector for a step
+  const getNextSectorForStep = (stepName: string) => {
+    const allSteps = [
+      ...getSectorSteps("TI", 1),
+      ...getSectorSteps("Licitações", 1),
+      ...getSectorSteps("Jurídico", 1),
+      ...getSectorSteps("Financeiro", 1),
+      ...getSectorSteps("Administrativo", 1),
+    ];
+
+    const step = allSteps.find((s) => s.name === stepName);
+    return step?.nextSector;
+  };
+
+  // Function to calculate deadlines by phase based on the bidding flowchart
+  const getPhaseDeadlines = (processCreatedAt: Date) => {
+    const createdDate = new Date(processCreatedAt);
+
+    return {
+      Iniciação: {
+        name: "Fase de Iniciação",
+        description:
+          "Identificação da demanda até aprovação do termo de referência",
+        deadline: new Date(createdDate.getTime() + 15 * 24 * 60 * 60 * 1000), // 15 dias
+        color: "blue",
+      },
+      Preparação: {
+        name: "Fase de Preparação",
+        description: "Elaboração e aprovação do edital",
+        deadline: new Date(createdDate.getTime() + 25 * 24 * 60 * 60 * 1000), // 25 dias
+        color: "yellow",
+      },
+      Execução: {
+        name: "Fase de Execução",
+        description: "Publicação do edital até habilitação dos licitantes",
+        deadline: new Date(createdDate.getTime() + 45 * 24 * 60 * 60 * 1000), // 45 dias
+        color: "orange",
+      },
+      Finalização: {
+        name: "Fase de Finalização",
+        description: "Adjudicação até assinatura do contrato",
+        deadline: new Date(createdDate.getTime() + 60 * 24 * 60 * 60 * 1000), // 60 dias
+        color: "green",
+      },
+    };
+  };
+
+  // Get current phase based on user department
+  const getCurrentPhase = (userDepartment: string) => {
+    const phaseMap: { [key: string]: string } = {
+      TI: "Iniciação",
+      Licitações: "Preparação",
+      Jurídico: "Preparação",
+      Financeiro: "Iniciação",
+      Administrativo: "Finalização",
+    };
+    return phaseMap[userDepartment] || "Iniciação";
+  };
+
+  // Handle edit process
+  const handleEdit = () => {
+    setLocation(`/processes/${id}/edit`);
+  };
+
+  // Handle step rejection
+  const handleStepReject = async (step: ProcessStep) => {
+    setStepToReject(step);
+    setRejectionReason("");
+    setRejectModalOpen(true);
+  };
+
+  // Submit step rejection
+  const submitStepRejection = async () => {
+    if (!stepToReject || rejectionReason.trim().length < 100) {
+      toast({
+        title: "Erro",
+        description: "O motivo da rejeição deve ter pelo menos 100 caracteres.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmittingRejection(true);
+
+    try {
+      const response = await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepToReject.id}`,
+        {
+          isCompleted: true, // Marcamos como concluída para permitir continuidade do fluxo
+          observations: `[REJEITADO] ${rejectionReason.trim()}`,
+          rejectedAt: new Date().toISOString(),
+          rejectionStatus: "rejected_with_approval", // Novo status para identificar rejeições aprovadas
+        },
+      );
+
+      if (response.ok) {
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}/steps`],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}`],
+        });
+
+        toast({
+          title: "Etapa rejeitada com aprovação",
+          description:
+            "A etapa foi rejeitada mas o processo pode continuar. O administrador será notificado para revisão.",
+        });
+
+        setRejectModalOpen(false);
+        setStepToReject(null);
+        setRejectionReason("");
+      } else {
+        throw new Error("Erro ao rejeitar etapa");
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível rejeitar a etapa. Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmittingRejection(false);
+    }
+  };
 
   // Handle step toggle
   const handleStepToggle = async (stepId: number, isCompleted: boolean) => {
@@ -162,569 +629,888 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       const step = steps?.find((s) => s.id === stepId);
       if (!step) return;
 
-      // Se é etapa de Autorização pelo Secretário SEAP e está sendo marcada como concluída, abrir modal
-      if (step.stepName === "Autorização pelo Secretário SEAP" && isCompleted) {
-        console.log(
-          "🔥 Etapa de Autorização detectada - abrindo modal em branco",
-        );
-        setAuthorizationModalOpen(true);
-        return; // Não continua com a conclusão ainda
+      const response = await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepId}`,
+        {
+          isCompleted,
+        },
+      );
+
+      if (response.ok) {
+        console.log("Etapa atualizada com sucesso");
+
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}/steps`],
+        });
+
+        toast({
+          title: isCompleted ? "Etapa concluída" : "Etapa desmarcada",
+          description: isCompleted
+            ? "A etapa foi marcada como concluída."
+            : "A etapa foi desmarcada.",
+        });
+      } else {
+        console.error("Erro na resposta:", response.status);
+        throw new Error(`HTTP ${response.status}`);
       }
-
-      await apiRequest("PATCH", `/api/processes/${id}/steps/${stepId}`, {
-        isCompleted,
-      });
-
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: [`/api/processes/${id}/steps`] });
     } catch (error) {
-      console.error("Error toggling step:", error);
+      console.error("Erro ao atualizar etapa:", error);
       toast({
         title: "Erro",
-        description: "Erro ao atualizar etapa",
+        description: "Não foi possível atualizar a etapa.",
         variant: "destructive",
       });
     }
   };
 
-  // Handle step rejection
-  const handleStepReject = async (stepId: number, reason: string) => {
-    try {
-      await apiRequest("PATCH", `/api/processes/${id}/steps/${stepId}`, {
-        isCompleted: false,
-        observations: `REJEITADO: ${reason}`,
-      });
-
-      queryClient.invalidateQueries({ queryKey: [`/api/processes/${id}/steps`] });
-
-      toast({
-        title: "Etapa rejeitada",
-        description: "A etapa foi rejeitada com sucesso",
-      });
-    } catch (error) {
-      console.error("Error rejecting step:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao rejeitar etapa",
-        variant: "destructive",
-      });
-    }
-  };
-
-  // Handle process deletion
+  // Handle delete process
   const handleDelete = async () => {
-    if (!process) return;
+    if (deletionReason.trim().length < 10) {
+      toast({
+        title: "Motivo obrigatório",
+        description:
+          "Por favor, informe o motivo da exclusão (mínimo 10 caracteres)",
+        variant: "destructive",
+      });
+      return;
+    }
 
+    setIsDeleting(true);
     try {
-      await apiRequest("DELETE", `/api/processes/${process.id}`, {
-        reason: deletionReason,
+      await apiRequest("DELETE", `/api/processes/${parsedId}`, {
+        deletionReason: deletionReason.trim(),
       });
 
+      // Show success toast
       toast({
         title: "Processo excluído",
-        description: "O processo foi movido para a lixeira.",
+        description: "O processo foi movido para a lixeira com sucesso",
       });
 
+      // Redirect to processes list
       setLocation("/processes");
+
+      // Invalidate queries
+      queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
     } catch (error) {
-      console.error("Error deleting process:", error);
+      console.error("Delete error:", error);
+
+      // Show error toast
       toast({
-        title: "Erro",
-        description: "Erro ao excluir processo",
+        title: "Erro ao excluir processo",
+        description: "Não foi possível excluir o processo",
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false);
+      setDeleteModalOpen(false);
+      setDeletionReason("");
     }
   };
 
-  // Handle department-specific flowchart display
-  const handleFlowchartView = (departmentName: string) => {
-    const imageMappings: { [key: string]: { src: string; title: string } } = {
-      "Setor Demandante": {
-        src: "/flowchart_setor_demandante.png",
-        title: "Fluxograma - Setor Demandante",
-      },
-      "Divisão de Licitação": {
-        src: "/flowchart_divisao_licitacao.png",
-        title: "Fluxograma - Divisão de Licitação",
-      },
-      "Núcleo de Pesquisa de Preços – NPP": {
-        src: "/flowchart_npp.png",
-        title: "Fluxograma - Núcleo de Pesquisa de Preços",
-      },
-      "Unidade de Orçamento e Finanças": {
-        src: "/flowchart_orcamento_financas.png",
-        title: "Fluxograma - Unidade de Orçamento e Finanças",
-      },
-      "Secretário de Estado da Administração Penitenciária - SEAP": {
-        src: "/flowchart_secretario_seap.png",
-        title: "Fluxograma - Secretário SEAP",
-      },
-      "Assessoria Jurídica": {
-        src: "/flowchart_assessoria_juridica.png",
-        title: "Fluxograma - Assessoria Jurídica",
-      },
-      "Controladoria Geral do Estado": {
-        src: "/flowchart_cge.png",
-        title: "Fluxograma - Controladoria Geral do Estado",
-      },
-      "Consultoria Geral de Políticas Públicas e Contratos": {
-        src: "/flowchart_cgpc.png",
-        title: "Fluxograma - Consultoria Geral de Políticas Públicas",
-      },
-      "Unidade Técnico Normativa": {
-        src: "/flowchart_unidade_tecnico_normativa.png",
-        title: "Fluxograma - Unidade Técnico Normativa",
-      },
-      "Subchefia da Casa Civil": {
-        src: "/flowchart_subcc.png",
-        title: "Fluxograma - Subchefia da Casa Civil",
-      },
-      "Equipe de Pregão": {
-        src: "/flowchart_equipe_pregao.png",
-        title: "Fluxograma - Equipe de Pregão",
-      },
-    };
+  // Handle status icon
+  const getStatusIcon = () => {
+    if (!process) return null;
 
-    const mapping = imageMappings[departmentName];
-    if (mapping) {
-      setCurrentImageSrc(mapping.src);
-      setImageTitle(mapping.title);
-      setShowFlowchartModal(true);
-      setZoomLevel(100);
-      setImagePosition({ x: 0, y: 0 });
+    switch (process.status) {
+      case "draft":
+        return <AlertCircle className="h-6 w-6 text-gray-500" />;
+      case "in_progress":
+        return <Clock className="h-6 w-6 text-yellow-500" />;
+      case "completed":
+        return <CheckCircle className="h-6 w-6 text-green-500" />;
+      case "canceled":
+        return <XCircle className="h-6 w-6 text-red-500" />;
+      default:
+        return null;
     }
   };
 
-  // Handle full flowchart display
-  const handleFullFlowchartView = () => {
-    setCurrentImageSrc("/fluxograma_seap_min.png");
-    setImageTitle("Fluxograma Completo - SEAP");
-    setShowFlowchartModal(true);
-    setZoomLevel(100);
-    setImagePosition({ x: 0, y: 0 });
+  // Flowchart functions
+  const toggleFlowchartView = () => {
+    setIsFlowchartExpanded(!isFlowchartExpanded);
   };
 
-  // Zoom functions for flowchart
-  const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 100, 500)); // Incremento de 100%, máximo 500%
-  };
-
-  const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 100, 100)); // Decremento de 100%, mínimo 100%
-  };
-
-  const handleResetZoom = () => {
-    setZoomLevel(100);
-    setImagePosition({ x: 0, y: 0 });
-  };
-
-  // Mouse drag functionality for zoomed flowchart
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (zoomLevel > 100) {
-      setIsDragging(true);
-      setDragStart({ x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y });
-    }
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (isDragging && dragStart && zoomLevel > 100) {
-      setImagePosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      });
-    }
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-    setDragStart(null);
-  };
-
-  // Escape key handler for modal
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && showFlowchartModal) {
-        setShowFlowchartModal(false);
+      if (e.key === "Escape" && isFlowchartExpanded) {
+        setIsFlowchartExpanded(false);
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [showFlowchartModal]);
+  }, [isFlowchartExpanded]);
 
-  const getDepartmentIdFromName = (departmentName: string): number => {
-    const departmentMap: { [key: string]: number } = {
-      "Setor Demandante": 1,
-      "Divisão de Licitação": 2,
-      "Núcleo de Pesquisa de Preços – NPP": 3,
-      "Unidade de Orçamento e Finanças": 4,
-      "Secretário de Estado da Administração Penitenciária - SEAP": 5,
-      "Assessoria Jurídica": 6,
-      "Controladoria Geral do Estado": 7,
-      "Consultoria Geral de Políticas Públicas e Contratos": 8,
-      "Unidade Técnico Normativa": 9,
-      "Subchefia da Casa Civil": 10,
-      "Equipe de Pregão": 11,
-    };
-
-    return departmentMap[departmentName] || 1;
-  };
-
-  if (processLoading || stepsLoading) {
+  if (processLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p>Carregando detalhes do processo...</p>
-        </div>
-      </div>
+      <div className="p-8 text-center">Carregando detalhes do processo...</div>
     );
   }
 
-  if (processError || stepsError || !process) {
+  if (error || !process) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600">Erro ao carregar dados do processo</p>
-        </div>
+      <div className="p-8 text-center">
+        <AlertCircle className="h-10 w-10 text-red-500 mx-auto mb-4" />
+        <h2 className="text-xl font-semibold mb-2">
+          Erro ao carregar processo
+        </h2>
+        <p>Não foi possível carregar os detalhes do processo.</p>
+        <Button onClick={() => setLocation("/processes")} className="mt-4">
+          Voltar para Processos
+        </Button>
       </div>
     );
   }
-
-  const isOverdue = new Date(process.deadline) < new Date();
-  const currentUserCanTransfer =
-    currentUser &&
-    (currentUser.role === "admin" ||
-      departments?.find((dept) => dept.id === process.currentDepartmentId)
-        ?.name === currentUser.department);
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            Processo Nº {process.pbdocNumber}
-          </h1>
-          <p className="text-gray-600 mb-2">{process.description}</p>
-          <div className="flex flex-wrap gap-2">
-            <span
-              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                process.status === "draft"
-                  ? "bg-gray-100 text-gray-800"
-                  : process.status === "in_progress"
-                    ? "bg-blue-100 text-blue-800"
-                    : process.status === "completed"
-                      ? "bg-green-100 text-green-800"
-                      : process.status === "canceled"
-                        ? "bg-red-100 text-red-800"
-                        : "bg-orange-100 text-orange-800"
-              }`}
-            >
-              {getProcessStatusLabel(process.status)}
-            </span>
-            <span
-              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                process.priority === "high"
-                  ? "bg-red-100 text-red-800"
-                  : process.priority === "medium"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-green-100 text-green-800"
-              }`}
-            >
-              {getProcessPriorityLabel(process.priority)}
-            </span>
-            {isOverdue && (
-              <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                <Clock className="h-3 w-3 inline mr-1" />
-                Atrasado
-              </span>
-            )}
+    <div>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="flex items-center">
+          {getStatusIcon()}
+          <div className="ml-2">
+            <h1 className="text-2xl font-semibold text-gray-800">
+              Processo {process.pbdocNumber}
+            </h1>
+            <p className="text-gray-600">{process.description}</p>
           </div>
         </div>
-        <div className="flex gap-2">
+
+        <div className="flex flex-wrap gap-2">
           <Button
-            onClick={() => setLocation(`/processes/${process.id}/edit`)}
-            variant="outline"
-            size="sm"
+            variant="default"
+            onClick={() => setLocation(`/processes/${process.id}/report`)}
           >
+            <FileText className="h-4 w-4 mr-2" />
+            Gerar Relatório
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={() => setLocation(`/processes/${process.id}/transfer`)}
+          >
+            <ArrowRight className="h-4 w-4 mr-2" />
+            Tramitar
+          </Button>
+
+          <Button variant="outline" onClick={handleEdit}>
             <Edit className="h-4 w-4 mr-2" />
             Editar
           </Button>
+
           <Button
-            onClick={() => setLocation(`/processes/${process.id}/transfer`)}
-            variant="outline"
-            size="sm"
-            disabled={!currentUserCanTransfer}
-            title={
-              !currentUserCanTransfer
-                ? "Você não tem permissão para transferir este processo"
-                : "Transferir processo"
-            }
+            variant="destructive"
+            onClick={() => setDeleteModalOpen(true)}
           >
-            <ArrowRight className="h-4 w-4 mr-2" />
-            Transferir
+            <Trash className="h-4 w-4 mr-2" />
+            Excluir
           </Button>
-          <Button
-            onClick={() => setLocation(`/report/${process.id}`)}
-            variant="outline"
-            size="sm"
-          >
-            <FileText className="h-4 w-4 mr-2" />
-            Relatório
-          </Button>
-          {currentUser?.role === "admin" && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="sm">
-                  <Trash className="h-4 w-4 mr-2" />
-                  Excluir
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Esta ação moverá o processo para a lixeira. Você tem certeza
-                    que deseja continuar?
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <div className="my-4">
-                  <label className="block text-sm font-medium mb-2">
-                    Motivo da Exclusão
-                  </label>
-                  <Textarea
-                    value={deletionReason}
-                    onChange={(e) => setDeletionReason(e.target.value)}
-                    placeholder="Descreva o motivo da exclusão..."
-                    rows={3}
-                  />
-                </div>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={handleDelete}
-                    disabled={!deletionReason.trim()}
-                  >
-                    Confirmar Exclusão
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
         </div>
       </div>
 
-      {/* Process Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Informações do Processo</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Modalidade</dt>
-              <dd className="text-sm text-gray-900">
-                {process.modality?.name}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Fonte de Recursos
-              </dt>
-              <dd className="text-sm text-gray-900">
-                {process.source?.description}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Responsável</dt>
-              <dd className="text-sm text-gray-900">
-                {process.responsible?.username}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">Criado em</dt>
-              <dd className="text-sm text-gray-900">
-                {format(new Date(process.createdAt), "dd/MM/yyyy 'às' HH:mm", {
-                  locale: ptBR,
-                })}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Prazo de Entrega
-              </dt>
-              <dd
-                className={`text-sm ${
-                  isOverdue ? "text-red-600 font-medium" : "text-gray-900"
-                }`}
-              >
-                {format(new Date(process.deadline), "dd/MM/yyyy", {
-                  locale: ptBR,
-                })}
-                {isOverdue && (
-                  <span className="ml-2 inline-flex items-center">
-                    <AlertCircle className="h-3 w-3 mr-1" />
-                    Vencido
-                  </span>
-                )}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-sm font-medium text-gray-500">
-                Departamento Atual
-              </dt>
-              <dd className="text-sm text-gray-900">
-                {departments?.find((dept) => dept.id === process.currentDepartmentId)?.name ||
-                  "N/A"}
-              </dd>
-            </div>
-            {process.returnComments && (
-              <div className="col-span-full">
-                <dt className="text-sm font-medium text-gray-500">
-                  Comentários de Retorno
-                </dt>
-                <dd className="text-sm text-gray-900 mt-1 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                  {process.returnComments}
-                </dd>
-              </div>
-            )}
-            <div className="col-span-full">
-              <dt className="text-sm font-medium text-gray-500 mb-2">
-                Histórico de Responsabilidades
-              </dt>
-              <dd className="text-sm text-gray-900 col-span-2">
-                {historyLoading ? (
-                  <div className="text-xs text-gray-500">
-                    Carregando histórico...
-                  </div>
-                ) : responsibilityHistory &&
-                  responsibilityHistory.length > 0 ? (
-                  <div className="space-y-2">
-                    {responsibilityHistory.map((history, index) => (
-                      <div
-                        key={history.id}
-                        className="flex items-start space-x-2"
-                      >
-                        <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div>
-                        <div className="flex-1">
-                          <div className="text-xs text-gray-900">
-                            <span className="font-medium">
-                              {history.fullName || history.username}
-                            </span>
-                            {history.departmentName && (
-                              <span className="text-gray-500">
-                                {" "}
-                                ({history.departmentName})
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {history.action === "created"
-                              ? "Criou o processo"
-                              : history.action === "updated"
-                                ? "Modificou o processo"
-                                : history.action === "transferred"
-                                  ? "Transferiu o processo"
-                                  : history.action === "returned"
-                                    ? "Retornou o processo"
-                                    : history.description ||
-                                      history.action}
-                          </div>
-                          <div className="text-xs text-gray-400">
-                            {format(
-                              new Date(history.timestamp),
-                              "dd/MM/yyyy 'às' HH:mm",
-                              { locale: ptBR },
-                            )}
-                          </div>
-                          {history.comments && (
-                            <div className="text-xs text-gray-600 mt-1 p-2 bg-gray-50 rounded">
-                              {history.comments}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-xs text-gray-500">
-                    Nenhum histórico disponível
-                  </div>
-                )}
-              </dd>
-            </div>
-          </dl>
-        </CardContent>
-      </Card>
-
-      {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
+        <TabsList className="mb-6">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-          <TabsTrigger value="checklist">Checklist</TabsTrigger>
-          <TabsTrigger value="flowchart">Fluxograma</TabsTrigger>
+
+          <TabsTrigger value="flow">Fluxo</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="grid gap-6">
-            {/* Process Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Progresso do Processo</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {stepsLoading ? (
-                  <p>Carregando etapas...</p>
-                ) : steps && steps.length > 0 ? (
-                  <div className="space-y-4">
-                    {steps.map((step, index) => (
-                      <div key={step.id} className="flex items-center space-x-3">
-                        <div
-                          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                            step.isCompleted
-                              ? "bg-green-100 text-green-600"
-                              : "bg-gray-100 text-gray-400"
-                          }`}
-                        >
-                          {step.isCompleted ? (
-                            <CheckCircle className="h-5 w-5" />
-                          ) : (
-                            <Clock className="h-5 w-5" />
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p
-                              className={`text-sm font-medium ${
-                                step.isCompleted
-                                  ? "text-gray-900"
-                                  : "text-gray-500"
-                              }`}
-                            >
-                              {step.stepName}
-                            </p>
-                            <span className="text-xs text-gray-400">
-                              {step.phase}
-                            </span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Informações Básicas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl className="divide-y divide-gray-200">
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        PBDOC
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {process.pbdocNumber}
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Descrição
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {process.description}
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Modalidade
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {modality?.name || `Modalidade ${process.modalityId}`}
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Fonte
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {source
+                          ? `Fonte ${source.code} - ${source.description}`
+                          : `Fonte ${process.sourceId}`}
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Histórico de Responsabilidades
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {historyLoading ? (
+                          <div className="text-xs text-gray-500">
+                            Carregando histórico...
                           </div>
-                          {step.observations && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {step.observations}
-                            </p>
+                        ) : responsibilityHistory &&
+                          responsibilityHistory.length > 0 ? (
+                          <div className="space-y-2">
+                            {responsibilityHistory.map((history, index) => (
+                              <div
+                                key={history.id}
+                                className="flex items-start space-x-2"
+                              >
+                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                                <div className="flex-1">
+                                  <div className="text-xs text-gray-900">
+                                    <span className="font-medium">
+                                      {history.fullName || history.username}
+                                    </span>
+                                    {history.departmentName && (
+                                      <span className="text-gray-500">
+                                        {" "}
+                                        ({history.departmentName})
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {history.action === "created"
+                                      ? "Criou o processo"
+                                      : history.action === "updated"
+                                        ? "Modificou o processo"
+                                        : history.action === "transferred"
+                                          ? "Transferiu o processo"
+                                          : history.action === "returned"
+                                            ? "Retornou o processo"
+                                            : history.description ||
+                                              history.action}
+                                  </div>
+                                  <div className="text-xs text-gray-400">
+                                    {format(
+                                      new Date(history.timestamp),
+                                      "dd/MM/yyyy HH:mm",
+                                      { locale: ptBR },
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-500">
+                            Responsável atual:{" "}
+                            {responsible?.fullName ||
+                              `Usuário ${process.responsibleId}`}
+                            {process.responsibleSince && (
+                              <div className="mt-1 text-xs text-blue-600 flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                Responsável desde{" "}
+                                {format(
+                                  new Date(process.responsibleSince),
+                                  "dd/MM/yyyy",
+                                  { locale: ptBR },
+                                )}
+                                (
+                                {Math.ceil(
+                                  (new Date().getTime() -
+                                    new Date(
+                                      process.responsibleSince,
+                                    ).getTime()) /
+                                    (1000 * 60 * 60 * 24),
+                                )}{" "}
+                                dias)
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </dd>
+                    </div>
+                  </dl>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Status e Prioridade</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <dl className="divide-y divide-gray-200">
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Status
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        <span
+                          className={`status-badge status-badge-${process.status}`}
+                        >
+                          {getProcessStatusLabel(process.status)}
+                        </span>
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Prioridade
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        <span
+                          className={`priority-badge priority-badge-${process.priority}`}
+                        >
+                          {getProcessPriorityLabel(process.priority)}
+                        </span>
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Data de Criação
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {format(
+                          new Date(process.createdAt),
+                          "dd 'de' MMMM 'de' yyyy",
+                          { locale: ptBR },
+                        )}
+                      </dd>
+                    </div>
+
+                    <div className="py-3 grid grid-cols-3">
+                      <dt className="text-sm font-medium text-gray-500">
+                        Última Atualização
+                      </dt>
+                      <dd className="text-sm text-gray-900 col-span-2">
+                        {format(
+                          new Date(process.updatedAt),
+                          "dd 'de' MMMM 'de' yyyy",
+                          { locale: ptBR },
+                        )}
+                      </dd>
+                    </div>
+
+                    {process.deadline && (
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Prazo de Entrega
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2 flex items-center">
+                          {format(
+                            new Date(process.deadline),
+                            "dd 'de' MMMM 'de' yyyy",
+                            { locale: ptBR },
                           )}
+                          {new Date(process.deadline) < new Date() ? (
+                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                              Atrasado
+                            </span>
+                          ) : (
+                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                              {Math.ceil(
+                                (new Date(process.deadline).getTime() -
+                                  new Date().getTime()) /
+                                  (1000 * 60 * 60 * 24),
+                              )}{" "}
+                              dias restantes
+                            </span>
+                          )}
+                        </dd>
+                      </div>
+                    )}
+                  </dl>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Right Sidebar with Checklist */}
+            <div className="space-y-6">
+              {/* Next Step Card */}
+              {nextStep && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center text-lg">
+                      <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                      Próxima Etapa
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="font-medium text-gray-900 text-sm">
+                          {nextStep.stepName}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-1">
+                          Setor Responsável:{" "}
+                          {currentDepartment?.name ||
+                            "Departamento não definido"}
+                        </p>
+                      </div>
+
+                      {nextStep.dueDate && (
+                        <div className="flex items-center text-xs text-orange-600">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {format(new Date(nextStep.dueDate), "dd/MM/yyyy")}
+                        </div>
+                      )}
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-gray-500">
+                          Progresso:{" "}
+                          {steps?.filter((s) => s.isCompleted).length || 0} de{" "}
+                          {steps?.length || 0}
+                        </span>
+                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                          <div
+                            className="bg-blue-600 h-1.5 rounded-full"
+                            style={{
+                              width: `${((steps?.filter((s) => s.isCompleted).length || 0) / (steps?.length || 1)) * 100}%`,
+                            }}
+                          />
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-gray-500">
-                    Nenhuma etapa encontrada para este processo.
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+
+                      {/* Sector-Specific Checklist */}
+                      {currentUser && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                            Checklist do Setor{" "}
+                            {currentDepartment?.name || "Atual"}
+                          </h4>
+
+                          {/* Sector Steps */}
+                          <div className="space-y-2">
+                            {(() => {
+                              const sectorSteps = getSectorSteps(
+                                currentDepartment?.name ||
+                                  currentUser.department,
+                                process?.modalityId || 1,
+                              );
+                              console.log("Sector steps:", sectorSteps);
+                              console.log(
+                                "Current department:",
+                                currentDepartment?.name,
+                              );
+                              console.log(
+                                "Current user department:",
+                                currentUser.department,
+                              );
+                              console.log(
+                                "Process current department ID:",
+                                process?.currentDepartmentId,
+                              );
+                              return sectorSteps;
+                            })()
+                              .filter((sectorStep) => {
+                                // Mostrar apenas etapas pendentes (não concluídas)
+                                const existingStep = steps?.find(
+                                  (s) => s.stepName === sectorStep.name,
+                                );
+                                return !existingStep?.isCompleted;
+                              })
+                              .map((sectorStep, index) => {
+                                const existingStep = steps?.find(
+                                  (s) => s.stepName === sectorStep.name,
+                                );
+                                const isCompleted =
+                                  existingStep?.isCompleted || false;
+
+                                // Só mostrar se o usuário atual pertence ao departamento do processo
+                                const userCanEdit =
+                                  currentUser.department ===
+                                    currentDepartment?.name ||
+                                  currentUser.role === "admin";
+
+                                console.log(
+                                  `Step ${sectorStep.name}: userCanEdit=${userCanEdit}, existingStep=${!!existingStep}, isCompleted=${isCompleted}`,
+                                );
+
+                                return (
+                                  <div
+                                    key={index}
+                                    className="flex items-center space-x-3 p-3 bg-white rounded border border-gray-200"
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      {/* Botão de Aprovar */}
+                                      <button
+                                        className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                          isCompleted
+                                            ? "bg-green-600 border-green-600 hover:bg-green-700"
+                                            : userCanEdit
+                                              ? "border-green-400 hover:border-green-600 bg-white hover:bg-green-50"
+                                              : "border-gray-300 bg-gray-100"
+                                        }`}
+                                        onClick={async () => {
+                                          if (!userCanEdit) return;
+
+                                          if (existingStep) {
+                                            // Etapa existe, apenas atualizar
+                                            handleStepToggle(
+                                              existingStep.id,
+                                              !isCompleted,
+                                            );
+                                          } else {
+                                            // Etapa não existe, criar primeiro
+                                            try {
+                                              const response = await apiRequest(
+                                                "POST",
+                                                `/api/processes/${process.id}/steps`,
+                                                {
+                                                  stepName: sectorStep.name,
+                                                  departmentId:
+                                                    process.currentDepartmentId,
+                                                  isCompleted: true,
+                                                  observations: null,
+                                                },
+                                              );
+
+                                              if (response.ok) {
+                                                // Recarregar etapas
+                                                queryClient.invalidateQueries({
+                                                  queryKey: [
+                                                    `/api/processes/${process.id}/steps`,
+                                                  ],
+                                                });
+
+                                                toast({
+                                                  title:
+                                                    "Etapa criada e concluída",
+                                                  description: `Etapa "${sectorStep.name}" foi criada e marcada como concluída`,
+                                                });
+                                              }
+                                            } catch (error) {
+                                              toast({
+                                                title: "Erro",
+                                                description:
+                                                  "Não foi possível criar a etapa",
+                                                variant: "destructive",
+                                              });
+                                            }
+                                          }
+                                        }}
+                                        disabled={!userCanEdit}
+                                        title="Aprovar etapa"
+                                      >
+                                        {isCompleted ? (
+                                          <Check className="h-4 w-4 text-white" />
+                                        ) : (
+                                          <Check className="h-4 w-4 text-green-600" />
+                                        )}
+                                      </button>
+
+                                      {/* Botão de Rejeitar */}
+                                      <button
+                                        className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                          userCanEdit
+                                            ? "border-red-400 hover:border-red-600 bg-white hover:bg-red-50"
+                                            : "border-gray-300 bg-gray-100"
+                                        }`}
+                                        onClick={async () => {
+                                          if (!userCanEdit) return;
+
+                                          if (existingStep) {
+                                            // Etapa existe, apenas rejeitar
+                                            handleStepReject(existingStep);
+                                          } else {
+                                            // Etapa não existe, criar primeiro para poder rejeitar
+                                            try {
+                                              const response = await apiRequest(
+                                                "POST",
+                                                `/api/processes/${process.id}/steps`,
+                                                {
+                                                  stepName: sectorStep.name,
+                                                  departmentId:
+                                                    process.currentDepartmentId,
+                                                  isCompleted: false,
+                                                  observations: null,
+                                                },
+                                              );
+
+                                              if (response.ok) {
+                                                const newStep =
+                                                  await response.json();
+
+                                                // Rejeitar a etapa criada
+                                                handleStepReject(newStep);
+                                              }
+                                            } catch (error) {
+                                              toast({
+                                                title: "Erro",
+                                                description:
+                                                  "Não foi possível criar a etapa para rejeição",
+                                                variant: "destructive",
+                                              });
+                                            }
+                                          }
+                                        }}
+                                        disabled={!userCanEdit}
+                                        title="Rejeitar etapa"
+                                      >
+                                        <XCircle className="h-4 w-4 text-red-600" />
+                                      </button>
+                                    </div>
+
+                                    <div className="flex-1">
+                                      <p
+                                        className={`text-sm font-medium ${isCompleted ? "line-through text-gray-500" : "text-gray-900"}`}
+                                      >
+                                        {sectorStep.name}
+                                      </p>
+                                      <p className="text-xs text-gray-500">
+                                        Fase: {sectorStep.phase}
+                                      </p>
+                                      {existingStep?.observations && (
+                                        <p className="text-xs text-red-600 mt-1 bg-red-50 p-2 rounded">
+                                          <strong>Motivo da rejeição:</strong>{" "}
+                                          {existingStep.observations}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Current Step Action */}
+                      {/* {nextStep && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                            <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                            Ação da Etapa Atual
+                          </h4>
+                          <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                            <button
+                              className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                nextStep.isCompleted 
+                                  ? "bg-green-600 border-green-600 hover:bg-green-700" 
+                                  : "border-blue-400 hover:border-green-400 bg-white hover:bg-green-50"
+                              }`}
+                              onClick={() => handleStepToggle(nextStep.id, !nextStep.isCompleted)}
+                            >
+                              {nextStep.isCompleted ? (
+                                <CheckCircle className="h-4 w-4 text-white" />
+                              ) : (
+                                <span className="text-sm text-blue-600 font-medium">✓</span>
+                              )}
+                            </button>
+                            <div className="flex-1">
+                              <p className={`text-sm font-medium ${nextStep.isCompleted ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                                {nextStep.stepName}
+                              </p>
+                              <p className="text-xs text-gray-600 mt-1">
+                                {nextStep.isCompleted ? 'Etapa concluída' : 'Clique para marcar como concluída'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+       /*}
+       {/* Botão de Correção do Checklist */}
+                      <div className="mt-6 pt-4 border-t border-gray-200">
+                        <center>
+                          <Button
+                            variant="secondary"
+                            onClick={async () => {
+                              try {
+                                // Corrigir apenas etapas do setor atual
+                                if (steps && currentDepartment) {
+                                  const sectorSteps = getSectorSteps(
+                                    currentDepartment.name,
+                                    process?.modalityId || 1,
+                                  );
+
+                                  // Filtrar apenas etapas do setor atual que estão concluídas
+                                  const currentSectorSteps = steps.filter(
+                                    (step) =>
+                                      sectorSteps.some(
+                                        (sectorStep) =>
+                                          sectorStep.name === step.stepName,
+                                      ) && step.isCompleted,
+                                  );
+
+                                  for (const step of currentSectorSteps) {
+                                    await apiRequest(
+                                      "PATCH",
+                                      `/api/processes/${parsedId}/steps/${step.id}`,
+                                      { isCompleted: false },
+                                    );
+                                  }
+
+                                  queryClient.invalidateQueries({
+                                    queryKey: [
+                                      `/api/processes/${parsedId}/steps`,
+                                    ],
+                                  });
+
+                                  toast({
+                                    title: "Checklist corrigido",
+                                    description: `Etapas do setor ${currentDepartment.name} foram desmarcadas.`,
+                                  });
+                                }
+                              } catch (error) {
+                                toast({
+                                  title: "Erro",
+                                  description:
+                                    "Não foi possível corrigir o checklist.",
+                                  variant: "destructive",
+                                });
+                              }
+                            }}
+                          >
+                            <RefreshCw className="h-4 w-4 mr-2" />
+                            Corrigir
+                          </Button>
+                          <p className="text-sm text-gray-600 mt-2">
+                            Remove apenas as marcações do setor atual feitas
+                            incorretamente
+                          </p>
+                        </center>
+                      </div>
+                      {/* Prazo de Finalização por Fase */}
+                      {currentUser && process && (
+                        <div className="mt-6 pt-4 border-t border-gray-200">
+                          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                            <Calendar className="h-4 w-4 mr-2 text-orange-600" />
+                            Prazos de Finalização - Fluxograma Oficial
+                          </h4>
+
+                          {(() => {
+                            const currentPhase = getCurrentPhase(
+                              currentUser.department,
+                            );
+                            const phaseDeadlines = getPhaseDeadlines(
+                              new Date(process.createdAt),
+                            );
+                            const currentPhaseInfo =
+                              phaseDeadlines[
+                                currentPhase as keyof typeof phaseDeadlines
+                              ];
+
+                            if (!currentPhaseInfo) return null;
+
+                            const daysRemaining = Math.ceil(
+                              (currentPhaseInfo.deadline.getTime() -
+                                new Date().getTime()) /
+                                (1000 * 60 * 60 * 24),
+                            );
+                            const isOverdue = daysRemaining < 0;
+                            const isUrgent =
+                              daysRemaining <= 3 && daysRemaining >= 0;
+
+                            return (
+                              <div
+                                className={`p-3 rounded-lg border-2 ${
+                                  isOverdue
+                                    ? "bg-red-50 border-red-200"
+                                    : isUrgent
+                                      ? "bg-yellow-50 border-yellow-200"
+                                      : "bg-green-50 border-green-200"
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5
+                                    className={`font-medium text-sm ${
+                                      isOverdue
+                                        ? "text-red-800"
+                                        : isUrgent
+                                          ? "text-yellow-800"
+                                          : "text-green-800"
+                                    }`}
+                                  >
+                                    {currentPhaseInfo.name}
+                                  </h5>
+                                  <span
+                                    className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                      isOverdue
+                                        ? "bg-red-200 text-red-800"
+                                        : isUrgent
+                                          ? "bg-yellow-200 text-yellow-800"
+                                          : "bg-green-200 text-green-800"
+                                    }`}
+                                  >
+                                    {isOverdue
+                                      ? `${Math.abs(daysRemaining)} dias em atraso`
+                                      : daysRemaining === 0
+                                        ? "Vence hoje"
+                                        : `${daysRemaining} dias restantes`}
+                                  </span>
+                                </div>
+                                <p className="text-xs text-gray-600 mb-2">
+                                  {currentPhaseInfo.description}
+                                </p>
+                                <div className="flex items-center text-xs text-gray-500">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  Prazo final:{" "}
+                                  {format(
+                                    currentPhaseInfo.deadline,
+                                    "dd/MM/yyyy",
+                                    { locale: ptBR },
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })()}
+
+                          {/* Resumo de todas as fases */}
+                          <div className="mt-3 grid grid-cols-2 gap-2">
+                            {process &&
+                              Object.entries(
+                                getPhaseDeadlines(new Date(process.createdAt)),
+                              ).map(([phase, info]) => {
+                                const daysFromStart = Math.ceil(
+                                  (info.deadline.getTime() -
+                                    new Date(process.createdAt).getTime()) /
+                                    (1000 * 60 * 60 * 24),
+                                );
+                                const isPast = new Date() > info.deadline;
+
+                                return (
+                                  <div
+                                    key={phase}
+                                    className={`p-2 rounded text-xs border ${
+                                      isPast
+                                        ? "bg-gray-100 border-gray-300 text-gray-500"
+                                        : "bg-white border-gray-200"
+                                    }`}
+                                  >
+                                    <div className="font-medium">
+                                      {info.name}
+                                    </div>
+                                    <div className="text-gray-500">
+                                      {daysFromStart} dias
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </TabsContent>
 
@@ -732,10 +1518,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Lista de Verificação</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  Checklist de Aprovação/Rejeição de Etapas
+                </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-gray-600 mb-6">
                   Use os botões abaixo para aprovar ou rejeitar cada etapa do
                   processo. Para rejeitar uma etapa, é obrigatório fornecer uma
                   explicação com pelo menos 100 caracteres.
@@ -745,8 +1534,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     processId={process.id}
                     modalityId={process.modalityId}
                     userDepartment={currentUser.department}
-                    authorizationModalOpen={authorizationModalOpen}
-                    setAuthorizationModalOpen={setAuthorizationModalOpen}
                   />
                 )}
               </CardContent>
@@ -754,174 +1541,422 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           </div>
         </TabsContent>
 
-        <TabsContent value="flowchart">
+        <TabsContent value="flow">
           <div className="space-y-6">
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border">
+              <h2 className="text-xl font-bold text-gray-800 mb-2">
+                Fluxograma do Pregão Eletrônico - SEAP/PB
+              </h2>
+              <p className="text-gray-600">
+                Baseado na Lei nº 14.133/2021 - Nova Lei de Licitações e
+                Contratos
+              </p>
+            </div>
+
+            {/* Fluxograma Visual */}
             <Card>
               <CardHeader>
-                <CardTitle>Fluxograma do Processo</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {/* Quick Access Buttons */}
-                  <div className="flex flex-wrap gap-2 mb-6">
+                <CardTitle className="flex items-center justify-between">
+                  <span>Fluxograma Visual do Processo</span>
+                  <div className="flex items-center gap-3 flex-wrap">
                     <Button
-                      onClick={handleFullFlowchartView}
                       variant="outline"
                       size="sm"
+                      onClick={() => {
+                        if (isZoomFocused) {
+                          setFullScreenViewMode("complete");
+                          setIsFullScreen(true);
+                        } else {
+                          setIsZoomFocused(true);
+                        }
+                      }}
                     >
-                      <ImageIcon className="h-4 w-4 mr-2" />
-                      Fluxograma Completo
+                      {isZoomFocused ? "Visão Completa" : "Foco no Setor"}
                     </Button>
-                    {[
-                      "Setor Demandante",
-                      "Divisão de Licitação",
-                      "Núcleo de Pesquisa de Preços – NPP",
-                      "Unidade de Orçamento e Finanças",
-                      "Secretário de Estado da Administração Penitenciária - SEAP",
-                      "Assessoria Jurídica",
-                      "Controladoria Geral do Estado",
-                      "Consultoria Geral de Políticas Públicas e Contratos",
-                      "Unidade Técnico Normativa",
-                      "Subchefia da Casa Civil",
-                      "Equipe de Pregão",
-                    ].map((dept) => (
-                      <Button
-                        key={dept}
-                        onClick={() => handleFlowchartView(dept)}
-                        variant="outline"
-                        size="sm"
-                      >
-                        <ImageIcon className="h-4 w-4 mr-2" />
-                        {dept.length > 20 ? `${dept.substring(0, 20)}...` : dept}
-                      </Button>
-                    ))}
-                  </div>
 
-                  {/* Sequência do Fluxograma para Comparação Manual */}
-                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <h4 className="font-medium text-blue-900 mb-3">
-                      Sequência do Fluxograma para Comparação Manual:
-                    </h4>
-                    <ol className="text-sm text-blue-800 space-y-1">
-                      <li>1. Setor Demandante</li>
-                      <li>2. Divisão de Licitação</li>
-                      <li>3. Núcleo de Pesquisa de Preços – NPP</li>
-                      <li>4. Unidade de Orçamento e Finanças</li>
-                      <li>
-                        5. Secretário de Estado da Administração Penitenciária -
-                        SEAP
-                      </li>
-                      <li>6. Assessoria Jurídica</li>
-                      <li>7. Controladoria Geral do Estado</li>
-                      <li>
-                        8. Consultoria Geral de Políticas Públicas e Contratos
-                      </li>
-                      <li>9. Unidade Técnico Normativa</li>
-                      <li>10. Subchefia da Casa Civil</li>
-                      <li>11. Equipe de Pregão</li>
-                    </ol>
+                    <div className="text-sm text-gray-600">
+                      Foco: {currentUser?.department || "Geral"}
+                    </div>
                   </div>
-
-                  {/* Interactive Flowchart Component */}
-                  {process && (
-                    <BiddingFlowchart
-                      departmentName={currentUser?.department || ""}
-                      modalityId={process.modalityId}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="border rounded-lg p-4 bg-white overflow-hidden">
+                  <div className="relative">
+                    <img
+                      src={getFlowchartImage(currentUser?.department)}
+                      alt="Fluxograma do Processo de Licitação SEAP"
+                      className="w-full h-auto transition-all duration-500 hover:scale-105"
                     />
+                    <div className="absolute top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded-full text-xs font-medium">
+                      {getDepartmentFocus(currentUser?.department)}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <h4 className="font-semibold text-blue-800 mb-2">
+                    {isZoomFocused
+                      ? `Foco: ${currentUser?.department}`
+                      : "Fluxograma Completo"}
+                  </h4>
+                  <p className="text-sm text-blue-700">
+                    {isZoomFocused
+                      ? `Visualizando imagem específica do ${currentUser?.department}. ${getDepartmentDescription(currentUser?.department)}`
+                      : "Visualizando todo o fluxograma do processo de licitação."}
+                  </p>
+                  {isZoomFocused && (
+                    <div className="mt-2 text-xs text-blue-600 bg-blue-100 p-2 rounded">
+                      💡 Para ver as imagens específicas de cada setor, você
+                      pode enviar as imagens cortadas com os nomes:
+                      fluxograma-setor-demandante.png,
+                      fluxograma-divisao-licitacao.png, etc.
+                    </div>
                   )}
                 </div>
               </CardContent>
             </Card>
+
+            {/* Fase 1: Iniciação */}
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-6 rounded-r-lg">
+              <h3 className="text-lg font-semibold text-blue-800 mb-4 flex items-center gap-2">
+                <span className="bg-blue-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  1
+                </span>
+                FASE DE INICIAÇÃO
+              </h3>
+              <div className="grid gap-3">
+                <div className="bg-white p-4 rounded border-l-2 border-blue-300">
+                  <h4 className="font-medium text-gray-800">
+                    Setor Demandante
+                  </h4>
+                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                    <li>• Documento de Formalização da Demanda (DFD)</li>
+                    <li>• Estudo Técnico Preliminar (ETP)</li>
+                    <li>• Mapa de Risco (MR)</li>
+                    <li>• Termo de Referência (TR)</li>
+                  </ul>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-orange-300">
+                  <h4 className="font-medium text-gray-800">
+                    Ordenador de Despesa
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Autorização (Prazo: 10 dias)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Fase 2: Preparação */}
+            <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 rounded-r-lg">
+              <h3 className="text-lg font-semibold text-yellow-800 mb-4 flex items-center gap-2">
+                <span className="bg-yellow-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  2
+                </span>
+                FASE DE PREPARAÇÃO
+              </h3>
+              <div className="grid gap-3">
+                <div className="bg-white p-4 rounded border-l-2 border-yellow-300">
+                  <h4 className="font-medium text-gray-800">
+                    Divisão de Licitação
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Criar Processo no Órgão (Prazo: 2 dias)
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-green-300">
+                  <h4 className="font-medium text-gray-800">
+                    Núcleo de Pesquisa de Preços
+                  </h4>
+                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                    <li>• Fazer Pesquisa de Preços (Prazo: 2 dias)</li>
+                    <li>• Elaborar Mapa Comparativo (Prazo: 10 dias)</li>
+                    <li>• Metodologia da Pesquisa (Prazo: 10 dias)</li>
+                  </ul>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-purple-300">
+                  <h4 className="font-medium text-gray-800">
+                    Orçamento e Finanças
+                  </h4>
+                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                    <li>
+                      • Consultar Disponibilidade Orçamentária (Prazo: 1 dia)
+                    </li>
+                    <li>• Emitir Reserva Orçamentária (Prazo: 1 dia)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* Fase 3: Execução */}
+            <div className="bg-green-50 border-l-4 border-green-500 p-6 rounded-r-lg">
+              <h3 className="text-lg font-semibold text-green-800 mb-4 flex items-center gap-2">
+                <span className="bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  3
+                </span>
+                FASE DE EXECUÇÃO
+              </h3>
+              <div className="grid gap-3">
+                <div className="bg-white p-4 rounded border-l-2 border-red-300">
+                  <h4 className="font-medium text-gray-800">Secretário SEAP</h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Autorização Final
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-green-300">
+                  <h4 className="font-medium text-gray-800">
+                    Divisão de Licitação
+                  </h4>
+                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                    <li>• Elaborar Edital e Anexos (Prazo: 10 dias)</li>
+                    <li>• Consultar Comitê Gestor (Prazo: 2 dias)</li>
+                    <li>• Publicar Edital</li>
+                    <li>• Realizar Sessão Pública de Lances</li>
+                    <li>• Análise de Documentação</li>
+                  </ul>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-blue-300">
+                  <h4 className="font-medium text-gray-800">
+                    Assessoria Jurídica
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Elaboração de Nota Técnica (Prazo: 1 dia)
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Fase 4: Finalização */}
+            <div className="bg-purple-50 border-l-4 border-purple-500 p-6 rounded-r-lg">
+              <h3 className="text-lg font-semibold text-purple-800 mb-4 flex items-center gap-2">
+                <span className="bg-purple-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-sm font-bold">
+                  4
+                </span>
+                FASE DE FINALIZAÇÃO
+              </h3>
+              <div className="grid gap-3">
+                <div className="bg-white p-4 rounded border-l-2 border-purple-300">
+                  <h4 className="font-medium text-gray-800">
+                    Divisão de Licitação
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Adjudicação e Homologação
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-blue-300">
+                  <h4 className="font-medium text-gray-800">
+                    Assessoria Jurídica
+                  </h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Elaboração do Contrato
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded border-l-2 border-red-300">
+                  <h4 className="font-medium text-gray-800">Secretário SEAP</h4>
+                  <p className="text-sm text-gray-600 mt-2">
+                    • Assinatura do Contrato
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <h4 className="font-medium text-gray-800 mb-2">
+                Observações Importantes:
+              </h4>
+              <ul className="text-sm text-gray-600 space-y-1">
+                <li>
+                  • Este fluxograma segue rigorosamente a Lei nº 14.133/2021
+                </li>
+                <li>
+                  • Os prazos indicados são obrigatórios conforme legislação
+                </li>
+                <li>
+                  • Cada fase deve ser concluída antes do início da próxima
+                </li>
+                <li>
+                  • A documentação de cada etapa deve ser arquivada no processo
+                </li>
+              </ul>
+            </div>
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* Flowchart Modal */}
-      {showFlowchartModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="relative max-w-7xl max-h-screen w-full h-full p-4">
-            {/* Header */}
-            <div className="absolute top-4 left-4 right-4 z-10 flex items-center justify-between bg-white bg-opacity-90 backdrop-blur-sm rounded-lg p-3">
-              <h3 className="text-lg font-semibold text-gray-900">
-                {imageTitle}
-              </h3>
+      {/* Modal de Rejeição */}
+      <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <XCircle className="h-5 w-5" />
+              Rejeitar Etapa
+            </DialogTitle>
+            <DialogDescription>
+              {stepToReject && (
+                <>
+                  Você está rejeitando a etapa:{" "}
+                  <strong>{stepToReject.stepName}</strong>
+                  <br />É obrigatório fornecer um motivo detalhado com pelo
+                  menos 100 caracteres.
+                </>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div>
+              <label
+                htmlFor="rejection-reason"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Motivo da Rejeição *
+              </label>
+              <Textarea
+                id="rejection-reason"
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Descreva detalhadamente o motivo da rejeição desta etapa..."
+                className="min-h-[120px]"
+                disabled={isSubmittingRejection}
+              />
+              <div
+                className={`text-xs mt-1 ${rejectionReason.length < 100 ? "text-red-600" : "text-green-600"}`}
+              >
+                {rejectionReason.length}/100 caracteres (mínimo 100)
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end mt-6">
+            <Button
+              variant="outline"
+              onClick={() => setRejectModalOpen(false)}
+              disabled={isSubmittingRejection}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={submitStepRejection}
+              disabled={
+                rejectionReason.trim().length < 100 || isSubmittingRejection
+              }
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {isSubmittingRejection ? "Rejeitando..." : "Rejeitar Etapa"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Tela Cheia para Fluxograma */}
+      {isFullScreen && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center">
+          <div className="w-[95vw] h-[95vh] bg-white rounded-lg flex flex-col relative">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h2 className="text-lg font-semibold">
+                {fullScreenViewMode === "complete"
+                  ? "Fluxograma Completo - SEAP/PB"
+                  : `Foco: ${currentUser?.department}`}
+              </h2>
               <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                  <Button
-                    onClick={handleZoomOut}
-                    variant="ghost"
-                    size="sm"
-                    disabled={zoomLevel <= 100}
-                  >
-                    <ZoomOut className="h-4 w-4" />
-                  </Button>
-                  <span className="px-2 text-sm font-medium min-w-[60px] text-center">
-                    {zoomLevel}%
-                  </span>
-                  <Button
-                    onClick={handleZoomIn}
-                    variant="ghost"
-                    size="sm"
-                    disabled={zoomLevel >= 500}
-                  >
-                    <ZoomIn className="h-4 w-4" />
-                  </Button>
-                </div>
-                <Button onClick={handleResetZoom} variant="outline" size="sm">
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  Reset
-                </Button>
                 <Button
-                  onClick={() => setShowFlowchartModal(false)}
                   variant="outline"
                   size="sm"
+                  onClick={() =>
+                    setFullScreenViewMode(
+                      fullScreenViewMode === "complete"
+                        ? "focused"
+                        : "complete",
+                    )
+                  }
+                >
+                  {fullScreenViewMode === "complete"
+                    ? "Foco no Setor"
+                    : "Visão Completa"}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsFullScreen(false)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </div>
 
-            {/* Image Container */}
-            <div
-              ref={containerRef}
-              className="w-full h-full overflow-hidden rounded-lg bg-white mt-16"
-              style={{ cursor: zoomLevel > 100 ? "grab" : "default" }}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseUp}
-            >
-              <img
-                ref={imageRef}
-                src={currentImageSrc}
-                alt={imageTitle}
-                className="max-w-none transition-transform duration-200"
-                style={{
-                  transform: `scale(${zoomLevel / 100}) translate(${imagePosition.x}px, ${imagePosition.y}px)`,
-                  transformOrigin: "center center",
-                  imageRendering: "crisp-edges",
-                  WebkitImageSmoothing: false,
-                  cursor: isDragging ? "grabbing" : zoomLevel > 100 ? "grab" : "default",
-                }}
-                draggable={false}
-                onLoad={(e) => {
-                  const img = e.target as HTMLImageElement;
-                  img.style.imageRendering = "optimizeQuality";
-                  img.style.WebkitInterpolationMode = "high-quality";
-                  img.style.msInterpolationMode = "high-quality";
-                }}
+            <div className="flex-1 p-4 relative">
+              <SimpleImageZoom
+                imageSrc={
+                  fullScreenViewMode === "complete"
+                    ? "/fluxograma_seap_min.png"
+                    : getFlowchartImage(currentUser?.department)
+                }
+                alt="Fluxograma do Processo de Licitação SEAP"
               />
             </div>
 
-            {/* Instructions */}
-            {zoomLevel > 100 && (
-              <div className="absolute bottom-4 left-4 bg-black bg-opacity-75 text-white text-sm px-3 py-2 rounded-lg">
-                Arraste para mover a imagem
-              </div>
-            )}
+            <div className="p-4 border-t bg-gray-50">
+              <p className="text-sm text-gray-600 text-center">
+                {fullScreenViewMode === "complete"
+                  ? "Visualizando fluxograma completo do processo de licitação"
+                  : `Visualizando imagem específica: ${currentUser?.department}`}
+                {
+                  " • Use os botões +/- para alternar entre 100%, 300% e 500% de zoom. Arraste para mover a imagem"
+                }
+              </p>
+            </div>
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteModalOpen} onOpenChange={setDeleteModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirmar Exclusão</DialogTitle>
+            <DialogDescription>
+              Tem certeza que deseja excluir este processo? O processo será
+              movido para a lixeira.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Motivo da exclusão (obrigatório - mínimo 10 caracteres)
+              </label>
+              <Textarea
+                value={deletionReason}
+                onChange={(e) => setDeletionReason(e.target.value)}
+                placeholder="Informe o motivo da exclusão do processo..."
+                className="min-h-[100px]"
+                maxLength={500}
+              />
+              <div className="text-sm text-gray-500 mt-1">
+                {deletionReason.length}/500 caracteres
+              </div>
+            </div>
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                  setDeletionReason("");
+                }}
+                disabled={isDeleting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={isDeleting || deletionReason.trim().length < 10}
+              >
+                {isDeleting ? "Excluindo..." : "Excluir"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
