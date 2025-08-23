@@ -2006,14 +2006,58 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               </Button>
               <Button
                 disabled={!authorizationMotivo}
-                onClick={() => {
-                  // TODO: Implementar lógica de salvar
-                  toast({
-                    title: "Motivo selecionado",
-                    description: authorizationMotivo,
-                  });
-                  setAuthorizationModalOpen(false);
-                  setAuthorizationMotivo("");
+                onClick={async () => {
+                  try {
+                    // Encontrar a etapa de autorização
+                    const authStep = steps?.find(s => s.stepName === "Autorização pelo Secretário SEAP");
+                    if (!authStep) return;
+
+                    // 1. Marcar etapa de autorização como concluída
+                    await apiRequest(
+                      "PATCH",
+                      `/api/processes/${parsedId}/steps/${authStep.id}`,
+                      {
+                        isCompleted: true,
+                        observations: `AUTORIZAÇÃO: ${authorizationMotivo}`
+                      }
+                    );
+
+                    // 2. Determinar próxima etapa baseada na decisão
+                    let nextStepName = "";
+                    if (authorizationMotivo === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA") {
+                      nextStepName = "DEVOLVER PARA CORREÇÃO OU ARQUIVAMENTO";
+                    } else if (authorizationMotivo === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO") {
+                      nextStepName = "SOLICITAR AJUSTE / ADITIVO DO PLANO DE TRABALHO";
+                    }
+
+                    // 3. Criar próxima etapa se especificada
+                    if (nextStepName && process) {
+                      await apiRequest("POST", `/api/processes/${process.id}/steps`, {
+                        stepName: nextStepName,
+                        departmentId: process.currentDepartmentId,
+                        isCompleted: false,
+                        observations: `Criada automaticamente pela decisão: ${authorizationMotivo}`
+                      });
+                    }
+
+                    // 4. Atualizar dados
+                    queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
+                    queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}`] });
+
+                    toast({
+                      title: "Autorização processada",
+                      description: `Decisão: ${authorizationMotivo}${nextStepName ? `. Próxima etapa: ${nextStepName}` : ''}`,
+                    });
+
+                    setAuthorizationModalOpen(false);
+                    setAuthorizationMotivo("");
+                  } catch (error) {
+                    toast({
+                      title: "Erro",
+                      description: "Não foi possível processar a autorização",
+                      variant: "destructive",
+                    });
+                  }
                 }}
               >
                 Confirmar
