@@ -478,8 +478,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           requiresDecision: true,
           decisionOptions: {
             primary: [
-              "DISPONIBILIDADE ORÇAMENTÁRIA",
-              "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL",
+              "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
+              "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO",
             ],
           },
         },
