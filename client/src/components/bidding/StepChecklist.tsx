@@ -210,16 +210,14 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
       return false;
     }
     
+    // EXCLUIR etapas marcadas como removidas
+    if (step.observations && step.observations.includes("ETAPA_REMOVIDA")) {
+      return false;
+    }
+    
     // Mostrar etapas do departamento atual (concluídas e não concluídas)
     // Para etapa de Autorização, sempre mostrar mesmo se concluída para poder editar decisão
     if (step.stepName === "Autorização pelo Secretário SEAP") {
-      console.log("🔍 Verificando etapa de Autorização:", {
-        stepName: step.stepName,
-        stepDepartmentId: step.departmentId,
-        currentDeptId,
-        userDepartment,
-        isAdmin: (currentUser as any)?.role === 'admin'
-      });
       // Admin pode ver todas as etapas de autorização
       if ((currentUser as any)?.role === 'admin') {
         return true;
@@ -235,11 +233,17 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     if (!authorizationStep) return []; // Se autorização não foi concluída, não mostrar nada
     
     if (completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
-      return steps?.filter(s => s.stepName === "Autorizar emissão de R.O." && s.departmentId === 5) || [];
+      return steps?.filter(s => 
+        s.stepName === "Autorizar emissão de R.O." && 
+        s.departmentId === 5 && 
+        (!s.observations || !s.observations.includes("ETAPA_REMOVIDA"))
+      ) || [];
     } else if (completedAuthDecision.includes("INDISPONIBILIDADE ORÇAMENTÁRIA")) {
       return steps?.filter(s => 
         ["Devolver para correção ou arquivamento", "Solicitar ajuste/aditivo do plano de trabalho", "Solicitar disponibilização de orçamento"]
-        .includes(s.stepName) && s.departmentId === 5
+        .includes(s.stepName) && 
+        s.departmentId === 5 &&
+        (!s.observations || !s.observations.includes("ETAPA_REMOVIDA"))
       ) || [];
     }
     return [];
@@ -285,76 +289,67 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     }
   }, [steps, processId, queryClient, modalityId, toast]);
 
-  // Função para criar etapas condicionais no setor SEAP
-  const createConditionalStepsIfNeeded = async () => {
-    const conditionalSteps = [
-      "Devolver para correção ou arquivamento",
-      "Solicitar ajuste/aditivo do plano de trabalho", 
-      "Solicitar disponibilização de orçamento",
-      "Autorizar emissão de R.O."
-    ];
-    
-    for (const stepName of conditionalSteps) {
-      const existingStep = steps?.find(s => s.stepName === stepName && s.departmentId === 5);
-      if (!existingStep) {
-        console.log(`Criando etapa condicional: ${stepName}`);
-        const response = await apiRequest("POST", `/api/processes/${processId}/steps`, {
-          stepName: stepName,
-          departmentId: 5, // SEAP
-          isCompleted: false,
-          isLocked: true, // Bloqueada até decisão de autorização
-          observations: "Etapa condicional - aguardando decisão de autorização"
-        });
-        
-        console.log(`Etapa ${stepName} criada:`, response.ok);
-        
-        // Forçar bloqueio via SQL caso não tenha funcionado no POST
-        if (response.ok) {
-          const stepData = await response.json();
-          await apiRequest("PATCH", `/api/processes/${processId}/steps/${stepData.id}`, {
-            isLocked: true
-          });
-        }
-      }
-    }
-    
-    queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
-  };
+  // REMOVIDA: Função createConditionalStepsIfNeeded 
+  // As etapas condicionais agora são criadas apenas APÓS a autorização ser concluída
 
-  // Effect para criar etapas condicionais baseadas na decisão de autorização
+  // Effect para deletar etapas condicionais existentes e criar apenas as relevantes após autorização
   useEffect(() => {
-    if (steps && processId && authorizationStep) {
-      const createRelevantSteps = async () => {
-        if (completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
-          // Criar apenas a etapa "Autorizar emissão de R.O."
-          const existingStep = steps.find(s => s.stepName === "Autorizar emissão de R.O." && s.departmentId === 5);
-          if (!existingStep) {
-            await apiRequest("POST", `/api/processes/${processId}/steps`, {
-              stepName: "Autorizar emissão de R.O.",
-              departmentId: 5,
-              isCompleted: false,
-              isLocked: false,
-              observations: `Etapa disponível após decisão: ${completedAuthDecision}`
-            });
+    if (steps && processId) {
+      const manageConditionalSteps = async () => {
+        // Primeiro, remover todas as etapas condicionais existentes que estão bloqueadas
+        // (usando PATCH para marcar como inativas ao invés de DELETE)
+        for (const stepName of conditionalStepNames) {
+          const existingStep = steps.find(s => s.stepName === stepName && s.departmentId === 5);
+          if (existingStep && existingStep.isLocked && !existingStep.isCompleted) {
+            try {
+              // Marcar como inativa ao invés de deletar
+              await apiRequest("PATCH", `/api/processes/${processId}/steps/${existingStep.id}`, {
+                observations: "ETAPA_REMOVIDA - Etapa condicional substituída por sistema dinâmico",
+                isCompleted: false,
+                isLocked: false
+              });
+              console.log(`🗑️ Etapa condicional desativada: ${stepName}`);
+            } catch (error) {
+              console.log(`❌ Erro ao desativar etapa: ${stepName}`, error);
+            }
           }
-        } else if (completedAuthDecision.includes("INDISPONIBILIDADE ORÇAMENTÁRIA")) {
-          // Criar as 3 etapas para indisponibilidade
-          const stepsToCreate = [
-            "Devolver para correção ou arquivamento",
-            "Solicitar ajuste/aditivo do plano de trabalho", 
-            "Solicitar disponibilização de orçamento"
-          ];
-          
-          for (const stepName of stepsToCreate) {
-            const existingStep = steps.find(s => s.stepName === stepName && s.departmentId === 5);
+        }
+        
+        // Se autorização foi concluída, criar apenas as etapas relevantes
+        if (authorizationStep && completedAuthDecision) {
+          if (completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
+            // Criar apenas a etapa "Autorizar emissão de R.O."
+            const existingStep = steps.find(s => s.stepName === "Autorizar emissão de R.O." && s.departmentId === 5);
             if (!existingStep) {
               await apiRequest("POST", `/api/processes/${processId}/steps`, {
-                stepName: stepName,
+                stepName: "Autorizar emissão de R.O.",
                 departmentId: 5,
                 isCompleted: false,
                 isLocked: false,
                 observations: `Etapa disponível após decisão: ${completedAuthDecision}`
               });
+              console.log("✅ Etapa criada: Autorizar emissão de R.O.");
+            }
+          } else if (completedAuthDecision.includes("INDISPONIBILIDADE ORÇAMENTÁRIA")) {
+            // Criar as 3 etapas para indisponibilidade
+            const stepsToCreate = [
+              "Devolver para correção ou arquivamento",
+              "Solicitar ajuste/aditivo do plano de trabalho", 
+              "Solicitar disponibilização de orçamento"
+            ];
+            
+            for (const stepName of stepsToCreate) {
+              const existingStep = steps.find(s => s.stepName === stepName && s.departmentId === 5);
+              if (!existingStep) {
+                await apiRequest("POST", `/api/processes/${processId}/steps`, {
+                  stepName: stepName,
+                  departmentId: 5,
+                  isCompleted: false,
+                  isLocked: false,
+                  observations: `Etapa disponível após decisão: ${completedAuthDecision}`
+                });
+                console.log(`✅ Etapa criada: ${stepName}`);
+              }
             }
           }
         }
@@ -362,9 +357,9 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
       };
       
-      createRelevantSteps();
+      manageConditionalSteps();
     }
-  }, [authorizationStep, completedAuthDecision, processId]);
+  }, [steps, processId, authorizationStep, completedAuthDecision]);
   
   const handleStepClick = (step: ProcessStep) => {
     setActiveStep(step);
