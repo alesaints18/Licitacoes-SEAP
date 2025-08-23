@@ -48,7 +48,6 @@ const StepChecklist = ({
   const [primaryDecision, setPrimaryDecision] = useState<string>("");
   const [cascadeDecision, setCascadeDecision] = useState<string>("");
   const [isSubmittingDecision, setIsSubmittingDecision] = useState(false);
-  const [showAuthorizationField, setShowAuthorizationField] = useState(false);
   const [authorizationDecision, setAuthorizationDecision] = useState("");
   // Usar modal externo se fornecido, senão usar interno
   const authorizationModalOpen = externalAuthModalOpen ?? false;
@@ -336,12 +335,14 @@ const StepChecklist = ({
     
     try {
 
-      // Se é etapa de Autorização pelo Secretário SEAP, abrir modal em branco
-      if (step.stepName === "Autorização pelo Secretário SEAP") {
-        console.log("🔥 Etapa de Autorização detectada - abrindo modal");
+      // Se é etapa de Autorização pelo Secretário SEAP, abrir modal de autorização
+      if (step.stepName.includes("Autorização pelo Secretário SEAP")) {
+        console.log("🔥 Etapa de Autorização detectada - abrindo modal de autorização");
+        console.log("🔥 Estado atual do modal:", authorizationModalOpen);
         setAuthorizationModalOpen(true);
         setActiveStep(step);
-        return; // Não continua com a conclusão ainda
+        setAuthorizationDecision(""); // Limpar seleção anterior
+        return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
       }
 
       // Se é etapa "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO", criar próxima etapa baseada na decisão da autorização
@@ -536,8 +537,8 @@ const StepChecklist = ({
         description: `Decisão: ${authorizationDecision}`,
       });
       
-      // Limpar estados
-      setShowAuthorizationField(false);
+      // Limpar estados e fechar modal
+      setAuthorizationModalOpen(false);
       setAuthorizationDecision("");
       setActiveStep(null);
       
