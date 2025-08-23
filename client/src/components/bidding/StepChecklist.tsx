@@ -310,16 +310,18 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
       isLocked: step.isLocked
     });
     
+    // BLOQUEIO ABSOLUTO: Verificar se a etapa está bloqueada primeiro
+    if (step.isLocked && !step.isCompleted) {
+      console.log("🚫 ETAPA BLOQUEADA - Impedindo ação");
+      toast({
+        title: "Etapa Bloqueada",
+        description: "Esta etapa só pode ser acessada após uma decisão na 'Autorização pelo Secretário SEAP'",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     try {
-      // Verificar se a etapa está bloqueada
-      if (step.isLocked && !step.isCompleted) {
-        toast({
-          title: "Etapa bloqueada",
-          description: "Esta etapa precisa ser liberada primeiro através de uma decisão de autorização.",
-          variant: "destructive"
-        });
-        return;
-      }
 
       // Se é etapa de Autorização pelo Secretário SEAP, abrir modal em branco
       if (step.stepName === "Autorização pelo Secretário SEAP") {
@@ -765,9 +767,15 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                             checked={step.isCompleted}
                             disabled={step.isLocked && !step.isCompleted}
                             onCheckedChange={(checked) => {
-                              if (!step.isLocked) {
-                                handleToggleStep(step);
+                              if (step.isLocked && !step.isCompleted) {
+                                toast({
+                                  title: "Etapa Bloqueada",
+                                  description: "Esta etapa só pode ser acessada após uma decisão na 'Autorização pelo Secretário SEAP'",
+                                  variant: "destructive"
+                                });
+                                return;
                               }
+                              handleToggleStep(step);
                             }}
                             onClick={(e) => e.stopPropagation()}
                           />
