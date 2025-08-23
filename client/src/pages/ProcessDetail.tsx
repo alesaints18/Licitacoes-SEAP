@@ -35,6 +35,7 @@ import {
   ChevronDown,
   ChevronUp,
   X,
+  Archive,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -633,7 +634,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       // Se é etapa de Autorização pelo Secretário SEAP e está sendo marcada como concluída, abrir modal
       if (step.stepName === "Autorização pelo Secretário SEAP" && isCompleted) {
-        console.log("🔥 Etapa de Autorização detectada - abrindo modal em branco");
+        console.log(
+          "🔥 Etapa de Autorização detectada - abrindo modal em branco",
+        );
         setAuthorizationModalOpen(true);
         return; // Não continua com a conclusão ainda
       }
@@ -813,8 +816,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             variant="destructive"
             onClick={() => setDeleteModalOpen(true)}
           >
-            <Trash className="h-4 w-4 mr-2" />
-            Excluir
+            <Archive className="h-4 w-4 mr-2" />
+            Arquivar
           </Button>
         </div>
       </div>
@@ -1968,18 +1971,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       </Dialog>
 
       {/* Modal para Autorização */}
-      <Dialog open={authorizationModalOpen} onOpenChange={setAuthorizationModalOpen}>
+      <Dialog
+        open={authorizationModalOpen}
+        onOpenChange={setAuthorizationModalOpen}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Motivo</DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
                 Selecione o motivo da decisão:
               </label>
-              <select 
+              <select
                 value={authorizationMotivo}
                 onChange={(e) => setAuthorizationMotivo(e.target.value)}
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
@@ -1989,11 +1995,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
                 </option>
                 <option value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO">
-                  RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                  RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA
+                  MAIOR QUE O VALOR CONVENIADO
                 </option>
               </select>
             </div>
-            
+
             <div className="flex justify-end space-x-3">
               <Button
                 variant="outline"
@@ -2009,7 +2016,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 onClick={async () => {
                   try {
                     // Encontrar a etapa de autorização
-                    const authStep = steps?.find(s => s.stepName === "Autorização pelo Secretário SEAP");
+                    const authStep = steps?.find(
+                      (s) => s.stepName === "Autorização pelo Secretário SEAP",
+                    );
                     if (!authStep) return;
 
                     // 1. Marcar etapa de autorização como concluída
@@ -2018,42 +2027,59 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       `/api/processes/${parsedId}/steps/${authStep.id}`,
                       {
                         isCompleted: true,
-                        observations: `AUTORIZAÇÃO: ${authorizationMotivo}`
-                      }
+                        observations: `AUTORIZAÇÃO: ${authorizationMotivo}`,
+                      },
                     );
 
                     // 2. Determinar próxima etapa e departamento baseado na decisão
                     let nextStepName = "";
                     let targetDepartmentId = process?.currentDepartmentId;
-                    
-                    if (authorizationMotivo === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA") {
+
+                    if (
+                      authorizationMotivo ===
+                      "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                    ) {
                       nextStepName = "devolver para correção";
                       targetDepartmentId = 2; // Divisão de Licitação
-                    } else if (authorizationMotivo === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO") {
+                    } else if (
+                      authorizationMotivo ===
+                      "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                    ) {
                       nextStepName = "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO";
                       targetDepartmentId = 11; // Subgerência de Contratos e Convênios - SUBCC
                     }
 
                     // 3. Criar próxima etapa se especificada
                     if (nextStepName && process && targetDepartmentId) {
-                      await apiRequest("POST", `/api/processes/${process.id}/steps`, {
-                        stepName: nextStepName,
-                        departmentId: targetDepartmentId,
-                        isCompleted: false,
-                        observations: `Criada automaticamente pela decisão: ${authorizationMotivo}`
-                      });
+                      await apiRequest(
+                        "POST",
+                        `/api/processes/${process.id}/steps`,
+                        {
+                          stepName: nextStepName,
+                          departmentId: targetDepartmentId,
+                          isCompleted: false,
+                          observations: `Criada automaticamente pela decisão: ${authorizationMotivo}`,
+                        },
+                      );
 
                       // 4. Se for FLUXO REAVALIAÇÃO, será arquivado automaticamente na transferência para SUBCC
                     }
 
                     // 5. Atualizar dados
-                    queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
-                    queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}`] });
+                    queryClient.invalidateQueries({
+                      queryKey: [`/api/processes/${parsedId}/steps`],
+                    });
+                    queryClient.invalidateQueries({
+                      queryKey: [`/api/processes/${parsedId}`],
+                    });
 
                     // 6. Mensagem de feedback
                     let toastDescription = `Decisão: ${authorizationMotivo}`;
-                    if (nextStepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO") {
-                      toastDescription += ". Processo será arquivado ao ser transferido para SUBCC.";
+                    if (
+                      nextStepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO"
+                    ) {
+                      toastDescription +=
+                        ". Processo será arquivado ao ser transferido para SUBCC.";
                     } else if (nextStepName) {
                       toastDescription += `. Próxima etapa: ${nextStepName}`;
                     }

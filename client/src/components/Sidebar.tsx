@@ -11,7 +11,7 @@ import {
   FileSpreadsheet,
   ChevronDown,
   ChevronRight,
-  Trash2,
+  ArchiveIcon,
   AlertTriangle,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -204,18 +204,18 @@ const Sidebar = () => {
               </li>
             )}
 
-            {/* Lixeira - visible for all users */}
+            {/* Lixeira/Arquivados - visible for all users */}
             <li className="px-2">
               <Link
                 href="/trash"
                 className={`flex items-center px-4 py-3 rounded-md group transition-colors ${
-                  location === "/trash"
+                  location === "/ar"
                     ? "text-white dark:bg-[#01001A] bg-[#396a9c] font-medium"
                     : "text-white dark:hover:bg-[#020035] hover:bg-[#5892c2]"
                 }`}
               >
-                <Trash2 className="h-5 w-5 mr-3" />
-                <span>Lixeira</span>
+                <ArchiveIcon className="h-5 w-5 mr-3" />
+                <span>Arquivados</span>
               </Link>
             </li>
           </ul>
@@ -224,7 +224,7 @@ const Sidebar = () => {
         {/* Version and Theme */}
         <div className="p-2 border-t dark:border-[#090935] border-[#5892c2]">
           <div className="flex items-center justify-between px-4 py-2 text-white text-xs">
-            <span>v1.0.2</span>
+            <span>v1.1.0</span>
             {/* <div className="hidden md:block">
               <ThemeToggle />
             </div>

@@ -78,7 +78,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
-  
+
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
   const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
@@ -628,7 +628,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       const step = steps?.find((s) => s.id === stepId);
       if (!step) return;
-
 
       const response = await apiRequest(
         "PATCH",
@@ -1848,7 +1847,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           </div>
         </DialogContent>
       </Dialog>
-
 
       {/* Modal de Tela Cheia para Fluxograma */}
       {isFullScreen && (
