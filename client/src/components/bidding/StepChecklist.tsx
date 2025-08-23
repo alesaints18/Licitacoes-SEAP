@@ -584,6 +584,8 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               variant={step.isCompleted ? "secondary" : "default"}
                               onClick={(e) => {
                                 e.stopPropagation();
+                                console.log("BOTÃO ✓ CLICADO! Etapa:", step.stepName);
+                                console.log("Step completo:", step);
                                 handleToggleStep(step);
                               }}
                               className="h-7 w-7 p-0"
