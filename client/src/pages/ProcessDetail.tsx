@@ -336,7 +336,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Divisão de Licitação": "Licitações",
       Licitação: "Licitações", // Nome do departamento atual no banco
       "Núcleo de Pesquisa de Preços – NPP": "NPP",
-      "Unidade de  Orçamento e  Finanças": "Financeiro",
+      "Unidade de Orçamento e Finanças": "Financeiro",
       "Procuradoria Geral do Estado - PGE": "Jurídico",
       "Secretário de Estado da Administração  Penitenciária - SEAP":
         "Administrativo",

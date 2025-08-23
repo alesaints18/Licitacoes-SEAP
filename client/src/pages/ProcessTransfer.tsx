@@ -184,7 +184,7 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
         { name: "Pesquisa de Preços", phase: "Preparação" },
         { name: "Mapa Comparativo de Preços", phase: "Preparação" }
       ],
-      "Unidade de  Orçamento e  Finanças": [
+      "Unidade de Orçamento e Finanças": [
         { name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.", phase: "Execução" }
       ]
     };
