@@ -470,7 +470,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       // Administrativo - Secretário SEAP
       Administrativo: [
         {
-          name: "AUTORIZAR",
+          name: "Autorização pelo Secretário SEAP",
           phase: "Autorização",
           requiresDecision: true,
           decisionOptions: {
@@ -629,11 +629,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       const step = steps?.find((s) => s.id === stepId);
       if (!step) return;
 
-      // INTERCEPTAR AUTORIZAR AQUI TAMBÉM!
-      if (step.stepName === "AUTORIZAR") {
-        console.log("🔥 AUTORIZAR interceptado no ProcessDetail - ABORTANDO!");
-        return; // BLOQUEAR atualização
-      }
 
       const response = await apiRequest(
         "PATCH",

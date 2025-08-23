@@ -294,10 +294,10 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
           <div>
             <label className="block text-sm font-medium mb-4">Fluxo de Transferência</label>
             
-            {/* Campo de Autorização - aparece apenas quando AUTORIZAR foi concluída e segue para próxima etapa */}
+            {/* Campo de Autorização - aparece apenas quando Autorização pelo Secretário SEAP foi concluída e segue para próxima etapa */}
             {(() => {
-              // Verificar se existe etapa AUTORIZAR, se ela está concluída e não foi rejeitada
-              const authorizationStep = steps?.find(step => step.stepName === "AUTORIZAR");
+              // Verificar se existe etapa Autorização pelo Secretário SEAP, se ela está concluída e não foi rejeitada
+              const authorizationStep = steps?.find(step => step.stepName === "Autorização pelo Secretário SEAP");
               const hasCompletedAuthorizationStep = authorizationStep && 
                 authorizationStep.isCompleted && 
                 !authorizationStep.observations?.startsWith("REJEITADA:");
