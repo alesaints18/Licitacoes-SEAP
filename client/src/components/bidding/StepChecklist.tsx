@@ -53,8 +53,19 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     queryKey: ['/api/departments'],
   });
   
+  // Get current user
+  const { data: currentUser } = useQuery({
+    queryKey: ['/api/auth/status'],
+  });
+  
   // Mapeamento de departamentos por nome
   const departmentMap: { [key: string]: number } = {
+    "Setor Demandante": 1,
+    "Divisão de Licitação": 2,
+    "Núcleo de Pesquisa de Preços – NPP": 3,
+    "Unidade de Orçamento e Finanças": 4,
+    "Secretário de Estado da Administração Penitenciária - SEAP": 5,
+    // Mapeamentos adicionais para compatibilidade
     "TI": 1,
     "Licitações": 2,
     "Jurídico": 3,
@@ -181,7 +192,23 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
       return false;
     }
     
-    // Mostrar apenas etapas do departamento atual que NÃO estão concluídas
+    // Mostrar etapas do departamento atual (concluídas e não concluídas)
+    // Para etapa de Autorização, sempre mostrar mesmo se concluída para poder editar decisão
+    if (step.stepName === "Autorização pelo Secretário SEAP") {
+      console.log("🔍 Verificando etapa de Autorização:", {
+        stepName: step.stepName,
+        stepDepartmentId: step.departmentId,
+        currentDeptId,
+        userDepartment,
+        isAdmin: currentUser?.role === 'admin'
+      });
+      // Admin pode ver todas as etapas de autorização
+      if (currentUser?.role === 'admin') {
+        return true;
+      }
+      return step.departmentId === currentDeptId;
+    }
+    // Para outras etapas, mostrar apenas não concluídas
     return step.departmentId === currentDeptId && !step.isCompleted;
   }) || [];
 
@@ -236,12 +263,23 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     });
     
     try {
-      // Se é etapa de Autorização pelo Secretário SEAP e está sendo marcada como concluída, mostrar campo de autorização
-      if (step.stepName === "Autorização pelo Secretário SEAP" && !step.isCompleted) {
-        console.log("🔥 Etapa de Autorização detectada - mostrando campo de decisão");
-        setShowAuthorizationField(true);
-        setActiveStep(step); // Define como etapa ativa para exibir o campo
-        return; // Não continua com a conclusão ainda
+      // Se é etapa de Autorização pelo Secretário SEAP, verificar se precisa da decisão
+      if (step.stepName === "Autorização pelo Secretário SEAP") {
+        console.log("🔥 Etapa de Autorização detectada:", {
+          isCompleted: step.isCompleted,
+          observations: step.observations
+        });
+        
+        // Se já tem decisão de autorização, permitir toggle normal
+        if (step.observations && step.observations.startsWith("AUTORIZAÇÃO:")) {
+          console.log("✅ Etapa já tem decisão de autorização, permitindo toggle");
+          // Continua com a lógica normal abaixo
+        } else {
+          console.log("⚠️ Etapa sem decisão de autorização, mostrando campo");
+          setShowAuthorizationField(true);
+          setActiveStep(step);
+          return; // Não continua com a conclusão ainda
+        }
       }
 
       // Se a etapa não existe, criar primeiro
