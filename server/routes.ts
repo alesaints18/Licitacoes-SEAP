@@ -1250,6 +1250,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Atualizando etapa ${stepId} com dados:`, stepData);
       
+      // Buscar a etapa atual para verificar se está bloqueada
+      const currentStep = await storage.getProcessStep(stepId);
+      if (!currentStep) {
+        return res.status(404).json({ message: "Etapa não encontrada" });
+      }
+      
+      // BLOQUEIO BACKEND: Impedir atualização de etapas bloqueadas
+      if (currentStep.isLocked && !currentStep.isCompleted && stepData.isCompleted === true) {
+        console.log(`🚫 BACKEND BLOQUEIO: Etapa ${currentStep.stepName} está bloqueada`);
+        return res.status(403).json({ 
+          message: "Esta etapa está bloqueada e não pode ser concluída até que uma decisão seja tomada na 'Autorização pelo Secretário SEAP'",
+          error: "STEP_LOCKED"
+        });
+      }
+      
       // If marking as completed, add the user who completed it and timestamp
       if (stepData.isCompleted) {
         stepData.completedBy = (req.user as any).id;

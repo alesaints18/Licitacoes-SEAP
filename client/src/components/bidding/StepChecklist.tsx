@@ -754,22 +754,33 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                         <div 
                           key={step.id} 
                           className={`flex items-start space-x-3 p-3 rounded-md border ${
-                            step.isLocked ? 
-                              "bg-gray-100 border-gray-300 opacity-60" :
+                            step.isLocked && !step.isCompleted ? 
+                              "bg-gray-200 border-gray-400 opacity-40" :
                               activeStep && activeStep.id === step.id ? 
                                 "bg-white border-blue-500 shadow-md" : 
                                 "bg-white border-gray-200"
-                          } ${step.isLocked ? "cursor-not-allowed" : "cursor-pointer hover:shadow-sm"} transition-shadow`}
-                          onClick={() => !step.isLocked && handleStepClick(step)}
+                          } ${step.isLocked && !step.isCompleted ? "cursor-not-allowed" : "cursor-pointer hover:shadow-sm"} transition-all`}
+                          onClick={() => {
+                            if (step.isLocked && !step.isCompleted) {
+                              toast({
+                                title: "❌ Etapa Bloqueada", 
+                                description: "Esta etapa só pode ser acessada após uma decisão na 'Autorização pelo Secretário SEAP'",
+                                variant: "destructive"
+                              });
+                              return;
+                            }
+                            handleStepClick(step);
+                          }}
                         >
                           <Checkbox 
                             id={`step-${step.id}`} 
                             checked={step.isCompleted}
                             disabled={step.isLocked && !step.isCompleted}
                             onCheckedChange={(checked) => {
+                              // Primeira validação: bloquear no frontend
                               if (step.isLocked && !step.isCompleted) {
                                 toast({
-                                  title: "Etapa Bloqueada",
+                                  title: "❌ Etapa Bloqueada",
                                   description: "Esta etapa só pode ser acessada após uma decisão na 'Autorização pelo Secretário SEAP'",
                                   variant: "destructive"
                                 });
@@ -783,16 +794,16 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                             <Label
                               htmlFor={`step-${step.id}`}
                               className={`text-sm font-medium ${
-                                step.isLocked ? "text-gray-400" :
+                                step.isLocked && !step.isCompleted ? "text-gray-400" :
                                 step.isCompleted ? "line-through text-gray-500" : 
                                 step.observations && step.observations.startsWith("REJEITADA:") ? "text-red-600" :
                                 "text-gray-800"
                               }`}
                             >
                               {step.stepName}
-                              {step.isLocked && (
-                                <span className="ml-2 text-xs bg-orange-100 text-orange-600 px-2 py-1 rounded">
-                                  🔒 Bloqueada
+                              {step.isLocked && !step.isCompleted && (
+                                <span className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded font-semibold">
+                                  🔒 BLOQUEADA
                                 </span>
                               )}
                             </Label>

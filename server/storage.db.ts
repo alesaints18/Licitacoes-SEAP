@@ -385,6 +385,11 @@ export class DatabaseStorage implements IStorage {
     return created;
   }
 
+  async getProcessStep(id: number): Promise<ProcessStep | undefined> {
+    const [step] = await db.select().from(processSteps).where(eq(processSteps.id, id));
+    return step;
+  }
+
   async updateProcessStep(id: number, stepData: Partial<InsertProcessStep>): Promise<ProcessStep | undefined> {
     const [updated] = await db
       .update(processSteps)
