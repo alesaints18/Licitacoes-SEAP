@@ -81,6 +81,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [authorizationModalOpen, setAuthorizationModalOpen] = useState(false);
   const [authorizationDecision, setAuthorizationDecision] = useState("");
   const [stepForAuthorization, setStepForAuthorization] = useState<ProcessStep | null>(null);
+  const [authorizationRejectionModalOpen, setAuthorizationRejectionModalOpen] = useState(false);
+  const [authorizationRejectionDecision, setAuthorizationRejectionDecision] = useState("");
+  const [stepForAuthorizationRejection, setStepForAuthorizationRejection] = useState<ProcessStep | null>(null);
 
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
@@ -561,6 +564,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Handle step rejection
   const handleStepReject = async (step: ProcessStep) => {
+    // Verificar se é a etapa de Autorização pelo Secretário SEAP
+    if (step.stepName.includes("Autorização pelo Secretário SEAP")) {
+      console.log("🔥 ProcessDetail - Etapa de Autorização sendo rejeitada - abrindo modal específico");
+      setStepForAuthorizationRejection(step);
+      setAuthorizationRejectionModalOpen(true);
+      setAuthorizationRejectionDecision(""); // Limpar seleção anterior
+      return;
+    }
+    
+    // Para outras etapas, usar o modal padrão
     setStepToReject(step);
     setRejectionReason("");
     setRejectModalOpen(true);
@@ -718,6 +731,53 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       toast({
         title: "Erro",
         description: "Erro ao completar autorização",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Função para completar rejeição de autorização depois de escolher a opção
+  const handleAuthorizationRejectionComplete = async () => {
+    if (!stepForAuthorizationRejection || !authorizationRejectionDecision) {
+      return;
+    }
+
+    try {
+      console.log("🔥 ProcessDetail - Completando rejeição de autorização com decisão:", authorizationRejectionDecision);
+      
+      const response = await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepForAuthorizationRejection.id}`,
+        {
+          rejectionStatus: "rejected",
+          comment: `Rejeição de Autorização: ${authorizationRejectionDecision}`,
+          userId: currentUser?.id,
+        },
+      );
+
+      if (response.ok) {
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}`],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}/steps`],
+        });
+
+        toast({
+          title: "❌ Etapa Rejeitada",
+          description: `Autorização rejeitada: ${authorizationRejectionDecision}`,
+          variant: "destructive",
+        });
+
+        // Fechar modal e limpar estados
+        setAuthorizationRejectionModalOpen(false);
+        setAuthorizationRejectionDecision("");
+        setStepForAuthorizationRejection(null);
+      }
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao rejeitar autorização",
         variant: "destructive",
       });
     }
@@ -2052,13 +2112,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-decision"
-                    value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                    checked={authorizationDecision === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                    value="OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                    checked={authorizationDecision === "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
                     onChange={(e) => setAuthorizationDecision(e.target.value)}
                     className="mt-1"
                   />
                   <span className="text-sm font-medium text-orange-700">
-                    ⚠️ RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                    ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
                   </span>
                 </label>
               </div>
@@ -2082,6 +2142,79 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 onClick={handleAuthorizationComplete}
               >
                 Confirmar Aprovação
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para Rejeitar Etapa de Autorização */}
+      <Dialog open={authorizationRejectionModalOpen} onOpenChange={setAuthorizationRejectionModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <XCircle className="h-5 w-5" />
+              Rejeitar Etapa de Autorização
+            </DialogTitle>
+            <DialogDescription>
+              Selecione uma das opções de rejeição para a etapa: <strong>Autorização pelo Secretário SEAP</strong>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="authorization-rejection-decision"
+                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                    checked={authorizationRejectionDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
+                    onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <span className="text-sm font-medium text-red-700">
+                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                  </span>
+                </label>
+              </div>
+
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="authorization-rejection-decision"
+                    value="OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                    checked={authorizationRejectionDecision === "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                    onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <span className="text-sm font-medium text-orange-700">
+                    ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                  </span>
+                </label>
+              </div>
+            </div>
+            
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setAuthorizationRejectionModalOpen(false);
+                  setAuthorizationRejectionDecision("");
+                  setStepForAuthorizationRejection(null);
+                }}
+                className="flex-1"
+              >
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                disabled={!authorizationRejectionDecision}
+                onClick={handleAuthorizationRejectionComplete}
+                className="flex-1"
+              >
+                Confirmar Rejeição
               </Button>
             </div>
           </div>
