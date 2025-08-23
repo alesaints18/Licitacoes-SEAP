@@ -283,7 +283,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
           
           if (authStep.observations.includes("INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL")) {
             nextStepName = "Fluxo Repror";
-            nextDepartmentId = 6; // Unidade de Orçamento e Finanças
+            nextDepartmentId = 4; // Unidade de Orçamento e Finanças
           }
           
           // Concluir a etapa atual primeiro
@@ -447,7 +447,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
       if (nextStepName) {
         await apiRequest("POST", `/api/processes/${processId}/steps`, {
           stepName: nextStepName,
-          departmentId: activeStep.departmentId, // Mesmo setor (SEAP)
+          departmentId: 5, // Secretário de Estado da Administração Penitenciária - SEAP
           isCompleted: false,
           observations: `Criada automaticamente pela decisão: ${authorizationDecision}`
         });
