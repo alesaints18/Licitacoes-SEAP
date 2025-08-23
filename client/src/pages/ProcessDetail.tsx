@@ -456,17 +456,26 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         }
       ],
 
-      // Administrativo - Gestão Contratual
+      // Administrativo - Secretário SEAP
       Administrativo: [
         {
-          name: "Assinatura do contrato ou emissão da ordem",
-          phase: "Finalização",
-        },
-        { name: "Publicação do extrato do contrato", phase: "Finalização" },
-        {
-          name: "Fiscalização e acompanhamento contratual",
-          phase: "Finalização",
-        },
+          name: "Autorização Solicitada pelo Secretário SEAP",
+          phase: "Autorização",
+          requiresDecision: true,
+          decisionOptions: {
+            primary: ["SIM", "NÃO"],
+            cascadeOptions: {
+              "SIM": [
+                "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL",
+                "DISPONIBILIDADE ORÇAMENTÁRIA"
+              ],
+              "NÃO": [
+                "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
+                "RECURSO DE CONVÊNIO INSUFICIENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+              ]
+            }
+          }
+        }
       ],
     };
 
