@@ -2042,15 +2042,43 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                         isCompleted: false,
                         observations: `Criada automaticamente pela decisão: ${authorizationMotivo}`
                       });
+
+                      // 4. Se for FLUXO REAVALIAÇÃO, encerrar o processo automaticamente
+                      if (nextStepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO") {
+                        // Marcar etapa como concluída
+                        const newSteps = await apiRequest("GET", `/api/processes/${process.id}/steps`);
+                        const reavaliationStep = newSteps.find((s: any) => s.stepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO");
+                        
+                        if (reavaliationStep) {
+                          await apiRequest("PATCH", `/api/processes/${process.id}/steps/${reavaliationStep.id}`, {
+                            isCompleted: true,
+                            observations: "Processo encerrado automaticamente - Reavaliação do Plano de Trabalho concluída"
+                          });
+                        }
+
+                        // Marcar processo como concluído
+                        await apiRequest("PATCH", `/api/processes/${process.id}`, {
+                          status: "completed",
+                          statusObservations: "Processo arquivado automaticamente após reavaliação do plano de trabalho"
+                        });
+                      }
                     }
 
-                    // 4. Atualizar dados
+                    // 5. Atualizar dados
                     queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}/steps`] });
                     queryClient.invalidateQueries({ queryKey: [`/api/processes/${parsedId}`] });
 
+                    // 6. Mensagem de feedback
+                    let toastDescription = `Decisão: ${authorizationMotivo}`;
+                    if (nextStepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO") {
+                      toastDescription += ". Processo encerrado e arquivado automaticamente.";
+                    } else if (nextStepName) {
+                      toastDescription += `. Próxima etapa: ${nextStepName}`;
+                    }
+
                     toast({
                       title: "Autorização processada",
-                      description: `Decisão: ${authorizationMotivo}${nextStepName ? `. Próxima etapa: ${nextStepName}` : ''}`,
+                      description: toastDescription,
                     });
 
                     setAuthorizationModalOpen(false);
