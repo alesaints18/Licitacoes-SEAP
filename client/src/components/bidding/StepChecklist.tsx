@@ -541,6 +541,12 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                             checked={step.isCompleted}
                             onCheckedChange={() => {
                               console.log("🚨 CHECKBOX CLICADO:", step.stepName);
+                              if (step.stepName === "AUTORIZAR") {
+                                console.log("⚠️ AUTORIZAR VIA CHECKBOX - FORÇANDO MODAL");
+                                setStepForDecision(step);
+                                setDecisionModalOpen(true);
+                                return;
+                              }
                               handleToggleStep(step);
                             }}
                             onClick={(e) => e.stopPropagation()}
@@ -587,6 +593,12 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               onClick={(e) => {
                                 e.stopPropagation();
                                 console.log("🚨 BOTÃO CLICADO:", step.stepName);
+                                if (step.stepName === "AUTORIZAR") {
+                                  console.log("⚠️ AUTORIZAR VIA BOTÃO - FORÇANDO MODAL");
+                                  setStepForDecision(step);
+                                  setDecisionModalOpen(true);
+                                  return;
+                                }
                                 handleToggleStep(step);
                               }}
                               className="h-7 w-7 p-0"

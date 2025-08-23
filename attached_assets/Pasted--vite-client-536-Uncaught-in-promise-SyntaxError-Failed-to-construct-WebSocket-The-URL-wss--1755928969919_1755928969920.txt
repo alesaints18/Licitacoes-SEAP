@@ -1,0 +1,40 @@
+/@vite/client:536  Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=E0VGfhL-iIr1' is invalid.
+    at setupWebSocket (/@vite/client:536:19)
+    at fallback (/@vite/client:509:16)
+    at WebSocket.<anonymous> (/@vite/client:555:7)
+ Download the React DevTools for a better development experience: https://reactjs.org/link/react-devtools
+ Realizando consulta para /api/processes?_t=1755928946782
+ Conectando ao WebSocket para notificações: wss://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/ws
+ Realizando consulta para /api/users?_t=1755928946783
+2App.tsx:358 Imagem pré-carregada: https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png
+App.tsx:63 Resposta de verificação de autenticação: 200
+App.tsx:67 User is authenticated: admin
+ TemporalDistributionChart - Filtros aplicados: Object
+ TemporalDistributionChart - URL params: 
+ DepartmentRanking - Filtros aplicados: Object
+ DepartmentRanking - URL params: 
+  Warning: validateDOMNesting(...): <a> cannot appear as a descendant of <a>.
+    at a
+    at a
+    at https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=5e12f68a:337:18
+    at div
+    at _c9 (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/src/components/ui/card.tsx:20:11)
+    at ProcessTable (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/src/components/dashboard/ProcessTable.tsx:230:25)
+    at div
+    at Dashboard (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/src/pages/Dashboard.tsx:33:33)
+    at div
+    at main
+    at div
+    at Layout (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/src/components/Layout.tsx:23:19)
+    at Route (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=5e12f68a:323:16)
+    at Switch (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=5e12f68a:379:17)
+    at Router (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/src/App.tsx?v=edm3oT-qOZ-yFoY5AbUN2:50:35)
+    at NotificationProvider (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/src/hooks/use-notifications.tsx:26:40)
+    at Provider (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-54LY3QNH.js?v=5e12f68a:38:15)
+    at TooltipProvider (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=5e12f68a:61:5)
+    at QueryClientProvider (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=5e12f68a:2805:3)
+    at App
+    at V (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=5e12f68a:44:25)
+    at J (https://b6522f68-fafc-44ea-9816-22d02aec94eb-00-rifz7hjid66d.kirk.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/next-themes.js?v=5e12f68a:42:18)
