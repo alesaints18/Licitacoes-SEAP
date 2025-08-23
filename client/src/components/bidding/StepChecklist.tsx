@@ -228,28 +228,16 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     return step.departmentId === currentDeptId && !step.isCompleted;
   }) || [];
   
-  // Obter etapas condicionais relevantes baseadas na decisão (só após autorização concluída)
-  const getRelevantConditionalSteps = () => {
-    if (!authorizationStep) return []; // Se autorização não foi concluída, não mostrar nada
-    
-    if (completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
-      return steps?.filter(s => 
-        s.stepName === "Autorizar emissão de R.O." && 
-        s.departmentId === 5 && 
-        (!s.observations || !s.observations.includes("ETAPA_REMOVIDA"))
-      ) || [];
-    } else if (completedAuthDecision.includes("INDISPONIBILIDADE ORÇAMENTÁRIA")) {
-      return steps?.filter(s => 
-        ["Devolver para correção ou arquivamento", "Solicitar ajuste/aditivo do plano de trabalho", "Solicitar disponibilização de orçamento"]
-        .includes(s.stepName) && 
-        s.departmentId === 5 &&
-        (!s.observations || !s.observations.includes("ETAPA_REMOVIDA"))
-      ) || [];
-    }
-    return [];
+  // Obter TODAS as etapas condicionais (sem filtro por decisão)
+  const getAllConditionalSteps = () => {
+    return steps?.filter(s => 
+      conditionalStepNames.includes(s.stepName) && 
+      s.departmentId === 5 &&
+      (!s.observations || !s.observations.includes("ETAPA_REMOVIDA"))
+    ) || [];
   };
   
-  const conditionalSteps = getRelevantConditionalSteps();
+  const conditionalSteps = getAllConditionalSteps();
 
   // Create initial steps if none exist
   useEffect(() => {
@@ -765,7 +753,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -806,57 +794,6 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                 }
                 return null;
               })()}
-              
-              {/* Etapas condicionais - só aparecem após autorização */}
-              {authorizationStep && conditionalSteps.length > 0 && (
-                <div className="p-4 rounded-lg border-2 bg-orange-50 border-orange-200">
-                  <h3 className="font-semibold text-sm mb-3 uppercase tracking-wide text-orange-800">
-                    📋 Próximas Etapas - Baseadas na Decisão de Autorização
-                  </h3>
-                  <div className="mb-3 p-2 bg-orange-100 rounded text-sm text-orange-700">
-                    <strong>Decisão tomada:</strong> {completedAuthDecision}
-                  </div>
-                  <div className="space-y-3">
-                    {conditionalSteps.map((step) => (
-                      <div 
-                        key={step.id} 
-                        className={`flex items-start space-x-3 p-3 rounded-md border bg-white border-orange-200 cursor-pointer hover:shadow-sm transition-all`}
-                        onClick={() => handleStepClick(step)}
-                      >
-                        <Checkbox 
-                          id={`conditional-step-${step.id}`} 
-                          checked={step.isCompleted}
-                          onCheckedChange={(checked) => {
-                            handleToggleStep(step);
-                          }}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                        <div className="grid gap-1.5 leading-none flex-1">
-                          <Label
-                            htmlFor={`conditional-step-${step.id}`}
-                            className={`text-sm font-medium ${
-                              step.isCompleted ? "line-through text-gray-500" : "text-gray-800"
-                            }`}
-                          >
-                            {step.stepName}
-                          </Label>
-                          <div className="flex items-center gap-3 text-xs text-gray-500">
-                            <span>
-                              Setor: {departments && Array.isArray(departments) ? 
-                                departments.find((d: any) => d.id === step.departmentId)?.name || `Setor ${step.departmentId}` :
-                                `Setor ${step.departmentId}`
-                              }
-                            </span>
-                            {step.isCompleted && (
-                              <span className="text-green-600">✓ Concluída</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
               
               {phaseOrder.map((phase) => {
                 const phaseSteps = stepsByPhase[phase] || [];
@@ -984,6 +921,68 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                   </div>
                 );
               })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      
+      {/* Segunda checklist - Etapas Condicionais */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            📋 Etapas Condicionais 
+            <span className="text-sm font-normal text-gray-500">Pós-Autorização</span>
+          </CardTitle>
+          <p className="text-sm text-gray-600">
+            Etapas que dependem da decisão de autorização
+          </p>
+        </CardHeader>
+        <CardContent>
+          {conditionalSteps.length === 0 ? (
+            <p className="text-gray-500 text-sm">Nenhuma etapa condicional encontrada</p>
+          ) : (
+            <div className="space-y-3">
+              {conditionalSteps.map((step) => (
+                <div 
+                  key={step.id} 
+                  className={`flex items-start space-x-3 p-3 rounded-md border ${
+                    activeStep && activeStep.id === step.id ? 
+                      "bg-orange-50 border-orange-300 shadow-md" : 
+                      "bg-white border-gray-200"
+                  } cursor-pointer hover:shadow-sm transition-all`}
+                  onClick={() => handleStepClick(step)}
+                >
+                  <Checkbox 
+                    id={`conditional-step-${step.id}`} 
+                    checked={step.isCompleted}
+                    onCheckedChange={(checked) => {
+                      handleToggleStep(step);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  <div className="grid gap-1.5 leading-none flex-1">
+                    <Label
+                      htmlFor={`conditional-step-${step.id}`}
+                      className={`text-sm font-medium ${
+                        step.isCompleted ? "line-through text-gray-500" : "text-gray-800"
+                      }`}
+                    >
+                      {step.stepName}
+                    </Label>
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span>
+                        Setor: {departments && Array.isArray(departments) ? 
+                          departments.find((d: any) => d.id === step.departmentId)?.name || `Setor ${step.departmentId}` :
+                          `Setor ${step.departmentId}`
+                        }
+                      </span>
+                      {step.isCompleted && (
+                        <span className="text-green-600">✓ Concluída</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </CardContent>
