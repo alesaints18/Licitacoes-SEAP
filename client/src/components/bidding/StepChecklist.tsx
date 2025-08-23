@@ -50,8 +50,9 @@ const StepChecklist = ({
   const [isSubmittingDecision, setIsSubmittingDecision] = useState(false);
   const [authorizationDecision, setAuthorizationDecision] = useState("");
   // Usar modal externo se fornecido, senão usar interno
-  const authorizationModalOpen = externalAuthModalOpen ?? false;
-  const setAuthorizationModalOpen = setExternalAuthModalOpen ?? (() => {});
+  const [internalAuthModalOpen, setInternalAuthModalOpen] = useState(false);
+  const authorizationModalOpen = externalAuthModalOpen ?? internalAuthModalOpen;
+  const setAuthorizationModalOpen = setExternalAuthModalOpen ?? setInternalAuthModalOpen;
   
   // Fetch process steps
   const { data: steps, isLoading, error } = useQuery<ProcessStep[]>({
@@ -337,11 +338,13 @@ const StepChecklist = ({
 
       // Se é etapa de Autorização pelo Secretário SEAP, abrir modal de autorização
       if (step.stepName.includes("Autorização pelo Secretário SEAP")) {
-        console.log("🔥 Etapa de Autorização detectada - abrindo modal de autorização");
-        console.log("🔥 Estado atual do modal:", authorizationModalOpen);
+        console.log("🔥 StepChecklist - Etapa de Autorização detectada - abrindo modal de autorização");
+        console.log("🔥 StepChecklist - Estado atual do modal:", authorizationModalOpen);
+        console.log("🔥 StepChecklist - Função setAuthorizationModalOpen:", typeof setAuthorizationModalOpen);
         setAuthorizationModalOpen(true);
         setActiveStep(step);
         setAuthorizationDecision(""); // Limpar seleção anterior
+        console.log("🔥 StepChecklist - Modal definido para abrir");
         return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
       }
 
@@ -713,6 +716,9 @@ const StepChecklist = ({
     "Execução": "bg-green-50 border-green-200",
     "Finalização": "bg-purple-50 border-purple-200"
   };
+
+  // Debug do estado do modal
+  console.log("🔥 StepChecklist renderizando - authorizationModalOpen:", authorizationModalOpen);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
