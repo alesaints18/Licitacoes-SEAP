@@ -2043,24 +2043,36 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                         observations: `Criada automaticamente pela decisão: ${authorizationMotivo}`
                       });
 
-                      // 4. Se for FLUXO REAVALIAÇÃO, encerrar o processo automaticamente
+                      // 4. Se for FLUXO REAVALIAÇÃO, marcar como concluído direto na criação
                       if (nextStepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO") {
-                        // Marcar etapa como concluída
-                        const newSteps = await apiRequest("GET", `/api/processes/${process.id}/steps`);
-                        const reavaliationStep = newSteps.find((s: any) => s.stepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO");
+                        // Aguardar um momento para garantir que a etapa foi criada
+                        await new Promise(resolve => setTimeout(resolve, 500));
                         
-                        if (reavaliationStep) {
-                          await apiRequest("PATCH", `/api/processes/${process.id}/steps/${reavaliationStep.id}`, {
-                            isCompleted: true,
-                            observations: "Processo encerrado automaticamente - Reavaliação do Plano de Trabalho concluída"
-                          });
-                        }
+                        // Buscar a etapa recém-criada e marcar como concluída
+                        try {
+                          const updatedSteps = await apiRequest("GET", `/api/processes/${process.id}/steps`);
+                          const reavaliationStep = updatedSteps.find((s: any) => 
+                            s.stepName === "FLUXO REAVALIAÇÃO DO PLANO DE TRABALHO" && 
+                            s.departmentId === 11 && 
+                            !s.isCompleted
+                          );
+                          
+                          if (reavaliationStep) {
+                            await apiRequest("PATCH", `/api/processes/${process.id}/steps/${reavaliationStep.id}`, {
+                              isCompleted: true,
+                              observations: "Processo encerrado automaticamente - Reavaliação do Plano de Trabalho concluída"
+                            });
 
-                        // Marcar processo como concluído
-                        await apiRequest("PATCH", `/api/processes/${process.id}`, {
-                          status: "completed",
-                          statusObservations: "Processo arquivado automaticamente após reavaliação do plano de trabalho"
-                        });
+                            // Marcar processo como concluído
+                            await apiRequest("PATCH", `/api/processes/${process.id}`, {
+                              status: "completed",
+                              statusObservations: "Processo arquivado automaticamente após reavaliação do plano de trabalho"
+                            });
+                          }
+                        } catch (autoCompleteError) {
+                          console.error("Erro no encerramento automático:", autoCompleteError);
+                          // Continua mesmo se der erro no encerramento automático
+                        }
                       }
                     }
 
