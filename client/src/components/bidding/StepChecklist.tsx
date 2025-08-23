@@ -228,16 +228,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     return step.departmentId === currentDeptId && !step.isCompleted;
   }) || [];
   
-  // Obter TODAS as etapas condicionais (sem filtro por decisão)
-  const getAllConditionalSteps = () => {
-    return steps?.filter(s => 
-      conditionalStepNames.includes(s.stepName) && 
-      s.departmentId === 5 &&
-      (!s.observations || !s.observations.includes("ETAPA_REMOVIDA"))
-    ) || [];
-  };
-  
-  const conditionalSteps = getAllConditionalSteps();
+  // REMOVIDO: Sistema de etapas condicionais completamente excluído
 
   // Create initial steps if none exist
   useEffect(() => {
@@ -280,64 +271,24 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   // REMOVIDA: Função createConditionalStepsIfNeeded 
   // As etapas condicionais agora são criadas apenas APÓS a autorização ser concluída
 
-  // Effect para deletar etapas condicionais existentes e criar apenas as relevantes após autorização
+  // Effect para EXCLUIR PERMANENTEMENTE as etapas condicionais indesejadas
   useEffect(() => {
     if (steps && processId) {
-      const manageConditionalSteps = async () => {
-        // Primeiro, remover todas as etapas condicionais existentes que estão bloqueadas
-        // (usando PATCH para marcar como inativas ao invés de DELETE)
+      const removeConditionalSteps = async () => {
+        // Remover PERMANENTEMENTE todas as etapas condicionais
         for (const stepName of conditionalStepNames) {
           const existingStep = steps.find(s => s.stepName === stepName && s.departmentId === 5);
-          if (existingStep && existingStep.isLocked && !existingStep.isCompleted) {
+          if (existingStep) {
             try {
-              // Marcar como inativa ao invés de deletar
+              // Marcar como ETAPA_REMOVIDA para exclusão total
               await apiRequest("PATCH", `/api/processes/${processId}/steps/${existingStep.id}`, {
-                observations: "ETAPA_REMOVIDA - Etapa condicional substituída por sistema dinâmico",
+                observations: "ETAPA_REMOVIDA - Etapa condicional excluída permanentemente",
                 isCompleted: false,
                 isLocked: false
               });
-              console.log(`🗑️ Etapa condicional desativada: ${stepName}`);
+              console.log(`🗑️ Etapa condicional EXCLUÍDA: ${stepName}`);
             } catch (error) {
-              console.log(`❌ Erro ao desativar etapa: ${stepName}`, error);
-            }
-          }
-        }
-        
-        // Se autorização foi concluída, criar apenas as etapas relevantes
-        if (authorizationStep && completedAuthDecision) {
-          if (completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
-            // Criar apenas a etapa "Autorizar emissão de R.O."
-            const existingStep = steps.find(s => s.stepName === "Autorizar emissão de R.O." && s.departmentId === 5);
-            if (!existingStep) {
-              await apiRequest("POST", `/api/processes/${processId}/steps`, {
-                stepName: "Autorizar emissão de R.O.",
-                departmentId: 5,
-                isCompleted: false,
-                isLocked: false,
-                observations: `Etapa disponível após decisão: ${completedAuthDecision}`
-              });
-              console.log("✅ Etapa criada: Autorizar emissão de R.O.");
-            }
-          } else if (completedAuthDecision.includes("INDISPONIBILIDADE ORÇAMENTÁRIA")) {
-            // Criar as 3 etapas para indisponibilidade
-            const stepsToCreate = [
-              "Devolver para correção ou arquivamento",
-              "Solicitar ajuste/aditivo do plano de trabalho", 
-              "Solicitar disponibilização de orçamento"
-            ];
-            
-            for (const stepName of stepsToCreate) {
-              const existingStep = steps.find(s => s.stepName === stepName && s.departmentId === 5);
-              if (!existingStep) {
-                await apiRequest("POST", `/api/processes/${processId}/steps`, {
-                  stepName: stepName,
-                  departmentId: 5,
-                  isCompleted: false,
-                  isLocked: false,
-                  observations: `Etapa disponível após decisão: ${completedAuthDecision}`
-                });
-                console.log(`✅ Etapa criada: ${stepName}`);
-              }
+              console.log(`❌ Erro ao excluir etapa: ${stepName}`, error);
             }
           }
         }
@@ -345,9 +296,9 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
       };
       
-      manageConditionalSteps();
+      removeConditionalSteps();
     }
-  }, [steps, processId, authorizationStep, completedAuthDecision]);
+  }, [steps, processId]);
   
   const handleStepClick = (step: ProcessStep) => {
     setActiveStep(step);
@@ -753,7 +704,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -921,68 +872,6 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                   </div>
                 );
               })}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      
-      {/* Segunda checklist - Etapas Condicionais */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            📋 Etapas Condicionais 
-            <span className="text-sm font-normal text-gray-500">Pós-Autorização</span>
-          </CardTitle>
-          <p className="text-sm text-gray-600">
-            Etapas que dependem da decisão de autorização
-          </p>
-        </CardHeader>
-        <CardContent>
-          {conditionalSteps.length === 0 ? (
-            <p className="text-gray-500 text-sm">Nenhuma etapa condicional encontrada</p>
-          ) : (
-            <div className="space-y-3">
-              {conditionalSteps.map((step) => (
-                <div 
-                  key={step.id} 
-                  className={`flex items-start space-x-3 p-3 rounded-md border ${
-                    activeStep && activeStep.id === step.id ? 
-                      "bg-orange-50 border-orange-300 shadow-md" : 
-                      "bg-white border-gray-200"
-                  } cursor-pointer hover:shadow-sm transition-all`}
-                  onClick={() => handleStepClick(step)}
-                >
-                  <Checkbox 
-                    id={`conditional-step-${step.id}`} 
-                    checked={step.isCompleted}
-                    onCheckedChange={(checked) => {
-                      handleToggleStep(step);
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div className="grid gap-1.5 leading-none flex-1">
-                    <Label
-                      htmlFor={`conditional-step-${step.id}`}
-                      className={`text-sm font-medium ${
-                        step.isCompleted ? "line-through text-gray-500" : "text-gray-800"
-                      }`}
-                    >
-                      {step.stepName}
-                    </Label>
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span>
-                        Setor: {departments && Array.isArray(departments) ? 
-                          departments.find((d: any) => d.id === step.departmentId)?.name || `Setor ${step.departmentId}` :
-                          `Setor ${step.departmentId}`
-                        }
-                      </span>
-                      {step.isCompleted && (
-                        <span className="text-green-600">✓ Concluída</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
             </div>
           )}
         </CardContent>
