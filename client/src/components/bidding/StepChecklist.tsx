@@ -184,12 +184,29 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     ];
   };
   
-  // Filtrar etapas do setor atual, mostrando apenas as pendentes (não concluídas)
+  // Verificar se a autorização foi concluída e obter a decisão
+  const authorizationStep = steps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
+  const completedAuthDecision = authorizationStep?.observations || "";
+  
+  // Etapas condicionais que serão tratadas separadamente
+  const conditionalStepNames = [
+    "Devolver para correção ou arquivamento",
+    "Solicitar ajuste/aditivo do plano de trabalho", 
+    "Solicitar disponibilização de orçamento",
+    "Autorizar emissão de R.O."
+  ];
+  
+  // Filtrar etapas do setor atual, EXCLUINDO as etapas condicionais
   const filteredSteps = steps?.filter(step => {
     const currentDeptId = departmentMap[userDepartment];
     
     // Excluir etapas de "Transferência de Setor" (são automáticas)
     if (step.stepName === "Transferência de Setor") {
+      return false;
+    }
+    
+    // EXCLUIR as 4 etapas condicionais da lista principal
+    if (conditionalStepNames.includes(step.stepName)) {
       return false;
     }
     
@@ -212,6 +229,23 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     // Para outras etapas, mostrar apenas não concluídas
     return step.departmentId === currentDeptId && !step.isCompleted;
   }) || [];
+  
+  // Obter etapas condicionais relevantes baseadas na decisão (só após autorização concluída)
+  const getRelevantConditionalSteps = () => {
+    if (!authorizationStep) return []; // Se autorização não foi concluída, não mostrar nada
+    
+    if (completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
+      return steps?.filter(s => s.stepName === "Autorizar emissão de R.O." && s.departmentId === 5) || [];
+    } else if (completedAuthDecision.includes("INDISPONIBILIDADE ORÇAMENTÁRIA")) {
+      return steps?.filter(s => 
+        ["Devolver para correção ou arquivamento", "Solicitar ajuste/aditivo do plano de trabalho", "Solicitar disponibilização de orçamento"]
+        .includes(s.stepName) && s.departmentId === 5
+      ) || [];
+    }
+    return [];
+  };
+  
+  const conditionalSteps = getRelevantConditionalSteps();
 
   // Create initial steps if none exist
   useEffect(() => {
@@ -287,15 +321,50 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
   };
 
-  // Effect para criar etapas condicionais quando há etapa de autorização
+  // Effect para criar etapas condicionais baseadas na decisão de autorização
   useEffect(() => {
-    if (steps && processId) {
-      const hasAuthorizationStep = steps.find(s => s.stepName === "Autorização pelo Secretário SEAP");
-      if (hasAuthorizationStep) {
-        createConditionalStepsIfNeeded();
-      }
+    if (steps && processId && authorizationStep) {
+      const createRelevantSteps = async () => {
+        if (completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
+          // Criar apenas a etapa "Autorizar emissão de R.O."
+          const existingStep = steps.find(s => s.stepName === "Autorizar emissão de R.O." && s.departmentId === 5);
+          if (!existingStep) {
+            await apiRequest("POST", `/api/processes/${processId}/steps`, {
+              stepName: "Autorizar emissão de R.O.",
+              departmentId: 5,
+              isCompleted: false,
+              isLocked: false,
+              observations: `Etapa disponível após decisão: ${completedAuthDecision}`
+            });
+          }
+        } else if (completedAuthDecision.includes("INDISPONIBILIDADE ORÇAMENTÁRIA")) {
+          // Criar as 3 etapas para indisponibilidade
+          const stepsToCreate = [
+            "Devolver para correção ou arquivamento",
+            "Solicitar ajuste/aditivo do plano de trabalho", 
+            "Solicitar disponibilização de orçamento"
+          ];
+          
+          for (const stepName of stepsToCreate) {
+            const existingStep = steps.find(s => s.stepName === stepName && s.departmentId === 5);
+            if (!existingStep) {
+              await apiRequest("POST", `/api/processes/${processId}/steps`, {
+                stepName: stepName,
+                departmentId: 5,
+                isCompleted: false,
+                isLocked: false,
+                observations: `Etapa disponível após decisão: ${completedAuthDecision}`
+              });
+            }
+          }
+        }
+        
+        queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
+      };
+      
+      createRelevantSteps();
     }
-  }, [steps, processId]);
+  }, [authorizationStep, completedAuthDecision, processId]);
   
   const handleStepClick = (step: ProcessStep) => {
     setActiveStep(step);
@@ -541,7 +610,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     if (!stepToReject || rejectionReason.trim().length < 100) {
       toast({
         title: "Motivo insuficiente",
-        description: "O motivo da rejeição deve ter pelo menos 100 caracteres",
+        description: "A justificativa deve ter pelo menos 100 caracteres",
         variant: "destructive",
       });
       return;
@@ -742,6 +811,58 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                 }
                 return null;
               })()}
+              
+              {/* Etapas condicionais - só aparecem após autorização */}
+              {authorizationStep && conditionalSteps.length > 0 && (
+                <div className="p-4 rounded-lg border-2 bg-orange-50 border-orange-200">
+                  <h3 className="font-semibold text-sm mb-3 uppercase tracking-wide text-orange-800">
+                    📋 Próximas Etapas - Baseadas na Decisão de Autorização
+                  </h3>
+                  <div className="mb-3 p-2 bg-orange-100 rounded text-sm text-orange-700">
+                    <strong>Decisão tomada:</strong> {completedAuthDecision}
+                  </div>
+                  <div className="space-y-3">
+                    {conditionalSteps.map((step) => (
+                      <div 
+                        key={step.id} 
+                        className={`flex items-start space-x-3 p-3 rounded-md border bg-white border-orange-200 cursor-pointer hover:shadow-sm transition-all`}
+                        onClick={() => handleStepClick(step)}
+                      >
+                        <Checkbox 
+                          id={`conditional-step-${step.id}`} 
+                          checked={step.isCompleted}
+                          onCheckedChange={(checked) => {
+                            handleToggleStep(step);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                        <div className="grid gap-1.5 leading-none flex-1">
+                          <Label
+                            htmlFor={`conditional-step-${step.id}`}
+                            className={`text-sm font-medium ${
+                              step.isCompleted ? "line-through text-gray-500" : "text-gray-800"
+                            }`}
+                          >
+                            {step.stepName}
+                          </Label>
+                          <div className="flex items-center gap-3 text-xs text-gray-500">
+                            <span>
+                              Setor: {departments && Array.isArray(departments) ? 
+                                departments.find((d: any) => d.id === step.departmentId)?.name || `Setor ${step.departmentId}` :
+                                `Setor ${step.departmentId}`
+                              }
+                            </span>
+                            {step.isCompleted && (
+                              <span className="text-green-600">✓ Concluída</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
               {phaseOrder.map((phase) => {
                 const phaseSteps = stepsByPhase[phase] || [];
                 if (phaseSteps.length === 0) return null;
@@ -984,12 +1105,12 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Motivo da Rejeição <span className="text-red-500">*</span>
+                Justificativa <span className="text-red-500">*</span>
               </label>
               <Textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Descreva detalhadamente o motivo da rejeição (mínimo 100 caracteres)"
+                placeholder="Descreva detalhadamente a justificativa (mínimo 100 caracteres)"
                 rows={4}
                 className={rejectionReason.length < 100 ? "border-red-300" : "border-green-300"}
               />
