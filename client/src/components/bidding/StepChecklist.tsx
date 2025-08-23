@@ -542,18 +542,13 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                             checked={step.isCompleted}
                             onCheckedChange={(checked) => {
                               console.log("🚨 CHECKBOX CLICADO:", step.stepName, "checked:", checked);
-                              if (step.stepName === "AUTORIZAR") {
-                                console.log("⚠️ AUTORIZAR DETECTADO - IMPEDINDO ATUALIZAÇÃO");
-                                console.log("🔥 Abrindo modal SIMPLES...");
+                              if (step.stepName === "AUTORIZAR" && checked) {
+                                console.log("⚠️ AUTORIZAR DETECTADO - ABRINDO MODAL DE DECISÃO");
                                 setStepForDecision(step);
                                 setPrimaryDecision("");
                                 setCascadeDecision("");
-                                console.log("📝 Estado antes:", decisionModalOpen);
                                 setDecisionModalOpen(true);
-                                console.log("📝 Estado depois: TRUE");
-                                setTimeout(() => {
-                                  console.log("📝 Estado depois de 100ms:", decisionModalOpen);
-                                }, 100);
+                                console.log("✅ Modal de autorização aberto");
                                 return false; // Impedir mudança
                               }
                               handleToggleStep(step);
@@ -601,15 +596,14 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                               variant={step.isCompleted ? "secondary" : "default"}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                console.log("🚨 BOTÃO CLICADO:", step.stepName);
+                                console.log("🚨 BOTÃO APROVAR CLICADO:", step.stepName);
                                 if (step.stepName === "AUTORIZAR") {
-                                  console.log("⚠️ AUTORIZAR VIA BOTÃO - FORÇANDO MODAL SIMPLES");
+                                  console.log("⚠️ ETAPA AUTORIZAR DETECTADA - ABRINDO MODAL DE DECISÃO");
                                   setStepForDecision(step);
                                   setPrimaryDecision("");
                                   setCascadeDecision("");
-                                  console.log("📝 Estado modal antes:", decisionModalOpen);
                                   setDecisionModalOpen(true);
-                                  console.log("📝 Estado modal depois: TRUE");
+                                  console.log("✅ Modal de autorização aberto");
                                   return;
                                 }
                                 handleToggleStep(step);
