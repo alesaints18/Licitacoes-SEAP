@@ -42,6 +42,7 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
   const [isSubmittingDecision, setIsSubmittingDecision] = useState(false);
   const [showAuthorizationField, setShowAuthorizationField] = useState(false);
   const [authorizationDecision, setAuthorizationDecision] = useState("");
+  const [authorizationModalOpen, setAuthorizationModalOpen] = useState(false);
   
   // Fetch process steps
   const { data: steps, isLoading, error } = useQuery<ProcessStep[]>({
@@ -263,23 +264,12 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
     });
     
     try {
-      // Se é etapa de Autorização pelo Secretário SEAP, verificar se precisa da decisão
+      // Se é etapa de Autorização pelo Secretário SEAP, abrir modal em branco
       if (step.stepName === "Autorização pelo Secretário SEAP") {
-        console.log("🔥 Etapa de Autorização detectada:", {
-          isCompleted: step.isCompleted,
-          observations: step.observations
-        });
-        
-        // Se já tem decisão de autorização, permitir toggle normal
-        if (step.observations && step.observations.startsWith("AUTORIZAÇÃO:")) {
-          console.log("✅ Etapa já tem decisão de autorização, permitindo toggle");
-          // Continua com a lógica normal abaixo
-        } else {
-          console.log("⚠️ Etapa sem decisão de autorização, mostrando campo");
-          setShowAuthorizationField(true);
-          setActiveStep(step);
-          return; // Não continua com a conclusão ainda
-        }
+        console.log("🔥 Etapa de Autorização detectada - abrindo modal");
+        setAuthorizationModalOpen(true);
+        setActiveStep(step);
+        return; // Não continua com a conclusão ainda
       }
 
       // Se a etapa não existe, criar primeiro
@@ -845,6 +835,13 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal em Branco para Autorização */}
+      <Dialog open={authorizationModalOpen} onOpenChange={setAuthorizationModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          {/* Modal em branco conforme solicitado */}
         </DialogContent>
       </Dialog>
 
