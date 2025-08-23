@@ -478,8 +478,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           requiresDecision: true,
           decisionOptions: {
             primary: [
-              "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL",
               "DISPONIBILIDADE ORÇAMENTÁRIA",
+              "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL",
             ],
           },
         },
@@ -1240,34 +1240,45 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                           if (!userCanEdit) return;
 
                                           // Para etapa de Autorização, abrir modal de aprovação
-                                          if (sectorStep.name === "Autorização pelo Secretário SEAP") {
+                                          if (
+                                            sectorStep.name ===
+                                            "Autorização pelo Secretário SEAP"
+                                          ) {
                                             if (existingStep) {
                                               setAuthorizationModalOpen(true);
                                             } else {
                                               // Criar etapa primeiro
                                               try {
-                                                const response = await apiRequest(
-                                                  "POST",
-                                                  `/api/processes/${process.id}/steps`,
-                                                  {
-                                                    stepName: sectorStep.name,
-                                                    departmentId:
-                                                      process.currentDepartmentId,
-                                                    isCompleted: false,
-                                                    observations: null,
-                                                  },
-                                                );
+                                                const response =
+                                                  await apiRequest(
+                                                    "POST",
+                                                    `/api/processes/${process.id}/steps`,
+                                                    {
+                                                      stepName: sectorStep.name,
+                                                      departmentId:
+                                                        process.currentDepartmentId,
+                                                      isCompleted: false,
+                                                      observations: null,
+                                                    },
+                                                  );
 
                                                 if (response.ok) {
-                                                  queryClient.invalidateQueries({
-                                                    queryKey: [`/api/processes/${parsedId}/steps`],
-                                                  });
-                                                  setAuthorizationModalOpen(true);
+                                                  queryClient.invalidateQueries(
+                                                    {
+                                                      queryKey: [
+                                                        `/api/processes/${parsedId}/steps`,
+                                                      ],
+                                                    },
+                                                  );
+                                                  setAuthorizationModalOpen(
+                                                    true,
+                                                  );
                                                 }
                                               } catch (error) {
                                                 toast({
                                                   title: "Erro",
-                                                  description: "Não foi possível criar a etapa",
+                                                  description:
+                                                    "Não foi possível criar a etapa",
                                                   variant: "destructive",
                                                 });
                                               }
@@ -1278,17 +1289,18 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               handleStepReject(existingStep);
                                             } else {
                                               try {
-                                                const response = await apiRequest(
-                                                  "POST",
-                                                  `/api/processes/${process.id}/steps`,
-                                                  {
-                                                    stepName: sectorStep.name,
-                                                    departmentId:
-                                                      process.currentDepartmentId,
-                                                    isCompleted: false,
-                                                    observations: null,
-                                                  },
-                                                );
+                                                const response =
+                                                  await apiRequest(
+                                                    "POST",
+                                                    `/api/processes/${process.id}/steps`,
+                                                    {
+                                                      stepName: sectorStep.name,
+                                                      departmentId:
+                                                        process.currentDepartmentId,
+                                                      isCompleted: false,
+                                                      observations: null,
+                                                    },
+                                                  );
 
                                                 if (response.ok) {
                                                   const newStep =
@@ -2023,11 +2035,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               >
                 <option value="">Selecione uma opção...</option>
-                <option value="INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL">
-                  INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL
-                </option>
                 <option value="DISPONIBILIDADE ORÇAMENTÁRIA">
                   DISPONIBILIDADE ORÇAMENTÁRIA
+                </option>
+                <option value="INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL">
+                  INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL
                 </option>
               </select>
             </div>

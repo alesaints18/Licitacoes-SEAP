@@ -408,12 +408,20 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
         });
       }
       
+      // Criar automaticamente a próxima etapa "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO"
+      await apiRequest("POST", `/api/processes/${processId}/steps`, {
+        stepName: "SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO",
+        departmentId: activeStep.departmentId, // Mesmo setor (SEAP)
+        isCompleted: false,
+        observations: `Criada automaticamente pela decisão: ${authorizationDecision}`
+      });
+      
       // Refetch steps after updating
       queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
       
       toast({
         title: "Etapa de Autorização concluída",
-        description: `Decisão: ${authorizationDecision}`,
+        description: `Decisão: ${authorizationDecision}. Próxima etapa: SOLICITAR DISPONIBILIZAÇÃO DE ORÇAMENTO`,
       });
       
       // Limpar estados
@@ -780,13 +788,13 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                     <input
                       type="radio"
                       name="authorization-decision"
-                      value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
-                      checked={authorizationDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
+                      value="INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"
+                      checked={authorizationDecision === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"}
                       onChange={(e) => setAuthorizationDecision(e.target.value)}
                       className="mt-1"
                     />
                     <span className="text-sm font-medium text-red-700">
-                      ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                      ❌ INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL
                     </span>
                   </label>
                 </div>
@@ -796,13 +804,13 @@ const StepChecklist = ({ processId, modalityId, userDepartment }: StepChecklistP
                     <input
                       type="radio"
                       name="authorization-decision"
-                      value="RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                      checked={authorizationDecision === "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                      value="DISPONIBILIDADE ORÇAMENTÁRIA"
+                      checked={authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA"}
                       onChange={(e) => setAuthorizationDecision(e.target.value)}
                       className="mt-1"
                     />
-                    <span className="text-sm font-medium text-orange-700">
-                      💰 RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                    <span className="text-sm font-medium text-green-700">
+                      ✅ DISPONIBILIDADE ORÇAMENTÁRIA
                     </span>
                   </label>
                 </div>
