@@ -196,7 +196,7 @@ const StepChecklist = ({
   
   // Verificar se a autorização foi concluída e obter a decisão
   const authorizationStep = steps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
-  const completedAuthDecision = authorizationStep?.observations || "";
+  const completedAuthDecision = authorizationStep?.comment || "";
   
   // Verificar se foi selecionada "DISPONIBILIDADE ORÇAMENTÁRIA"
   const hasAvailableBudget = completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA");

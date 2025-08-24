@@ -770,12 +770,40 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       if (response.ok) {
-        // Se a decisão for "DISPONIBILIDADE ORÇAMENTÁRIA", criar as próximas etapas e tramitar
+        // Se a decisão for "DISPONIBILIDADE ORÇAMENTÁRIA", criar a etapa "Autorizar Emissão de R.O"
         if (authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA") {
-          console.log("🔥 ProcessDetail - Criando etapas adicionais e tramitando por disponibilidade orçamentária");
+          console.log("🔥 ProcessDetail - Criando etapa 'Autorizar Emissão de R.O' para disponibilidade orçamentária");
           
-          // A etapa "Autorizar Emissão de R.O" agora é criada automaticamente nas etapas padrão
-          console.log("✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' já está disponível nas etapas padrão");
+          try {
+            // Verificar se a etapa já existe
+            const stepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
+            const currentSteps = await stepsResponse.json();
+            const authRoStepExists = currentSteps.find((s: any) => s.stepName === "Autorizar Emissão de R.O");
+            
+            if (!authRoStepExists) {
+              // Criar etapa "Autorizar Emissão de R.O" no mesmo setor (SEAP)
+              const authRoResponse = await apiRequest(
+                "POST",
+                `/api/processes/${parsedId}/steps`,
+                {
+                  stepName: "Autorizar Emissão de R.O",
+                  departmentId: process?.currentDepartmentId, // Mesmo setor atual (SEAP)
+                  userId: currentUser?.id,
+                  phase: "Execução",
+                },
+              );
+
+              if (authRoResponse.ok) {
+                console.log("✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' criada com sucesso");
+              } else {
+                console.error("❌ ProcessDetail - Erro ao criar etapa 'Autorizar Emissão de R.O'");
+              }
+            } else {
+              console.log("✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' já existe");
+            }
+          } catch (etapasError) {
+            console.error("❌ ProcessDetail - Erro ao verificar/criar etapa:", etapasError);
+          }
         }
 
         await queryClient.invalidateQueries({
