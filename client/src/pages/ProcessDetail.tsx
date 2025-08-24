@@ -491,6 +491,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           (authStep?.observations?.includes("Indisponibilidade Orçamentária Total") || 
            authStep?.observations?.includes("Indisponibilidade Orçamentária Parcial"));
 
+        console.log("🔍 ProcessDetail - Debug getSectorSteps:");
+        console.log("- authStep:", authStep);
+        console.log("- isAuthorizedWithBudget:", isAuthorizedWithBudget);
+        console.log("- isAuthorizedWithoutBudget:", isAuthorizedWithoutBudget);
+        console.log("- authStep?.observations:", authStep?.observations);
+
         // Só adicionar a etapa "Autorizar Emissão de R.O" se a autorização foi aprovada com disponibilidade orçamentária
         if (isAuthorizedWithBudget) {
           baseSteps.push({
@@ -833,6 +839,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         toast({
           title: "✅ Etapa Aprovada",
           description: authorizationDecision === "Disponibilidade Orçamentária" 
+            ? `Autorização concluída: ${authorizationDecision}. Próximas etapas criadas automaticamente.`
+            : authorizationDecision === "Indisponibilidade Orçamentária Total" || authorizationDecision === "Indisponibilidade Orçamentária Parcial"
             ? `Autorização concluída: ${authorizationDecision}. Próximas etapas criadas automaticamente.`
             : `Autorização concluída: ${authorizationDecision}`,
         });
