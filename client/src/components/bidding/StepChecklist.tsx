@@ -201,6 +201,10 @@ const StepChecklist = ({
   // Verificar se foi selecionada "DISPONIBILIDADE ORÇAMENTÁRIA"
   const hasAvailableBudget = completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA");
   
+  // Debug da decisão
+  console.log("🔍 StepChecklist - Decisão encontrada:", completedAuthDecision);
+  console.log("🔍 StepChecklist - hasAvailableBudget:", hasAvailableBudget);
+  
   // Etapas condicionais que serão tratadas separadamente
   const conditionalStepNames = [
     "Devolver para correção ou arquivamento",
@@ -240,6 +244,11 @@ const StepChecklist = ({
     
     // Mostrar "Autorizar Emissão de R.O" SOMENTE se "DISPONIBILIDADE ORÇAMENTÁRIA" foi selecionada
     if (step.stepName === "Autorizar Emissão de R.O") {
+      console.log("🔍 StepChecklist - Etapa 'Autorizar Emissão de R.O' encontrada!");
+      console.log("🔍 StepChecklist - hasAvailableBudget:", hasAvailableBudget);
+      console.log("🔍 StepChecklist - step.departmentId:", step.departmentId);
+      console.log("🔍 StepChecklist - currentDeptId:", currentDeptId);
+      console.log("🔍 StepChecklist - Vai mostrar etapa:", hasAvailableBudget && step.departmentId === currentDeptId);
       return hasAvailableBudget && step.departmentId === currentDeptId;
     }
     

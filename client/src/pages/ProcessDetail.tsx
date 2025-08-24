@@ -781,13 +781,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             const authRoStepExists = currentSteps.find((s: any) => s.stepName === "Autorizar Emissão de R.O");
             
             if (!authRoStepExists) {
-              // Criar etapa "Autorizar Emissão de R.O" no mesmo setor (SEAP)
+              // Criar etapa "Autorizar Emissão de R.O" no setor SEAP (ID 5)
+              console.log("🔥 ProcessDetail - Criando etapa no departamento SEAP (ID: 5)");
               const authRoResponse = await apiRequest(
                 "POST",
                 `/api/processes/${parsedId}/steps`,
                 {
                   stepName: "Autorizar Emissão de R.O",
-                  departmentId: process?.currentDepartmentId, // Mesmo setor atual (SEAP)
+                  departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
                   userId: currentUser?.id,
                   phase: "Execução",
                 },
