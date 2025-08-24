@@ -1609,27 +1609,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 </Card>
               )}
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      Checklist de Aprovação/Rejeição de Etapas
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 mb-6">
-                      Use os botões abaixo para aprovar ou rejeitar cada etapa do processo.
-                    </p>
-                    {process && currentUser && (
-                      <StepChecklist
-                        processId={process.id}
-                        modalityId={process.modalityId}
-                        userDepartment={currentUser.department}
-                        onStepReject={handleStepReject}
-                      />
-                    )}
-                  </CardContent>
-                </Card>
               </div>
             </div>
           </div>
