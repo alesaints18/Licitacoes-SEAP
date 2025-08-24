@@ -478,6 +478,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           name: "Autorização pelo Secretário SEAP",
           phase: "Autorização",
         },
+        {
+          name: "Autorizar Emissão de R.O",
+          phase: "Execução",
+        },
       ],
     };
 
