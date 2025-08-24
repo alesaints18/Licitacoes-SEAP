@@ -204,6 +204,7 @@ const StepChecklist = ({
   // Debug da decisão
   console.log("🔍 StepChecklist - Decisão encontrada:", completedAuthDecision);
   console.log("🔍 StepChecklist - hasAvailableBudget:", hasAvailableBudget);
+  console.log("🔍 StepChecklist - authorizationStep:", authorizationStep);
   
   // Etapas condicionais que serão tratadas separadamente
   const conditionalStepNames = [
