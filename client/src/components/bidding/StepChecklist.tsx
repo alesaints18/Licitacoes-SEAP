@@ -213,9 +213,14 @@ const StepChecklist = ({
     // "Autorizar Emissão de R.O" será exibida condicionalmente quando hasAvailableBudget for true
   ];
   
+  // Debug detalhado
+  console.log("🔍 StepChecklist - userDepartment:", userDepartment);
+  console.log("🔍 StepChecklist - Todas as etapas do processo:", steps?.map(s => ({name: s.stepName, deptId: s.departmentId})));
+  
   // Filtrar etapas do setor atual, EXCLUINDO as etapas condicionais
   const filteredSteps = steps?.filter(step => {
     const currentDeptId = departmentMap[userDepartment];
+    console.log("🔍 StepChecklist - currentDeptId para", userDepartment, "=", currentDeptId);
     
     // Excluir etapas de "Transferência de Setor" (são automáticas)
     if (step.stepName === "Transferência de Setor") {
