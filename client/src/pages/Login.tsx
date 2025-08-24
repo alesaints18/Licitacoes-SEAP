@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { LoginThemeToggle } from "@/components/login-theme-toggle";
+import { LoginIntro } from "@/components/LoginIntro";
 import { differenceInDays } from "date-fns";
 import { AlertTriangle } from "lucide-react";
 import {
@@ -78,6 +79,7 @@ const Login = () => {
   const { toast } = useToast();
   const [urgentProcesses, setUrgentProcesses] = useState<any[]>([]);
   const [showUrgentAlert, setShowUrgentAlert] = useState(false);
+  const [showIntro, setShowIntro] = useState(false);
 
   // Create login form with default values
   const loginForm = useForm<LoginFormValues>({
@@ -169,23 +171,14 @@ const Login = () => {
         description: "Você será redirecionado para o dashboard",
       });
 
-      console.log("Login bem-sucedido, invalidando cache e redirecionando");
+      console.log("Login bem-sucedido, mostrando intro");
       
       // Importar e invalidar o cache do React Query para forçar atualização do estado de auth
       const { queryClient } = await import("../lib/queryClient");
       queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] }); // Remover await para ser mais rápido
       
-      // Redirecionar imediatamente para o dashboard
-      console.log("Redirecionando para dashboard");
-      setLocation("/");
-      
-      // Fallback rápido com window.location se wouter não funcionar
-      setTimeout(() => {
-        if (window.location.pathname === "/login") {
-          console.log("Fallback: forçando redirecionamento com window.location");
-          window.location.href = "/";
-        }
-      }, 100); // Reduzido de 400ms para 100ms
+      // Mostrar intro que redirecionará automaticamente para o dashboard
+      setShowIntro(true);
     } catch (error) {
       console.error("Erro no login:", error);
 
@@ -583,6 +576,9 @@ const Login = () => {
           </TabsContent>
         </Tabs>
       </div>
+      
+      {/* Mostrar intro após login bem-sucedido */}
+      {showIntro && <LoginIntro />}
     </div>
   );
 };
