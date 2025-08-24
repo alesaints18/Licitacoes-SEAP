@@ -71,22 +71,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
-  const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deletionReason, setDeletionReason] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
-  const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
   const [authorizationModalOpen, setAuthorizationModalOpen] = useState(false);
   const [authorizationDecision, setAuthorizationDecision] = useState("");
   const [stepForAuthorization, setStepForAuthorization] =
-    useState<ProcessStep | null>(null);
-  const [authorizationRejectionModalOpen, setAuthorizationRejectionModalOpen] =
-    useState(false);
-  const [authorizationRejectionDecision, setAuthorizationRejectionDecision] =
-    useState("");
-  const [stepForAuthorizationRejection, setStepForAuthorizationRejection] =
     useState<ProcessStep | null>(null);
 
   const [showTransferPanel, setShowTransferPanel] = useState(false);
@@ -557,80 +547,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     setLocation(`/processes/${id}/edit`);
   };
 
-  // Handle step rejection
-  const handleStepReject = async (step: ProcessStep) => {
-    // Verificar se é a etapa de Autorização pelo Secretário SEAP
-    if (step.stepName.includes("Autorização pelo Secretário SEAP")) {
-      console.log(
-        "🔥 ProcessDetail - Etapa de Autorização sendo rejeitada - abrindo modal específico",
-      );
-      setStepForAuthorizationRejection(step);
-      setAuthorizationRejectionModalOpen(true);
-      setAuthorizationRejectionDecision(""); // Limpar seleção anterior
-      return;
-    }
 
-    // Para outras etapas, usar o modal padrão
-    setStepToReject(step);
-    setRejectionReason("");
-    setRejectModalOpen(true);
-  };
-
-  // Submit step rejection
-  const submitStepRejection = async () => {
-    if (!stepToReject || rejectionReason.trim().length < 100) {
-      toast({
-        title: "Erro",
-        description: "O motivo da rejeição deve ter pelo menos 100 caracteres.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmittingRejection(true);
-
-    try {
-      const response = await apiRequest(
-        "PATCH",
-        `/api/processes/${parsedId}/steps/${stepToReject.id}`,
-        {
-          isCompleted: true, // Marcamos como concluída para permitir continuidade do fluxo
-          observations: `[REJEITADO] ${rejectionReason.trim()}`,
-          rejectedAt: new Date().toISOString(),
-          rejectionStatus: "rejected_with_approval", // Novo status para identificar rejeições aprovadas
-        },
-      );
-
-      if (response.ok) {
-        await queryClient.invalidateQueries({
-          queryKey: [`/api/processes/${parsedId}/steps`],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: [`/api/processes/${parsedId}`],
-        });
-
-        toast({
-          title: "Etapa rejeitada com aprovação",
-          description:
-            "A etapa foi rejeitada mas o processo pode continuar. O administrador será notificado para revisão.",
-        });
-
-        setRejectModalOpen(false);
-        setStepToReject(null);
-        setRejectionReason("");
-      } else {
-        throw new Error("Erro ao rejeitar etapa");
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível rejeitar a etapa. Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmittingRejection(false);
-    }
-  };
 
   // Handle step toggle
   const handleStepToggle = async (stepId: number, isCompleted: boolean) => {
@@ -837,55 +754,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
-  // Função para completar rejeição de autorização depois de escolher a opção
-  const handleAuthorizationRejectionComplete = async () => {
-    if (!stepForAuthorizationRejection || !authorizationRejectionDecision) {
-      return;
-    }
-
-    try {
-      console.log(
-        "🔥 ProcessDetail - Completando rejeição de autorização com decisão:",
-        authorizationRejectionDecision,
-      );
-
-      const response = await apiRequest(
-        "PATCH",
-        `/api/processes/${parsedId}/steps/${stepForAuthorizationRejection.id}`,
-        {
-          rejectionStatus: "rejected",
-          comment: `Rejeição de Autorização: ${authorizationRejectionDecision}`,
-          userId: currentUser?.id,
-        },
-      );
-
-      if (response.ok) {
-        await queryClient.invalidateQueries({
-          queryKey: [`/api/processes/${parsedId}`],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: [`/api/processes/${parsedId}/steps`],
-        });
-
-        toast({
-          title: "❌ Etapa Rejeitada",
-          description: `Autorização rejeitada: ${authorizationRejectionDecision}`,
-          variant: "destructive",
-        });
-
-        // Fechar modal e limpar estados
-        setAuthorizationRejectionModalOpen(false);
-        setAuthorizationRejectionDecision("");
-        setStepForAuthorizationRejection(null);
-      }
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Erro ao rejeitar autorização",
-        variant: "destructive",
-      });
-    }
-  };
 
   // Handle delete process
   const handleDelete = async () => {
@@ -1439,56 +1307,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                         )}
                                       </button>
 
-                                      {/* Botão de Rejeitar */}
-                                      <button
-                                        className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                                          userCanEdit
-                                            ? "border-red-400 hover:border-red-600 bg-white hover:bg-red-50"
-                                            : "border-gray-300 bg-gray-100"
-                                        }`}
-                                        onClick={async () => {
-                                          if (!userCanEdit) return;
-
-                                          if (existingStep) {
-                                            // Etapa existe, apenas rejeitar
-                                            handleStepReject(existingStep);
-                                          } else {
-                                            // Etapa não existe, criar primeiro para poder rejeitar
-                                            try {
-                                              const response = await apiRequest(
-                                                "POST",
-                                                `/api/processes/${process.id}/steps`,
-                                                {
-                                                  stepName: sectorStep.name,
-                                                  departmentId:
-                                                    process.currentDepartmentId,
-                                                  isCompleted: false,
-                                                  observations: null,
-                                                },
-                                              );
-
-                                              if (response.ok) {
-                                                const newStep =
-                                                  await response.json();
-
-                                                // Rejeitar a etapa criada
-                                                handleStepReject(newStep);
-                                              }
-                                            } catch (error) {
-                                              toast({
-                                                title: "Erro",
-                                                description:
-                                                  "Não foi possível criar a etapa para rejeição",
-                                                variant: "destructive",
-                                              });
-                                            }
-                                          }
-                                        }}
-                                        disabled={!userCanEdit}
-                                        title="Rejeitar etapa"
-                                      >
-                                        <XCircle className="h-4 w-4 text-red-600" />
-                                      </button>
                                     </div>
 
                                     <div className="flex-1">

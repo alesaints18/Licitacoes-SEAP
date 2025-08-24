@@ -37,17 +37,6 @@ const StepChecklist = ({
   const queryClient = useQueryClient();
   const [activeStep, setActiveStep] = useState<ProcessStep | null>(null);
   const [observation, setObservation] = useState("");
-  const [rejectModalOpen, setRejectModalOpen] = useState(false);
-  const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
-  const [rejectionReason, setRejectionReason] = useState("");
-  const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
-  
-  // Estados para o modal de decisão do Secretário SEAP
-  const [decisionModalOpen, setDecisionModalOpen] = useState(false);
-  const [stepForDecision, setStepForDecision] = useState<ProcessStep | null>(null);
-  const [primaryDecision, setPrimaryDecision] = useState<string>("");
-  const [cascadeDecision, setCascadeDecision] = useState<string>("");
-  const [isSubmittingDecision, setIsSubmittingDecision] = useState(false);
   const [authorizationDecision, setAuthorizationDecision] = useState("");
   // Usar modal externo se fornecido, senão usar interno
   const [internalAuthModalOpen, setInternalAuthModalOpen] = useState(false);
@@ -392,12 +381,9 @@ const StepChecklist = ({
       // Se é etapa de Autorização pelo Secretário SEAP, abrir modal de autorização
       if (step.stepName.includes("Autorização pelo Secretário SEAP")) {
         console.log("🔥 StepChecklist - Etapa de Autorização detectada - abrindo modal de autorização");
-        console.log("🔥 StepChecklist - Estado atual do modal:", authorizationModalOpen);
-        console.log("🔥 StepChecklist - Função setAuthorizationModalOpen:", typeof setAuthorizationModalOpen);
         setAuthorizationModalOpen(true);
         setActiveStep(step);
         setAuthorizationDecision(""); // Limpar seleção anterior
-        console.log("🔥 StepChecklist - Modal definido para abrir");
         return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
       }
 
@@ -538,11 +524,6 @@ const StepChecklist = ({
     }
   };
 
-  const handleRejectStep = (step: ProcessStep) => {
-    setStepToReject(step);
-    setRejectionReason("");
-    setRejectModalOpen(true);
-  };
 
   // Função para completar a autorização com a decisão escolhida
   const handleAuthorizationComplete = async () => {
@@ -585,7 +566,6 @@ const StepChecklist = ({
               {
                 stepName: "Autorizar Emissão de R.O",
                 departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
-                userId: currentUser?.id,
                 phase: "Execução",
               },
             );
@@ -648,117 +628,8 @@ const StepChecklist = ({
     }
   };
 
-  const submitRejection = async () => {
-    if (!stepToReject || rejectionReason.trim().length < 100) {
-      toast({
-        title: "Motivo insuficiente",
-        description: "A justificativa deve ter pelo menos 100 caracteres",
-        variant: "destructive",
-      });
-      return;
-    }
 
-    setIsSubmittingRejection(true);
 
-    try {
-      // Marcar etapa como rejeitada através das observações
-      await apiRequest("PATCH", `/api/processes/${processId}/steps/${stepToReject.id}`, {
-        isCompleted: false,
-        observations: `REJEITADA: ${rejectionReason.trim()}`
-      });
-      
-      // Refetch steps after updating
-      queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
-      
-      toast({
-        title: "Etapa rejeitada",
-        description: `Etapa "${stepToReject.stepName}" foi rejeitada com sucesso`,
-        variant: "destructive",
-      });
-
-      // Fechar modal
-      setRejectModalOpen(false);
-      setStepToReject(null);
-      setRejectionReason("");
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível rejeitar a etapa",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmittingRejection(false);
-    }
-  };
-
-  const submitDecision = async () => {
-    if (!stepForDecision || !primaryDecision) {
-      toast({
-        title: "Decisão incompleta",
-        description: "Por favor, selecione uma opção",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmittingDecision(true);
-
-    try {
-      // Concluir a etapa com a decisão tomada
-      await apiRequest("PATCH", `/api/processes/${processId}/steps/${stepForDecision.id}`, {
-        isCompleted: true,
-        observations: `DECISÃO: ${primaryDecision}`
-      });
-      
-      // Processar ações baseadas na decisão
-      // (aqui podem ser adicionadas ações específicas se necessário)
-      
-      // Refetch steps after updating
-      queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
-      
-      toast({
-        title: "Autorização processada",
-        description: `Decisão: ${primaryDecision} → ${cascadeDecision}`,
-        variant: "default",
-      });
-
-      // Fechar modal
-      setDecisionModalOpen(false);
-      setStepForDecision(null);
-      setPrimaryDecision("");
-      setCascadeDecision("");
-    } catch (error) {
-      toast({
-        title: "Erro",
-        description: "Não foi possível processar a decisão",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmittingDecision(false);
-    }
-  };
-
-  const processDecisionActions = async (primary: string, cascade: string) => {
-    // Implementar ações baseadas nas decisões
-    if (primary === "NÃO") {
-      if (cascade === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA") {
-        // Lógica para devolver para correção ou arquivamento
-        // Será implementada em seguida
-        console.log("Processo devolvido para correção ou arquivamento");
-      } else if (cascade === "RECURSO DE CONVÊNIO INSUFICIENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO") {
-        // Lógica para encaminhar para SUBCC
-        console.log("Processo encaminhado para SUBCC");
-      }
-    } else if (primary === "SIM") {
-      if (cascade === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL") {
-        // Lógica para indisponibilidade orçamentária
-        console.log("Indisponibilidade orçamentária processada");
-      } else if (cascade === "DISPONIBILIDADE ORÇAMENTÁRIA") {
-        // Lógica para disponibilidade orçamentária - continua fluxo normal
-        console.log("Disponibilidade orçamentária confirmada - processo continua");
-      }
-    }
-  };
   
   if (isLoading) {
     return (
@@ -958,24 +829,6 @@ const StepChecklist = ({
                             >
                               <Check className="h-3 w-3" />
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Para etapa de Autorização, abrir modal de aprovação
-                                if (step.stepName === "Autorização pelo Secretário SEAP") {
-                                  setAuthorizationModalOpen(true);
-                                  setActiveStep(step);
-                                } else {
-                                  handleRejectStep(step);
-                                }
-                              }}
-                              className="h-7 w-7 p-0"
-                              disabled={step.isCompleted}
-                            >
-                              <XCircle className="h-3 w-3" />
-                            </Button>
                           </div>
                         </div>
                       ))}
@@ -1012,64 +865,6 @@ const StepChecklist = ({
         </Card>
       )}
 
-      {/* REMOVIDO: Modal antigo de autorização */}
-
-      {/* Modal de Rejeição */}
-      <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <XCircle className="h-5 w-5" />
-              Rejeitar Etapa
-            </DialogTitle>
-            <DialogDescription>
-              Você está rejeitando a etapa: <strong>{stepToReject?.stepName}</strong>
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Justificativa <span className="text-red-500">*</span>
-              </label>
-              <Textarea
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Descreva detalhadamente a justificativa (mínimo 100 caracteres)"
-                rows={4}
-                className={rejectionReason.length < 100 ? "border-red-300" : "border-green-300"}
-              />
-              <div className="flex justify-between mt-1">
-                <span className={`text-xs ${rejectionReason.length < 100 ? "text-red-500" : "text-green-600"}`}>
-                  {rejectionReason.length < 100 ? "Insuficiente" : "Suficiente"}
-                </span>
-                <span className="text-xs text-gray-500">
-                  {rejectionReason.length}/100 caracteres
-                </span>
-              </div>
-            </div>
-            
-            <div className="flex space-x-3">
-              <Button
-                variant="outline"
-                onClick={() => setRejectModalOpen(false)}
-                disabled={isSubmittingRejection}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={submitRejection}
-                disabled={rejectionReason.length < 100 || isSubmittingRejection}
-                className="flex-1"
-              >
-                {isSubmittingRejection ? "Rejeitando..." : "Confirmar Rejeição"}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Novo Modal para Aprovar Etapa de Autorização */}
       <Dialog open={authorizationModalOpen} onOpenChange={setAuthorizationModalOpen}>
@@ -1107,13 +902,13 @@ const StepChecklist = ({
                   <input
                     type="radio"
                     name="new-authorization-decision"
-                    value="OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                    checked={authorizationDecision === "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                    value="DISPONIBILIDADE ORÇAMENTÁRIA"
+                    checked={authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA"}
                     onChange={(e) => setAuthorizationDecision(e.target.value)}
                     className="mt-1"
                   />
-                  <span className="text-sm font-medium text-orange-700">
-                    ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                  <span className="text-sm font-medium text-green-700">
+                    ✅ DISPONIBILIDADE ORÇAMENTÁRIA
                   </span>
                 </label>
               </div>
