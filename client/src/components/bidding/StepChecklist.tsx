@@ -270,12 +270,12 @@ const StepChecklist = ({
       console.log("🔍 StepChecklist - User role:", (currentUser as any)?.role);
       console.log("🔍 StepChecklist - step.isCompleted:", step.isCompleted);
       
-      // SEMPRE mostrar se há disponibilidade orçamentária (independente do departamento para admin)
-      // Para usuários comuns, só mostrar se for do seu departamento
-      const canViewStep = hasAvailableBudget && (
+      // SEMPRE mostrar se há disponibilidade orçamentária E se não está concluída
+      // Admin pode ver independente do departamento
+      const canViewStep = hasAvailableBudget && !step.isCompleted && (
         (currentUser as any)?.role === 'admin' || 
         step.departmentId === currentDeptId
-      ) && !step.isCompleted;
+      );
       
       console.log("🔍🔍🔍 StepChecklist - RESULTADO - Vai mostrar etapa:", canViewStep);
       return canViewStep;
