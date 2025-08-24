@@ -486,11 +486,24 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         const isAuthorizedWithBudget = authStep?.isCompleted && 
           authStep?.observations?.includes("Disponibilidade Orçamentária");
 
+        // Verificar se a autorização foi negada com indisponibilidade orçamentária
+        const isAuthorizedWithoutBudget = authStep?.isCompleted && 
+          (authStep?.observations?.includes("Indisponibilidade Orçamentária Total") || 
+           authStep?.observations?.includes("Indisponibilidade Orçamentária Parcial"));
+
         // Só adicionar a etapa "Autorizar Emissão de R.O" se a autorização foi aprovada com disponibilidade orçamentária
         if (isAuthorizedWithBudget) {
           baseSteps.push({
             name: "Autorizar Emissão de R.O",
             phase: "Execução",
+          });
+        }
+
+        // Só adicionar a etapa "Solicitar disponibilização de orçamento" se a autorização foi negada com indisponibilidade orçamentária
+        if (isAuthorizedWithoutBudget) {
+          baseSteps.push({
+            name: "Solicitar disponibilização de orçamento",
+            phase: "Preparação",
           });
         }
 
@@ -766,6 +779,47 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             }
           } catch (etapasError) {
             console.error("❌ ProcessDetail - Erro ao verificar/criar etapa:", etapasError);
+          }
+        }
+
+        // Se a decisão for indisponibilidade orçamentária, criar a etapa "Solicitar disponibilização de orçamento"
+        if (authorizationDecision === "Indisponibilidade Orçamentária Total" || authorizationDecision === "Indisponibilidade Orçamentária Parcial") {
+          console.log("🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar disponibilização de orçamento' para indisponibilidade orçamentária");
+          
+          try {
+            // Verificar se a etapa já existe
+            const stepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
+            const currentSteps = await stepsResponse.json();
+            const solicitarOrcamentoStepExists = currentSteps.find((s: any) => s.stepName === "Solicitar disponibilização de orçamento");
+            
+            if (!solicitarOrcamentoStepExists) {
+              // Criar etapa "Solicitar disponibilização de orçamento" no setor SEAP (ID 5)
+              console.log("🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar disponibilização de orçamento' no departamento SEAP (ID: 5)");
+              const solicitarOrcamentoResponse = await apiRequest(
+                "POST",
+                `/api/processes/${parsedId}/steps`,
+                {
+                  stepName: "Solicitar disponibilização de orçamento",
+                  departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
+                  userId: currentUser?.id,
+                  phase: "Preparação",
+                },
+              );
+
+              if (solicitarOrcamentoResponse.ok) {
+                console.log("✅✅✅ ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' criada com sucesso");
+                const createdStep = await solicitarOrcamentoResponse.json();
+                console.log("🔥 ProcessDetail - Dados da etapa criada:", createdStep);
+              } else {
+                console.error("❌❌❌ ProcessDetail - Erro ao criar etapa 'Solicitar disponibilização de orçamento'");
+                const errorData = await solicitarOrcamentoResponse.text();
+                console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
+              }
+            } else {
+              console.log("✅ ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' já existe");
+            }
+          } catch (etapasError) {
+            console.error("❌ ProcessDetail - Erro ao verificar/criar etapa de orçamento:", etapasError);
           }
         }
 
