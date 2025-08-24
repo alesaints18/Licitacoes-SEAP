@@ -762,7 +762,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         `/api/processes/${parsedId}/steps/${stepForAuthorization.id}`,
         {
           isCompleted: true,
-          comment: `Autorização: ${authorizationDecision}`,
+          observations: `Autorização: ${authorizationDecision}`,
           userId: currentUser?.id,
         },
       );

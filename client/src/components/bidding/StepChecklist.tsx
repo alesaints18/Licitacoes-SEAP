@@ -196,7 +196,7 @@ const StepChecklist = ({
   
   // Verificar se a autorização foi concluída e obter a decisão
   const authorizationStep = steps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
-  const completedAuthDecision = authorizationStep?.comment || "";
+  const completedAuthDecision = authorizationStep?.observations || "";
   
   // Verificar se foi selecionada "DISPONIBILIDADE ORÇAMENTÁRIA"
   const hasAvailableBudget = completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA");
@@ -215,8 +215,10 @@ const StepChecklist = ({
   ];
   
   // Debug detalhado
+  console.log("🔍🔍🔍 STEPCHECKLIST CARREGADO PARA PROCESSO", processId);
   console.log("🔍 StepChecklist - userDepartment:", userDepartment);
-  console.log("🔍 StepChecklist - Todas as etapas do processo:", steps?.map(s => ({name: s.stepName, deptId: s.departmentId, completed: s.isCompleted, comment: s.comment})));
+  console.log("🔍 StepChecklist - steps total:", steps?.length);
+  console.log("🔍 StepChecklist - Todas as etapas do processo:", steps?.map(s => ({name: s.stepName, deptId: s.departmentId, completed: s.isCompleted, observations: s.observations})));
   
   // Verificar especificamente se a etapa "Autorizar Emissão de R.O" existe
   const authRoStep = steps?.find(s => s.stepName === "Autorizar Emissão de R.O");
