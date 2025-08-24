@@ -486,7 +486,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         " Núcleo de Pesquisa  de Preços – NPP  Núcleo de Pes": 3,
         "Unidade de  Orçamento e  Finanças": 4,
         "Financeiro": 4,
-        "Secretário de Estado da Administração  Penitenciária - SEAP": 5,
+        "Secretário de Estado da Administração Penitenciária - SEAP": 5,
         " Comitê Gestor do Plano de  Contingência - CGPC": 6,
         "Unidade Técnico Normativa": 7,
         "Procuradoria Geral do Estado - PGE": 8,

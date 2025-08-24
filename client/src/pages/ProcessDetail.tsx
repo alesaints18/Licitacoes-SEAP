@@ -358,8 +358,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Núcleo de Pesquisa de Preços – NPP": "NPP",
       "Unidade de Orçamento e Finanças": "Financeiro",
       "Procuradoria Geral do Estado - PGE": "Jurídico",
-      "Secretário de Estado da Administração  Penitenciária - SEAP":
-        "Administrativo",
       "Secretário de Estado da Administração Penitenciária - SEAP":
         "Administrativo",
       Planejamento: "TI", // Mapeamento para o departamento atual do usuário admin
