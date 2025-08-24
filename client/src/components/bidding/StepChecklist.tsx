@@ -24,6 +24,7 @@ interface StepChecklistProps {
   userDepartment: string;
   authorizationModalOpen?: boolean;
   setAuthorizationModalOpen?: (open: boolean) => void;
+  onStepReject?: (step: ProcessStep) => void;
 }
 
 const StepChecklist = ({ 
@@ -32,6 +33,7 @@ const StepChecklist = ({
   userDepartment,
   authorizationModalOpen: externalAuthModalOpen,
   setAuthorizationModalOpen: setExternalAuthModalOpen,
+  onStepReject,
 }: StepChecklistProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -818,6 +820,7 @@ const StepChecklist = ({
                             )}
                           </div>
                           <div className="flex flex-col gap-1">
+                            {/* Botão de Aprovar */}
                             <Button
                               size="sm"
                               variant={step.isCompleted ? "secondary" : "default"}
@@ -826,8 +829,31 @@ const StepChecklist = ({
                                 handleToggleStep(step);
                               }}
                               className="h-7 w-7 p-0"
+                              title="Aprovar etapa"
                             >
                               <Check className="h-3 w-3" />
+                            </Button>
+                            
+                            {/* Botão de Rejeitar */}
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onStepReject) {
+                                  onStepReject(step);
+                                } else {
+                                  toast({
+                                    title: "Erro",
+                                    description: "Função de rejeição não configurada",
+                                    variant: "destructive",
+                                  });
+                                }
+                              }}
+                              className="h-7 w-7 p-0"
+                              title="Rejeitar etapa"
+                            >
+                              <XCircle className="h-3 w-3" />
                             </Button>
                           </div>
                         </div>

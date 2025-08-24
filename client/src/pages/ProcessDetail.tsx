@@ -78,6 +78,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [authorizationDecision, setAuthorizationDecision] = useState("");
   const [stepForAuthorization, setStepForAuthorization] =
     useState<ProcessStep | null>(null);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
+  const [rejectionComment, setRejectionComment] = useState("");
 
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
@@ -754,6 +757,61 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
+
+  // Função para rejeitar uma etapa
+  const handleStepReject = (step: ProcessStep) => {
+    setStepToReject(step);
+    setRejectionComment("");
+    setRejectModalOpen(true);
+  };
+
+  // Função para confirmar rejeição
+  const confirmStepRejection = async () => {
+    if (!stepToReject || rejectionComment.trim().length < 10) {
+      toast({
+        title: "Motivo obrigatório",
+        description: "Por favor, informe o motivo da rejeição (mínimo 10 caracteres)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepToReject.id}`,
+        {
+          rejectionStatus: "rejected",
+          observations: rejectionComment.trim(),
+          isCompleted: false,
+          userId: currentUser?.id,
+        },
+      );
+
+      await queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}`],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}/steps`],
+      });
+
+      toast({
+        title: "❌ Etapa Rejeitada",
+        description: `Etapa "${stepToReject.stepName}" foi rejeitada`,
+        variant: "destructive",
+      });
+
+      setRejectModalOpen(false);
+      setStepToReject(null);
+      setRejectionComment("");
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao rejeitar etapa",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Handle delete process
   const handleDelete = async () => {
@@ -1567,6 +1625,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                         processId={process.id}
                         modalityId={process.modalityId}
                         userDepartment={currentUser.department}
+                        onStepReject={handleStepReject}
                       />
                     )}
                   </CardContent>
@@ -1591,6 +1650,60 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Modal de Rejeição de Etapa */}
+      <Dialog open={rejectModalOpen} onOpenChange={setRejectModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center text-red-600">
+              <XCircle className="h-5 w-5 mr-2" />
+              Rejeitar Etapa
+            </DialogTitle>
+            <DialogDescription>
+              Etapa: <strong>{stepToReject?.stepName}</strong>
+              <br />
+              Informe o motivo da rejeição desta etapa.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700 mb-2 block">
+                Motivo da Rejeição *
+              </label>
+              <Textarea
+                value={rejectionComment}
+                onChange={(e) => setRejectionComment(e.target.value)}
+                placeholder="Descreva o motivo da rejeição desta etapa..."
+                className="min-h-[100px]"
+                maxLength={500}
+              />
+              <p className="text-xs text-gray-500 mt-1">
+                Mínimo 10 caracteres. {rejectionComment.length}/500
+              </p>
+            </div>
+          </div>
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectModalOpen(false);
+                setStepToReject(null);
+                setRejectionComment("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmStepRejection}
+              disabled={rejectionComment.trim().length < 10}
+            >
+              <XCircle className="h-4 w-4 mr-2" />
+              Rejeitar Etapa
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Modais existentes */}
 
