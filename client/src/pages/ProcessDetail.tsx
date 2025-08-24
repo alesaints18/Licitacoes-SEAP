@@ -512,6 +512,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           });
         }
 
+        // Verificar se existem etapas condicionais criadas por rejeições
+        const conditionalSteps = steps?.filter(s => 
+          s.departmentId === 5 && // Mesmo departamento (SEAP)
+          (s.stepName === "Devolver para correção ou arquivamento" || 
+           s.stepName === "Solicitar ajuste/aditivo do plano de trabalho")
+        );
+
+        conditionalSteps?.forEach(conditionalStep => {
+          baseSteps.push({
+            name: conditionalStep.stepName,
+            phase: "Correção",
+          });
+        });
+
         return baseSteps;
       })(),
     };
@@ -699,6 +713,48 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         );
       }
 
+      // Criar etapa condicional baseada na decisão de rejeição
+      let conditionalStepName = "";
+      
+      if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
+        conditionalStepName = "Devolver para correção ou arquivamento";
+      } else if (authorizationRejectionDecision === "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado") {
+        conditionalStepName = "Solicitar ajuste/aditivo do plano de trabalho";
+      }
+
+      if (conditionalStepName) {
+        console.log(`🔥🔥🔥 ProcessDetail - Criando etapa condicional: ${conditionalStepName}`);
+        
+        try {
+          // Verificar se a etapa já existe
+          const existingStepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
+          const existingSteps = await existingStepsResponse.json();
+          
+          const stepExists = existingSteps.some((step: any) => step.stepName === conditionalStepName);
+          
+          if (!stepExists) {
+            const conditionalStepResponse = await apiRequest(
+              "POST",
+              `/api/processes/${parsedId}/steps`,
+              {
+                stepName: conditionalStepName,
+                departmentId: process?.currentDepartmentId || 5, // Mesmo setor (SEAP)
+                isCompleted: false,
+                observations: `Etapa criada automaticamente após rejeição: ${authorizationRejectionDecision}`,
+              },
+            );
+
+            if (conditionalStepResponse.ok) {
+              console.log(`✅ ProcessDetail - Etapa ${conditionalStepName} criada com sucesso`);
+            }
+          } else {
+            console.log(`⚠️ ProcessDetail - Etapa ${conditionalStepName} já existe`);
+          }
+        } catch (etapasError) {
+          console.error("❌ ProcessDetail - Erro ao criar etapa condicional:", etapasError);
+        }
+      }
+
       // Invalidar cache
       queryClient.invalidateQueries({
         queryKey: [`/api/processes/${parsedId}/steps`],
@@ -706,7 +762,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       toast({
         title: "❌ Etapa Rejeitada",
-        description: `Rejeição: ${authorizationRejectionDecision}`,
+        description: `Rejeição: ${authorizationRejectionDecision}${conditionalStepName ? `. Nova etapa criada: ${conditionalStepName}` : ""}`,
         variant: "destructive",
       });
 
