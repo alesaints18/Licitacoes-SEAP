@@ -754,8 +754,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       if (response.ok) {
-        // Se a decisão for "DISPONIBILIDADE ORÇAMENTÁRIA", criar a etapa "Autorizar Emissão de R.O"
-        if (authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA") {
+        // Se a decisão for "Disponibilidade Orçamentária", criar a etapa "Autorizar Emissão de R.O"
+        if (authorizationDecision === "Disponibilidade Orçamentária") {
           console.log("🔥🔥🔥 ProcessDetail - Criando etapa 'Autorizar Emissão de R.O' para disponibilidade orçamentária");
           
           try {
@@ -804,7 +804,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         toast({
           title: "✅ Etapa Aprovada",
-          description: authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA" 
+          description: authorizationDecision === "Disponibilidade Orçamentária" 
             ? `Autorização concluída: ${authorizationDecision}. Próximas etapas criadas automaticamente.`
             : `Autorização concluída: ${authorizationDecision}`,
         });
@@ -1814,17 +1814,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-decision"
-                    value="DISPONIBILIDADE ORÇAMENTÁRIA"
-                    checked={authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA"}
+                    value="Disponibilidade Orçamentária"
+                    checked={authorizationDecision === "Disponibilidade Orçamentária"}
                     onChange={(e) => setAuthorizationDecision(e.target.value)}
                     className="mt-1"
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">
                       Disponibilidade Orçamentária
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Autorizar criação da R.O. (Reserva Orçamentária)
                     </div>
                   </div>
                 </label>
@@ -1835,17 +1832,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-decision"
-                    value="INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"
-                    checked={authorizationDecision === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"}
+                    value="Indisponibilidade Orçamentária total ou parcial"
+                    checked={authorizationDecision === "Indisponibilidade Orçamentária total ou parcial"}
                     onChange={(e) => setAuthorizationDecision(e.target.value)}
                     className="mt-1"
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">
-                      Indisponibilidade Orçamentária
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Total ou parcial - requer ação específica
+                      Indisponibilidade Orçamentária total ou parcial
                     </div>
                   </div>
                 </label>
@@ -1896,17 +1890,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-rejection-decision"
-                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
-                    checked={authorizationRejectionDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
+                    value="Não autorizar a despesa ou solicitar reformulação da demanda"
+                    checked={authorizationRejectionDecision === "Não autorizar a despesa ou solicitar reformulação da demanda"}
                     onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
                     className="mt-1"
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">
-                      Não Autorizar a Despesa
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Solicitar reformulação da demanda
+                      Não autorizar a despesa ou solicitar reformulação da demanda
                     </div>
                   </div>
                 </label>
@@ -1917,17 +1908,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-rejection-decision"
-                    value="RECURSO DE CONVÊNIO INSUFICIENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                    checked={authorizationRejectionDecision === "RECURSO DE CONVÊNIO INSUFICIENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
+                    value="Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
+                    checked={authorizationRejectionDecision === "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"}
                     onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
                     className="mt-1"
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">
-                      Recurso de Convênio Insuficiente
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      Valor estimado maior que o valor conveniado
+                      Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado
                     </div>
                   </div>
                 </label>
