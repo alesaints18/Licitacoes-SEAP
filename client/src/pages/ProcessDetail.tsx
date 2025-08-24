@@ -769,24 +769,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           }
         }
 
-        // Também transferir o processo para o departamento SEAP para manter a etapa visível
-        try {
-          const transferResponse = await apiRequest(
-            "POST",
-            `/api/processes/${parsedId}/transfer`,
-            {
-              departmentId: 5, // SEAP
-              comment: "Transferência automática após autorização para manter etapas do SEAP visíveis",
-            },
-          );
-
-          if (transferResponse.ok) {
-            console.log("✅ ProcessDetail - Processo mantido no departamento SEAP para etapas do setor");
-          }
-        } catch (transferError) {
-          console.error("❌ ProcessDetail - Erro na transferência para SEAP:", transferError);
-        }
-
         await queryClient.invalidateQueries({
           queryKey: [`/api/processes/${parsedId}`],
         });
