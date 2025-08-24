@@ -1365,6 +1365,31 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                         )}
                                       </button>
 
+                                      {/* Botão de Rejeitar */}
+                                      <button
+                                        className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                          userCanEdit
+                                            ? "border-red-400 hover:border-red-600 bg-white hover:bg-red-50"
+                                            : "border-gray-300 bg-gray-100"
+                                        }`}
+                                        onClick={() => {
+                                          if (!userCanEdit) return;
+                                          if (existingStep) {
+                                            handleStepReject(existingStep);
+                                          } else {
+                                            toast({
+                                              title: "Erro",
+                                              description: "Esta etapa ainda não foi criada",
+                                              variant: "destructive",
+                                            });
+                                          }
+                                        }}
+                                        disabled={!userCanEdit}
+                                        title="Rejeitar etapa"
+                                      >
+                                        <XCircle className="h-4 w-4 text-red-600" />
+                                      </button>
+
                                     </div>
 
                                     <div className="flex-1">
