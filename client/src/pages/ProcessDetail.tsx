@@ -595,57 +595,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       if (response.ok) {
         console.log("Etapa atualizada com sucesso");
 
-        // Se a etapa "Autorizar Emissão de R.O" foi completada, transferir automaticamente para Finanças
+        // Se a etapa "Autorizar Emissão de R.O" foi completada, apenas mostrar mensagem
         if (isCompleted && step.stepName === "Autorizar Emissão de R.O") {
-          console.log("🔥 ProcessDetail - Etapa 'Autorizar Emissão de R.O' completada, transferindo para Finanças");
+          console.log("🔥 ProcessDetail - Etapa 'Autorizar Emissão de R.O' completada");
           
-          try {
-            // Buscar ID do departamento "Unidade de Orçamento e Finanças"
-            const departmentsResponse = await apiRequest("GET", "/api/departments");
-            const departments = await departmentsResponse.json();
-            const financeDept = departments.find((dept: any) => 
-              dept.name.includes("Unidade de Orçamento e Finanças") || 
-              dept.name.includes("Orçamento e Finanças")
-            );
-
-            if (financeDept) {
-              // Transferir processo para o setor de Finanças
-              const transferResponse = await apiRequest(
-                "POST",
-                `/api/processes/${parsedId}/transfer`,
-                {
-                  departmentId: financeDept.id,
-                  comment: "Transferência automática após autorização da emissão de R.O",
-                },
-              );
-
-              if (transferResponse.ok) {
-                console.log("✅ ProcessDetail - Processo transferido automaticamente para Finanças");
-                
-                // Invalidar dados do processo para refletir a mudança de departamento
-                queryClient.invalidateQueries({
-                  queryKey: [`/api/processes/${parsedId}`],
-                });
-
-                toast({
-                  title: "✅ Etapa Concluída e Processo Transferido",
-                  description: "Processo transferido automaticamente para Unidade de Orçamento e Finanças para anexar R.O.",
-                  duration: 5000,
-                });
-              } else {
-                console.error("❌ ProcessDetail - Erro ao transferir para Finanças");
-                toast({
-                  title: "Etapa concluída",
-                  description: "Etapa concluída, mas houve erro na transferência automática.",
-                  variant: "destructive",
-                });
-              }
-            } else {
-              console.error("❌ ProcessDetail - Departamento de Finanças não encontrado para transferência");
-            }
-          } catch (transferError) {
-            console.error("❌ ProcessDetail - Erro na transferência automática:", transferError);
-          }
+          toast({
+            title: "✅ Etapa Concluída",
+            description: "Etapa 'Autorizar Emissão de R.O' foi concluída com sucesso",
+          });
         } else {
           toast({
             title: isCompleted ? "Etapa concluída" : "Etapa desmarcada",
