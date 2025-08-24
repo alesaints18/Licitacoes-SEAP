@@ -254,8 +254,16 @@ const StepChecklist = ({
       console.log("🔍 StepChecklist - hasAvailableBudget:", hasAvailableBudget);
       console.log("🔍 StepChecklist - step.departmentId:", step.departmentId);
       console.log("🔍 StepChecklist - currentDeptId:", currentDeptId);
-      console.log("🔍 StepChecklist - Vai mostrar etapa:", hasAvailableBudget && step.departmentId === currentDeptId);
-      return hasAvailableBudget && step.departmentId === currentDeptId;
+      console.log("🔍 StepChecklist - User role:", (currentUser as any)?.role);
+      
+      // Admin pode ver a etapa independente do departamento, usuários comuns só no seu departamento
+      const canViewStep = hasAvailableBudget && (
+        (currentUser as any)?.role === 'admin' || 
+        step.departmentId === currentDeptId
+      );
+      
+      console.log("🔍 StepChecklist - Vai mostrar etapa:", canViewStep);
+      return canViewStep;
     }
     
     // Para outras etapas, mostrar apenas não concluídas
