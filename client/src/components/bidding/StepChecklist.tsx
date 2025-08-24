@@ -215,7 +215,9 @@ const StepChecklist = ({
   ];
   
   // Debug detalhado
+  console.log("🔍🔍🔍 =========================");
   console.log("🔍🔍🔍 STEPCHECKLIST CARREGADO PARA PROCESSO", processId);
+  console.log("🔍🔍🔍 =========================");
   console.log("🔍 StepChecklist - userDepartment:", userDepartment);
   console.log("🔍 StepChecklist - steps total:", steps?.length);
   console.log("🔍 StepChecklist - Todas as etapas do processo:", steps?.map(s => ({name: s.stepName, deptId: s.departmentId, completed: s.isCompleted, observations: s.observations})));

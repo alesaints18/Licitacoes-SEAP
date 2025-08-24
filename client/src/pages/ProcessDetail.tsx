@@ -753,7 +753,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
     try {
       console.log(
-        "🔥 ProcessDetail - Completando autorização com decisão:",
+        "🔥🔥🔥 ProcessDetail - Completando autorização com decisão:",
         authorizationDecision,
       );
 
@@ -770,7 +770,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       if (response.ok) {
         // Se a decisão for "DISPONIBILIDADE ORÇAMENTÁRIA", criar a etapa "Autorizar Emissão de R.O"
         if (authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA") {
-          console.log("🔥 ProcessDetail - Criando etapa 'Autorizar Emissão de R.O' para disponibilidade orçamentária");
+          console.log("🔥🔥🔥 ProcessDetail - Criando etapa 'Autorizar Emissão de R.O' para disponibilidade orçamentária");
           
           try {
             // Verificar se a etapa já existe
@@ -780,7 +780,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             
             if (!authRoStepExists) {
               // Criar etapa "Autorizar Emissão de R.O" no setor SEAP (ID 5)
-              console.log("🔥 ProcessDetail - Criando etapa no departamento SEAP (ID: 5)");
+              console.log("🔥🔥🔥 ProcessDetail - Criando etapa no departamento SEAP (ID: 5)");
               const authRoResponse = await apiRequest(
                 "POST",
                 `/api/processes/${parsedId}/steps`,
@@ -793,9 +793,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               );
 
               if (authRoResponse.ok) {
-                console.log("✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' criada com sucesso");
+                console.log("✅✅✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' criada com sucesso");
+                const createdStep = await authRoResponse.json();
+                console.log("🔥 ProcessDetail - Dados da etapa criada:", createdStep);
               } else {
-                console.error("❌ ProcessDetail - Erro ao criar etapa 'Autorizar Emissão de R.O'");
+                console.error("❌❌❌ ProcessDetail - Erro ao criar etapa 'Autorizar Emissão de R.O'");
+                const errorData = await authRoResponse.text();
+                console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
               }
             } else {
               console.log("✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' já existe");
