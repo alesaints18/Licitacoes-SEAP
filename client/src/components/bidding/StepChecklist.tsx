@@ -198,8 +198,10 @@ const StepChecklist = ({
   const authorizationStep = steps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
   const completedAuthDecision = authorizationStep?.observations || "";
   
-  // Verificar se foi selecionada "DISPONIBILIDADE ORÇAMENTÁRIA"
+  // Verificar se foi selecionada "DISPONIBILIDADE ORÇAMENTÁRIA" 
   const hasAvailableBudget = completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA");
+  console.log("🔍🔍🔍 CHEQUE DISPONIBILIDADE - completedAuthDecision:", completedAuthDecision);
+  console.log("🔍🔍🔍 CHEQUE DISPONIBILIDADE - hasAvailableBudget:", hasAvailableBudget);
   
   // Debug da decisão
   console.log("🔍 StepChecklist - Decisão encontrada:", completedAuthDecision);
