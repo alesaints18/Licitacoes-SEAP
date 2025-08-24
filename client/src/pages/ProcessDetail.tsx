@@ -676,16 +676,69 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       if (response.ok) {
         console.log("Etapa atualizada com sucesso");
 
+        // Se a etapa "Autorizar Emissão de R.O" foi completada, transferir automaticamente para Finanças
+        if (isCompleted && stepName === "Autorizar Emissão de R.O") {
+          console.log("🔥 ProcessDetail - Etapa 'Autorizar Emissão de R.O' completada, transferindo para Finanças");
+          
+          try {
+            // Buscar ID do departamento "Unidade de Orçamento e Finanças"
+            const departmentsResponse = await apiRequest("GET", "/api/departments");
+            const departments = await departmentsResponse.json();
+            const financeDept = departments.find((dept: any) => 
+              dept.name.includes("Unidade de Orçamento e Finanças") || 
+              dept.name.includes("Orçamento e Finanças")
+            );
+
+            if (financeDept) {
+              // Transferir processo para o setor de Finanças
+              const transferResponse = await apiRequest(
+                "POST",
+                `/api/processes/${parsedId}/transfer`,
+                {
+                  departmentId: financeDept.id,
+                  comment: "Transferência automática após autorização da emissão de R.O",
+                },
+              );
+
+              if (transferResponse.ok) {
+                console.log("✅ ProcessDetail - Processo transferido automaticamente para Finanças");
+                
+                // Invalidar dados do processo para refletir a mudança de departamento
+                queryClient.invalidateQueries({
+                  queryKey: [`/api/processes/${parsedId}`],
+                });
+
+                toast({
+                  title: "✅ Etapa Concluída e Processo Transferido",
+                  description: "Processo transferido automaticamente para Unidade de Orçamento e Finanças para anexar R.O.",
+                  duration: 5000,
+                });
+              } else {
+                console.error("❌ ProcessDetail - Erro ao transferir para Finanças");
+                toast({
+                  title: "Etapa concluída",
+                  description: "Etapa concluída, mas houve erro na transferência automática.",
+                  variant: "destructive",
+                });
+              }
+            } else {
+              console.error("❌ ProcessDetail - Departamento de Finanças não encontrado para transferência");
+            }
+          } catch (transferError) {
+            console.error("❌ ProcessDetail - Erro na transferência automática:", transferError);
+          }
+        } else {
+          toast({
+            title: isCompleted ? "Etapa concluída" : "Etapa desmarcada",
+            description: isCompleted
+              ? "A etapa foi marcada como concluída."
+              : "A etapa foi desmarcada.",
+          });
+        }
+
         // Invalidate queries to refresh data
         queryClient.invalidateQueries({
           queryKey: [`/api/processes/${parsedId}/steps`],
-        });
-
-        toast({
-          title: isCompleted ? "Etapa concluída" : "Etapa desmarcada",
-          description: isCompleted
-            ? "A etapa foi marcada como concluída."
-            : "A etapa foi desmarcada.",
         });
       } else {
         console.error("Erro na resposta:", response.status);
@@ -724,9 +777,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       if (response.ok) {
-        // Se a decisão for "DISPONIBILIDADE ORÇAMENTÁRIA", criar as próximas etapas
+        // Se a decisão for "DISPONIBILIDADE ORÇAMENTÁRIA", criar as próximas etapas e tramitar
         if (authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA") {
-          console.log("🔥 ProcessDetail - Criando etapas adicionais por disponibilidade orçamentária");
+          console.log("🔥 ProcessDetail - Criando etapas adicionais e tramitando por disponibilidade orçamentária");
           
           try {
             // Criar etapa "Autorizar Emissão de R.O" no mesmo setor (SEAP)
@@ -771,6 +824,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               } else {
                 console.error("❌ ProcessDetail - Departamento de Finanças não encontrado");
               }
+
+              // O processo permanece no mesmo setor (SEAP) para "Autorizar Emissão de R.O"
+              // A tramitação para Finanças ocorrerá quando "Autorizar Emissão de R.O" for completada
+              console.log("✅ ProcessDetail - Processo preparado para 'Autorizar Emissão de R.O' no mesmo setor");
+              
             } else {
               console.error("❌ ProcessDetail - Erro ao criar etapa 'Autorizar Emissão de R.O'");
             }
