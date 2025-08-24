@@ -216,7 +216,14 @@ const StepChecklist = ({
   
   // Debug detalhado
   console.log("🔍 StepChecklist - userDepartment:", userDepartment);
-  console.log("🔍 StepChecklist - Todas as etapas do processo:", steps?.map(s => ({name: s.stepName, deptId: s.departmentId})));
+  console.log("🔍 StepChecklist - Todas as etapas do processo:", steps?.map(s => ({name: s.stepName, deptId: s.departmentId, completed: s.isCompleted, comment: s.comment})));
+  
+  // Verificar especificamente se a etapa "Autorizar Emissão de R.O" existe
+  const authRoStep = steps?.find(s => s.stepName === "Autorizar Emissão de R.O");
+  console.log("🔍 StepChecklist - Etapa 'Autorizar Emissão de R.O' encontrada no banco:", authRoStep);
+  
+  // Verificar especificamente a etapa de autorização
+  console.log("🔍 StepChecklist - Etapa de autorização completa:", authorizationStep);
   
   // Filtrar etapas do setor atual, EXCLUINDO as etapas condicionais
   const filteredSteps = steps?.filter(step => {
@@ -267,6 +274,10 @@ const StepChecklist = ({
     }
     
     // Para outras etapas, mostrar apenas não concluídas
+    // IMPORTANTE: Administrador pode ver etapas de todos os departamentos
+    if ((currentUser as any)?.role === 'admin') {
+      return !step.isCompleted; // Admin vê todas as etapas não concluídas
+    }
     return step.departmentId === currentDeptId && !step.isCompleted;
   }) || [];
   
