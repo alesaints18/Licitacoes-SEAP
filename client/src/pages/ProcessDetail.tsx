@@ -1310,6 +1310,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                         onClick={async () => {
                                           if (!userCanEdit) return;
 
+                                          // Verificar se é a etapa especial de Autorização pelo Secretário SEAP
+                                          if (sectorStep.name.includes("Autorização pelo Secretário SEAP")) {
+                                            console.log("🔥 ProcessDetail - Etapa de Autorização detectada - abrindo modal de autorização");
+                                            setAuthorizationModalOpen(true);
+                                            setStepForAuthorization(existingStep || null);
+                                            setAuthorizationDecision(""); // Limpar seleção anterior
+                                            return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
+                                          }
+
                                           if (existingStep) {
                                             // Etapa existe, apenas atualizar
                                             handleStepToggle(
@@ -1704,6 +1713,88 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             >
               <XCircle className="h-4 w-4 mr-2" />
               Rejeitar Etapa
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Autorização do Secretário SEAP */}
+      <Dialog open={authorizationModalOpen} onOpenChange={setAuthorizationModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <Check className="h-5 w-5" />
+              Aprovar Etapa de Autorização
+            </DialogTitle>
+            <DialogDescription>
+              Selecione uma das opções de autorização para a etapa: <strong>Autorização pelo Secretário SEAP</strong>
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="authorization-decision"
+                    value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                    checked={authorizationDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
+                    onChange={(e) => setAuthorizationDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      Não Autorizar a Despesa
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Solicitar reformulação da demanda
+                    </div>
+                  </div>
+                </label>
+              </div>
+              
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="authorization-decision"
+                    value="DISPONIBILIDADE ORÇAMENTÁRIA"
+                    checked={authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA"}
+                    onChange={(e) => setAuthorizationDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      Disponibilidade Orçamentária
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Autorizar criação da R.O. (Reserva Orçamentária)
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setAuthorizationModalOpen(false);
+                setAuthorizationDecision("");
+                setStepForAuthorization(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleAuthorizationComplete}
+              disabled={!authorizationDecision}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Check className="h-4 w-4 mr-2" />
+              Confirmar Autorização
             </Button>
           </div>
         </DialogContent>
