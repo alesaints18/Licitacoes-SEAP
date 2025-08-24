@@ -783,6 +783,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 stepName: "Autorizar Emissão de R.O",
                 departmentId: process?.currentDepartmentId, // Mesmo setor atual
                 userId: currentUser?.id,
+                phase: "Execução", // Definir fase para aparecer no checklist
               },
             );
 
@@ -806,6 +807,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     stepName: "Anexar R.O",
                     departmentId: financeDept.id,
                     userId: currentUser?.id,
+                    phase: "Execução", // Definir fase para aparecer no checklist
                   },
                 );
 

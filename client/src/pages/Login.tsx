@@ -173,22 +173,19 @@ const Login = () => {
       
       // Importar e invalidar o cache do React Query para forçar atualização do estado de auth
       const { queryClient } = await import("../lib/queryClient");
-      await queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] }); // Remover await para ser mais rápido
       
-      // Aguardar um pouco para garantir que o cache foi invalidado
-      await new Promise(resolve => setTimeout(resolve, 150));
-      
-      // Redirecionar para o dashboard
+      // Redirecionar imediatamente para o dashboard
       console.log("Redirecionando para dashboard");
       setLocation("/");
       
-      // Fallback com window.location se wouter não funcionar - aumentar tempo para dar chance ao React Query
+      // Fallback rápido com window.location se wouter não funcionar
       setTimeout(() => {
         if (window.location.pathname === "/login") {
           console.log("Fallback: forçando redirecionamento com window.location");
           window.location.href = "/";
         }
-      }, 400);
+      }, 100); // Reduzido de 400ms para 100ms
     } catch (error) {
       console.error("Erro no login:", error);
 
