@@ -473,16 +473,29 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       ],
 
       // Administrativo - Secretário SEAP
-      Administrativo: [
-        {
-          name: "Autorização pelo Secretário SEAP",
-          phase: "Autorização",
-        },
-        {
-          name: "Autorizar Emissão de R.O",
-          phase: "Execução",
-        },
-      ],
+      Administrativo: (() => {
+        const baseSteps = [
+          {
+            name: "Autorização pelo Secretário SEAP",
+            phase: "Autorização",
+          },
+        ];
+
+        // Verificar se a autorização foi aprovada com "Disponibilidade Orçamentária"
+        const authStep = steps?.find(s => s.stepName === "Autorização pelo Secretário SEAP");
+        const isAuthorizedWithBudget = authStep?.isCompleted && 
+          authStep?.observations?.includes("Disponibilidade Orçamentária");
+
+        // Só adicionar a etapa "Autorizar Emissão de R.O" se a autorização foi aprovada com disponibilidade orçamentária
+        if (isAuthorizedWithBudget) {
+          baseSteps.push({
+            name: "Autorizar Emissão de R.O",
+            phase: "Execução",
+          });
+        }
+
+        return baseSteps;
+      })(),
     };
 
     const result = stepsBySector[sector] || [];
