@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
+import seapLogo from "@assets/0c23f6f0-fd84-44a4-8f77-554f3bee6049-removebg-preview_1756065735485.png";
 
 export function LoginIntro() {
   const [, setLocation] = useLocation();
@@ -58,13 +59,9 @@ export function LoginIntro() {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900">
         <div className="text-center animate-fadeOut">
           <img 
-            src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png" 
+            src={seapLogo} 
             alt="Logo SEAP" 
             className="w-48 mx-auto opacity-0 animate-fadeInScale"
-            onError={(e) => {
-              // Fallback para uma div com texto se a imagem não carregar
-              (e.target as HTMLImageElement).style.display = 'none';
-            }}
           />
           <div className="mt-5 text-2xl font-bold text-white opacity-0 animate-fadeInDelayed" style={{ fontFamily: "Verdana" }}>
             Sistema de Controle de Processos de Licitação
