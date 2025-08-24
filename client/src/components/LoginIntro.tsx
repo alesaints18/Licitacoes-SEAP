@@ -61,8 +61,8 @@ export function LoginIntro() {
           <img 
             src={seapLogo} 
             alt="Logo SEAP" 
-            className="w-[80%] mx-auto opacity-0 animate-fadeInScale"
-            style={{ width: '80%' }}
+            className="w-[50%] mx-auto opacity-0 animate-fadeInScale"
+            style={{ width: '50%' }}
           />
           <div className="mt-5 text-2xl font-bold text-white opacity-0 animate-fadeInDelayed" style={{ fontFamily: "Verdana" }}>
             Sistema de Controle de Processos de Licitação
