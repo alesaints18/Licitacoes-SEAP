@@ -486,10 +486,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         const isAuthorizedWithBudget = authStep?.isCompleted && 
           authStep?.observations?.includes("Disponibilidade Orçamentária");
 
-        // Verificar se a autorização foi negada com indisponibilidade orçamentária
-        const isAuthorizedWithoutBudget = authStep?.isCompleted && 
-          (authStep?.observations?.includes("Indisponibilidade Orçamentária Total") || 
-           authStep?.observations?.includes("Indisponibilidade Orçamentária Parcial"));
+        // Verificar se a autorização foi feita com indisponibilidade orçamentária (pode estar completed ou não)
+        const isAuthorizedWithoutBudget = authStep?.observations && 
+          (authStep.observations.includes("Indisponibilidade Orçamentária Total") || 
+           authStep.observations.includes("Indisponibilidade Orçamentária Parcial") ||
+           authStep.observations.includes("Indisponibilidade Orçamentária total ou parcial") ||
+           authStep.observations.includes("Autorização: Indisponibilidade Orçamentária Total") ||
+           authStep.observations.includes("Autorização: Indisponibilidade Orçamentária Parcial") ||
+           authStep.observations.includes("Autorização: Indisponibilidade Orçamentária total ou parcial"));
 
         console.log("🔍 ProcessDetail - Debug getSectorSteps:");
         console.log("- authStep:", authStep);
@@ -789,7 +793,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         }
 
         // Se a decisão for indisponibilidade orçamentária, criar a etapa "Solicitar disponibilização de orçamento"
-        if (authorizationDecision === "Indisponibilidade Orçamentária Total" || authorizationDecision === "Indisponibilidade Orçamentária Parcial") {
+        if (authorizationDecision === "Indisponibilidade Orçamentária Total" || authorizationDecision === "Indisponibilidade Orçamentária Parcial" || authorizationDecision === "Indisponibilidade Orçamentária total ou parcial") {
           console.log("🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar disponibilização de orçamento' para indisponibilidade orçamentária");
           
           try {
