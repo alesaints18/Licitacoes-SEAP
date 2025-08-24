@@ -228,6 +228,8 @@ const StepChecklist = ({
   
   // Verificar especificamente a etapa de autorização
   console.log("🔍 StepChecklist - Etapa de autorização completa:", authorizationStep);
+  console.log("🔍 StepChecklist - Decisão encontrada:", completedAuthDecision);
+  console.log("🔍 StepChecklist - hasAvailableBudget:", hasAvailableBudget);
   
   // Filtrar etapas do setor atual, EXCLUINDO as etapas condicionais
   const filteredSteps = steps?.filter(step => {
@@ -259,21 +261,23 @@ const StepChecklist = ({
       return step.departmentId === currentDeptId;
     }
     
-    // Mostrar "Autorizar Emissão de R.O" SOMENTE se "DISPONIBILIDADE ORÇAMENTÁRIA" foi selecionada
+    // Mostrar "Autorizar Emissão de R.O" automaticamente quando há disponibilidade orçamentária
     if (step.stepName === "Autorizar Emissão de R.O") {
-      console.log("🔍 StepChecklist - Etapa 'Autorizar Emissão de R.O' encontrada!");
+      console.log("🔍🔍🔍 StepChecklist - Etapa 'Autorizar Emissão de R.O' encontrada!");
       console.log("🔍 StepChecklist - hasAvailableBudget:", hasAvailableBudget);
       console.log("🔍 StepChecklist - step.departmentId:", step.departmentId);
       console.log("🔍 StepChecklist - currentDeptId:", currentDeptId);
       console.log("🔍 StepChecklist - User role:", (currentUser as any)?.role);
+      console.log("🔍 StepChecklist - step.isCompleted:", step.isCompleted);
       
-      // Admin pode ver a etapa independente do departamento, usuários comuns só no seu departamento
+      // SEMPRE mostrar se há disponibilidade orçamentária (independente do departamento para admin)
+      // Para usuários comuns, só mostrar se for do seu departamento
       const canViewStep = hasAvailableBudget && (
         (currentUser as any)?.role === 'admin' || 
         step.departmentId === currentDeptId
-      );
+      ) && !step.isCompleted;
       
-      console.log("🔍 StepChecklist - Vai mostrar etapa:", canViewStep);
+      console.log("🔍🔍🔍 StepChecklist - RESULTADO - Vai mostrar etapa:", canViewStep);
       return canViewStep;
     }
     
@@ -843,7 +847,7 @@ const StepChecklist = ({
                           <Checkbox 
                             id={`step-${step.id}`} 
                             checked={step.isCompleted || false}
-                            disabled={step.isLocked && !step.isCompleted}
+                            disabled={(step.isLocked || false) && !step.isCompleted}
                             onCheckedChange={(checked) => {
                               // Primeira validação: bloquear no frontend
                               if (step.isLocked && !step.isCompleted) {
