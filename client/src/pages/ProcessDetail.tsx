@@ -1035,7 +1035,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-6">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-
+          <TabsTrigger value="checklist">Checklist</TabsTrigger>
           <TabsTrigger value="flow">Fluxo</TabsTrigger>
         </TabsList>
 
