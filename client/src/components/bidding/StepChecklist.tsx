@@ -564,7 +564,48 @@ const StepChecklist = ({
         });
       }
       
-      // Liberar etapa específica baseada na decisão
+      // Se a decisão for "DISPONIBILIDADE ORÇAMENTÁRIA", criar a etapa "Autorizar Emissão de R.O"
+      if (authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA") {
+        console.log("🔥🔥🔥 StepChecklist - Criando etapa 'Autorizar Emissão de R.O' para disponibilidade orçamentária");
+        
+        try {
+          // Verificar se a etapa já existe
+          const stepsResponse = await apiRequest("GET", `/api/processes/${processId}/steps`);
+          const currentSteps = await stepsResponse.json();
+          const authRoStepExists = currentSteps.find((s: any) => s.stepName === "Autorizar Emissão de R.O");
+          
+          if (!authRoStepExists) {
+            // Criar etapa "Autorizar Emissão de R.O" no setor SEAP (ID 5)
+            console.log("🔥🔥🔥 StepChecklist - Criando etapa no departamento SEAP (ID: 5)");
+            const authRoResponse = await apiRequest(
+              "POST",
+              `/api/processes/${processId}/steps`,
+              {
+                stepName: "Autorizar Emissão de R.O",
+                departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
+                userId: currentUser?.id,
+                phase: "Execução",
+              },
+            );
+
+            if (authRoResponse.ok) {
+              console.log("✅✅✅ StepChecklist - Etapa 'Autorizar Emissão de R.O' criada com sucesso");
+              const createdStep = await authRoResponse.json();
+              console.log("🔥 StepChecklist - Dados da etapa criada:", createdStep);
+            } else {
+              console.error("❌❌❌ StepChecklist - Erro ao criar etapa 'Autorizar Emissão de R.O'");
+              const errorData = await authRoResponse.text();
+              console.error("🔥 StepChecklist - Erro detalhes:", errorData);
+            }
+          } else {
+            console.log("✅ StepChecklist - Etapa 'Autorizar Emissão de R.O' já existe");
+          }
+        } catch (etapasError) {
+          console.error("❌ StepChecklist - Erro ao verificar/criar etapa:", etapasError);
+        }
+      }
+
+      // Liberar etapa específica baseada na decisão  
       let stepToUnlock = "";
       if (authorizationDecision === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL") {
         stepToUnlock = "Solicitar disponibilização de orçamento";
