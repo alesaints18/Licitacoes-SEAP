@@ -78,9 +78,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [authorizationDecision, setAuthorizationDecision] = useState("");
   const [stepForAuthorization, setStepForAuthorization] =
     useState<ProcessStep | null>(null);
-  const [authorizationRejectModalOpen, setAuthorizationRejectModalOpen] = useState(false);
-  const [authorizationRejectReason, setAuthorizationRejectReason] = useState("");
-  const [stepForAuthorizationReject, setStepForAuthorizationReject] =
+  const [authorizationRejectionModalOpen, setAuthorizationRejectionModalOpen] = useState(false);
+  const [authorizationRejectionDecision, setAuthorizationRejectionDecision] = useState("");
+  const [stepForAuthorizationRejection, setStepForAuthorizationRejection] =
     useState<ProcessStep | null>(null);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
