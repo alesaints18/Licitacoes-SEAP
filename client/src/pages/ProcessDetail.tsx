@@ -80,10 +80,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [isSubmittingRejection, setIsSubmittingRejection] = useState(false);
   const [authorizationModalOpen, setAuthorizationModalOpen] = useState(false);
   const [authorizationDecision, setAuthorizationDecision] = useState("");
-  const [stepForAuthorization, setStepForAuthorization] = useState<ProcessStep | null>(null);
-  const [authorizationRejectionModalOpen, setAuthorizationRejectionModalOpen] = useState(false);
-  const [authorizationRejectionDecision, setAuthorizationRejectionDecision] = useState("");
-  const [stepForAuthorizationRejection, setStepForAuthorizationRejection] = useState<ProcessStep | null>(null);
+  const [stepForAuthorization, setStepForAuthorization] =
+    useState<ProcessStep | null>(null);
+  const [authorizationRejectionModalOpen, setAuthorizationRejectionModalOpen] =
+    useState(false);
+  const [authorizationRejectionDecision, setAuthorizationRejectionDecision] =
+    useState("");
+  const [stepForAuthorizationRejection, setStepForAuthorizationRejection] =
+    useState<ProcessStep | null>(null);
 
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
@@ -566,13 +570,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const handleStepReject = async (step: ProcessStep) => {
     // Verificar se é a etapa de Autorização pelo Secretário SEAP
     if (step.stepName.includes("Autorização pelo Secretário SEAP")) {
-      console.log("🔥 ProcessDetail - Etapa de Autorização sendo rejeitada - abrindo modal específico");
+      console.log(
+        "🔥 ProcessDetail - Etapa de Autorização sendo rejeitada - abrindo modal específico",
+      );
       setStepForAuthorizationRejection(step);
       setAuthorizationRejectionModalOpen(true);
       setAuthorizationRejectionDecision(""); // Limpar seleção anterior
       return;
     }
-    
+
     // Para outras etapas, usar o modal padrão
     setStepToReject(step);
     setRejectionReason("");
@@ -646,8 +652,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       if (!step) return;
 
       // Verificar se é a etapa de Autorização pelo Secretário SEAP
-      if (step.stepName.includes("Autorização pelo Secretário SEAP") && isCompleted) {
-        console.log("🔥 ProcessDetail - Etapa de Autorização detectada - abrindo modal de autorização");
+      if (
+        step.stepName.includes("Autorização pelo Secretário SEAP") &&
+        isCompleted
+      ) {
+        console.log(
+          "🔥 ProcessDetail - Etapa de Autorização detectada - abrindo modal de autorização",
+        );
         setStepForAuthorization(step);
         setAuthorizationModalOpen(true);
         setAuthorizationDecision(""); // Limpar seleção anterior
@@ -697,8 +708,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
 
     try {
-      console.log("🔥 ProcessDetail - Completando autorização com decisão:", authorizationDecision);
-      
+      console.log(
+        "🔥 ProcessDetail - Completando autorização com decisão:",
+        authorizationDecision,
+      );
+
       const response = await apiRequest(
         "PATCH",
         `/api/processes/${parsedId}/steps/${stepForAuthorization.id}`,
@@ -743,8 +757,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
 
     try {
-      console.log("🔥 ProcessDetail - Completando rejeição de autorização com decisão:", authorizationRejectionDecision);
-      
+      console.log(
+        "🔥 ProcessDetail - Completando rejeição de autorização com decisão:",
+        authorizationRejectionDecision,
+      );
+
       const response = await apiRequest(
         "PATCH",
         `/api/processes/${parsedId}/steps/${stepForAuthorizationRejection.id}`,
@@ -2077,7 +2094,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       </Dialog>
 
       {/* Modal para Aprovar Etapa de Autorização */}
-      <Dialog open={authorizationModalOpen} onOpenChange={setAuthorizationModalOpen}>
+      <Dialog
+        open={authorizationModalOpen}
+        onOpenChange={setAuthorizationModalOpen}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-green-600">
@@ -2085,10 +2105,29 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               Aprovar Etapa de Autorização
             </DialogTitle>
             <DialogDescription>
-              Selecione uma das opções de autorização para a etapa: <strong>Autorização pelo Secretário SEAP</strong>
+              Selecione uma das opções de autorização para a etapa:{" "}
+              <strong>Autorização pelo Secretário SEAP</strong>
             </DialogDescription>
           </DialogHeader>
-          
+
+          <div>
+            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+              <input
+                type="radio"
+                name="authorization-decision"
+                value="DISPONIBILIDADE ORÇAMENTÁRIA"
+                checked={
+                  authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA"
+                }
+                onChange={(e) => setAuthorizationDecision(e.target.value)}
+                className="mt-1"
+              />
+              <span className="text-sm font-medium text-green-700">
+                ✅ DISPONIBILIDADE ORÇAMENTÁRIA
+              </span>
+            </label>
+          </div>
+
           <div className="space-y-4">
             <div className="space-y-3">
               <div>
@@ -2097,7 +2136,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     type="radio"
                     name="authorization-decision"
                     value="INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"
-                    checked={authorizationDecision === "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"}
+                    checked={
+                      authorizationDecision ===
+                      "INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL"
+                    }
                     onChange={(e) => setAuthorizationDecision(e.target.value)}
                     className="mt-1"
                   />
@@ -2106,24 +2148,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   </span>
                 </label>
               </div>
-
-              <div>
-                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="authorization-decision"
-                    value="DISPONIBILIDADE ORÇAMENTÁRIA"
-                    checked={authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA"}
-                    onChange={(e) => setAuthorizationDecision(e.target.value)}
-                    className="mt-1"
-                  />
-                  <span className="text-sm font-medium text-green-700">
-                    ✅ DISPONIBILIDADE ORÇAMENTÁRIA
-                  </span>
-                </label>
-              </div>
             </div>
-            
+
             <div className="flex space-x-3">
               <Button
                 variant="outline"
@@ -2149,7 +2175,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       </Dialog>
 
       {/* Modal para Rejeitar Etapa de Autorização */}
-      <Dialog open={authorizationRejectionModalOpen} onOpenChange={setAuthorizationRejectionModalOpen}>
+      <Dialog
+        open={authorizationRejectionModalOpen}
+        onOpenChange={setAuthorizationRejectionModalOpen}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
@@ -2157,10 +2186,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               Rejeitar Etapa de Autorização
             </DialogTitle>
             <DialogDescription>
-              Selecione uma das opções de rejeição para a etapa: <strong>Autorização pelo Secretário SEAP</strong>
+              Selecione uma das opções de rejeição para a etapa:{" "}
+              <strong>Autorização pelo Secretário SEAP</strong>
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-3">
               <div>
@@ -2169,12 +2199,18 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     type="radio"
                     name="authorization-rejection-decision"
                     value="NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
-                    checked={authorizationRejectionDecision === "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"}
-                    onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
+                    checked={
+                      authorizationRejectionDecision ===
+                      "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA"
+                    }
+                    onChange={(e) =>
+                      setAuthorizationRejectionDecision(e.target.value)
+                    }
                     className="mt-1"
                   />
                   <span className="text-sm font-medium text-red-700">
-                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA
+                    ❌ NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA
+                    DEMANDA
                   </span>
                 </label>
               </div>
@@ -2185,17 +2221,23 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     type="radio"
                     name="authorization-rejection-decision"
                     value="OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
-                    checked={authorizationRejectionDecision === "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"}
-                    onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
+                    checked={
+                      authorizationRejectionDecision ===
+                      "OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO"
+                    }
+                    onChange={(e) =>
+                      setAuthorizationRejectionDecision(e.target.value)
+                    }
                     className="mt-1"
                   />
                   <span className="text-sm font-medium text-orange-700">
-                    ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO
+                    ⚠️ OUTRA RECURSO DE CONVÊNIO INSUFICIMENTE - VALOR ESTIMADO
+                    NA PESQUISA MAIOR QUE O VALOR CONVENIADO
                   </span>
                 </label>
               </div>
             </div>
-            
+
             <div className="flex space-x-3">
               <Button
                 variant="outline"
