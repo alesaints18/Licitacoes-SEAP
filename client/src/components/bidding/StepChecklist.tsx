@@ -819,7 +819,7 @@ const StepChecklist = ({
                               </p>
                             )}
                           </div>
-                          <div className="flex flex-col gap-1">
+                          <div className="flex flex-row gap-2 items-center">
                             {/* Botão de Aprovar */}
                             <Button
                               size="sm"
@@ -828,10 +828,10 @@ const StepChecklist = ({
                                 e.stopPropagation();
                                 handleToggleStep(step);
                               }}
-                              className="h-7 w-7 p-0"
+                              className="h-8 w-8 p-0"
                               title="Aprovar etapa"
                             >
-                              <Check className="h-3 w-3" />
+                              <Check className="h-4 w-4" />
                             </Button>
                             
                             {/* Botão de Rejeitar */}
@@ -850,10 +850,10 @@ const StepChecklist = ({
                                   });
                                 }
                               }}
-                              className="h-7 w-7 p-0"
+                              className="h-8 w-8 p-0"
                               title="Rejeitar etapa"
                             >
-                              <XCircle className="h-3 w-3" />
+                              <XCircle className="h-4 w-4" />
                             </Button>
                           </div>
                         </div>
