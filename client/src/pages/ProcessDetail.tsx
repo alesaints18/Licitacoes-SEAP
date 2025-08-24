@@ -724,6 +724,61 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       if (response.ok) {
+        // Se a decisão for "DISPONIBILIDADE ORÇAMENTÁRIA", criar as próximas etapas
+        if (authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA") {
+          console.log("🔥 ProcessDetail - Criando etapas adicionais por disponibilidade orçamentária");
+          
+          try {
+            // Criar etapa "Autorizar Emissão de R.O" no mesmo setor (SEAP)
+            const authRoResponse = await apiRequest(
+              "POST",
+              `/api/processes/${parsedId}/steps`,
+              {
+                stepName: "Autorizar Emissão de R.O",
+                departmentId: process?.currentDepartmentId, // Mesmo setor atual
+                userId: currentUser?.id,
+              },
+            );
+
+            if (authRoResponse.ok) {
+              console.log("✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' criada");
+              
+              // Buscar ID do departamento "Unidade de Orçamento e Finanças"
+              const departmentsResponse = await apiRequest("GET", "/api/departments");
+              const departments = await departmentsResponse.json();
+              const financeDept = departments.find((dept: any) => 
+                dept.name.includes("Unidade de Orçamento e Finanças") || 
+                dept.name.includes("Orçamento e Finanças")
+              );
+
+              if (financeDept) {
+                // Criar etapa "Anexar R.O" no setor de Orçamento e Finanças
+                const anexarRoResponse = await apiRequest(
+                  "POST",
+                  `/api/processes/${parsedId}/steps`,
+                  {
+                    stepName: "Anexar R.O",
+                    departmentId: financeDept.id,
+                    userId: currentUser?.id,
+                  },
+                );
+
+                if (anexarRoResponse.ok) {
+                  console.log("✅ ProcessDetail - Etapa 'Anexar R.O' criada no setor de Finanças");
+                } else {
+                  console.error("❌ ProcessDetail - Erro ao criar etapa 'Anexar R.O'");
+                }
+              } else {
+                console.error("❌ ProcessDetail - Departamento de Finanças não encontrado");
+              }
+            } else {
+              console.error("❌ ProcessDetail - Erro ao criar etapa 'Autorizar Emissão de R.O'");
+            }
+          } catch (etapasError) {
+            console.error("❌ ProcessDetail - Erro ao criar etapas adicionais:", etapasError);
+          }
+        }
+
         await queryClient.invalidateQueries({
           queryKey: [`/api/processes/${parsedId}`],
         });
@@ -733,7 +788,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         toast({
           title: "✅ Etapa Aprovada",
-          description: `Autorização concluída: ${authorizationDecision}`,
+          description: authorizationDecision === "DISPONIBILIDADE ORÇAMENTÁRIA" 
+            ? `Autorização concluída: ${authorizationDecision}. Próximas etapas criadas automaticamente.`
+            : `Autorização concluída: ${authorizationDecision}`,
         });
 
         // Fechar modal e limpar estados
