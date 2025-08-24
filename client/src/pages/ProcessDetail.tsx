@@ -1731,6 +1731,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     </div>
                   </CardContent>
                 </Card>
+              )}
 
                 <Card>
                   <CardHeader>
@@ -1755,7 +1756,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               </div>
             </div>
           </div>
-        </div>
         </TabsContent>
 
         <TabsContent value="flow">
@@ -1779,3 +1779,5 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     </div>
   );
 }
+
+export default ProcessDetail;
