@@ -700,15 +700,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           stepId = newStep.id;
         }
       } else {
-        // Atualizar a etapa existente como rejeitada
+        // Atualizar a etapa existente como rejeitada mas CONCLUÍDA
         await apiRequest(
           "PATCH",
           `/api/processes/${parsedId}/steps/${stepId}`,
           {
-            isCompleted: false,
+            isCompleted: true, // MARCAR COMO CONCLUÍDA
             observations: `REJEIÇÃO: ${authorizationRejectionDecision}`,
             rejectedAt: new Date().toISOString(),
             rejectionStatus: authorizationRejectionDecision,
+            userId: 1, // ID do usuário atual
           },
         );
       }
@@ -774,6 +775,81 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       toast({
         title: "Erro",
         description: "Não foi possível rejeitar a etapa",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Função para lidar com etapas de correção (reset do fluxo)
+  const handleCorrectionStepComplete = async (step: any, stepName: string) => {
+    try {
+      console.log(`🔄 ProcessDetail - Resetando fluxo ao concluir: ${stepName}`);
+      
+      // 1. Marcar a etapa de correção como concluída
+      await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${step.id}`,
+        {
+          isCompleted: true,
+          observations: `Correção finalizada: ${stepName}`,
+          userId: 1,
+        },
+      );
+
+      // 2. Remover todas as etapas condicionais marcando como removidas
+      const existingStepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
+      const existingSteps = await existingStepsResponse.json();
+      
+      const conditionalSteps = existingSteps.filter((s: any) => 
+        s.departmentId === 5 && // Mesmo departamento (SEAP)
+        (s.stepName === "Devolver para correção ou arquivamento" || 
+         s.stepName === "Solicitar ajuste/aditivo do plano de trabalho")
+      );
+
+      // Marcar etapas condicionais como removidas
+      for (const conditionalStep of conditionalSteps) {
+        await apiRequest(
+          "PATCH",
+          `/api/processes/${parsedId}/steps/${conditionalStep.id}`,
+          {
+            observations: "ETAPA_REMOVIDA - Reset após correção",
+            isCompleted: true,
+          },
+        );
+      }
+
+      // 3. Reset da etapa de autorização para não concluída
+      const authStep = existingSteps.find((s: any) => s.stepName === "Autorização pelo Secretário SEAP");
+      if (authStep) {
+        await apiRequest(
+          "PATCH",
+          `/api/processes/${parsedId}/steps/${authStep.id}`,
+          {
+            isCompleted: false,
+            observations: "Reset para nova análise após correção",
+            rejectedAt: null,
+            rejectionStatus: null,
+            completedAt: null,
+            completedBy: null,
+          },
+        );
+      }
+
+      // Invalidar cache
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}/steps`],
+      });
+
+      toast({
+        title: "🔄 Fluxo Resetado",
+        description: `${stepName} concluída. Processo retornou para nova análise da autorização.`,
+      });
+
+    } catch (error) {
+      console.error("Erro ao resetar fluxo:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao resetar o fluxo",
         variant: "destructive",
       });
     }
@@ -1478,11 +1554,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                           }
 
                                           if (existingStep) {
-                                            // Etapa existe, apenas atualizar
-                                            handleStepToggle(
-                                              existingStep.id,
-                                              !isCompleted,
-                                            );
+                                            // Verificar se é uma etapa condicional de correção
+                                            if (sectorStep.name === "Devolver para correção ou arquivamento" || sectorStep.name === "Solicitar ajuste/aditivo do plano de trabalho") {
+                                              // Reset: remover todas as etapas condicionais e recriar apenas a autorização
+                                              await handleCorrectionStepComplete(existingStep, sectorStep.name);
+                                            } else {
+                                              // Etapa normal, apenas atualizar
+                                              handleStepToggle(
+                                                existingStep.id,
+                                                !isCompleted,
+                                              );
+                                            }
                                           } else {
                                             // Etapa não existe, criar primeiro
                                             try {
