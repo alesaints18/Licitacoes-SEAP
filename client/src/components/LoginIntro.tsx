@@ -6,10 +6,10 @@ export function LoginIntro() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    // Redireciona para o dashboard após 3.5 segundos
+    // Redireciona para o dashboard após 2 segundos
     const timer = setTimeout(() => {
       setLocation("/");
-    }, 3500);
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [setLocation]);
@@ -42,17 +42,17 @@ export function LoginIntro() {
         }
 
         .animate-fadeInScale {
-          animation: fadeInScale 2s ease forwards;
+          animation: fadeInScale 1s ease forwards;
         }
 
         .animate-fadeInDelayed {
-          animation: fadeInDelayed 2s ease forwards;
+          animation: fadeInDelayed 1s ease forwards;
           animation-delay: 1s;
         }
 
         .animate-fadeOut {
           animation: fadeOut 1s ease forwards;
-          animation-delay: 3s;
+          animation-delay: 2s;
         }
       `}</style>
       
@@ -61,7 +61,7 @@ export function LoginIntro() {
           <img 
             src={seapLogo} 
             alt="Logo SEAP" 
-            className="w-48 mx-auto opacity-0 animate-fadeInScale"
+            className="w-[90%] mx-auto opacity-0 animate-fadeInScale"
           />
           <div className="mt-5 text-2xl font-bold text-white opacity-0 animate-fadeInDelayed" style={{ fontFamily: "Verdana" }}>
             Sistema de Controle de Processos de Licitação

@@ -1,67 +1,82 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <title>Apresentação - Sistema de Licitação</title>
-  <style>
-    body {
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #0f172a; /* fundo azul escuro */
-      overflow: hidden;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <title>Apresentação - Sistema de Licitação</title>
+    <style>
+      body {
+        margin: 0;
+        height: 200vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: #0f172a; /* fundo azul escuro */
+        overflow: hidden;
+      }
 
-    .intro {
-      text-align: center;
-      animation: fadeOut 1s ease forwards;
-      animation-delay: 3s; /* depois de 3s desaparece */
-    }
+      .intro {
+        text-align: center;
+        animation: fadeOut 1s ease forwards;
+        animation-delay: 2s; /* depois de 3s desaparece */
+      }
 
-    .logo {
-      width: 200px;
-      opacity: 0;
-      animation: fadeInScale 2s ease forwards;
-    }
+      .logo {
+        width: 90%;
+        opacity: 0;
+        animation: fadeInScale 1s ease forwards;
+      }
 
-    .title {
-  font-family: "Verdana"; /* <-- altere aqui */
-  margin-top: 20px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #fff;
-  opacity: 0;
-  animation: fadeIn 2s ease forwards;
-  animation-delay: 1s;
-}
+      .title {
+        font-family: "Verdana"; /* <-- altere aqui */
+        margin-top: 20px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #fff;
+        opacity: 0;
+        animation: fadeIn 1s ease forwards;
+        animation-delay: 1s;
+      }
 
-    @keyframes fadeInScale {
-      from { transform: scale(0.5); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
+      @keyframes fadeInScale {
+        from {
+          transform: scale(0.5);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
 
-    @keyframes fadeIn {
-      to { opacity: 1; }
-    }
+      @keyframes fadeIn {
+        to {
+          opacity: 1;
+        }
+      }
 
-    @keyframes fadeOut {
-      to { opacity: 0; visibility: hidden; }
-    }
-  </style>
-</head>
-<body>
-  <div class="intro">
-    <img src="0c23f6f0-fd84-44a4-8f77-554f3bee6049-removebg-preview.png" alt="Logo SEAP" class="logo">
-    <div class="title">Sistema de Controle de Processos de Licitação</div>
-  </div>
+      @keyframes fadeOut {
+        to {
+          opacity: 0;
+          visibility: hidden;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="intro">
+      <img
+        src="0c23f6f0-fd84-44a4-8f77-554f3bee6049-removebg-preview.png"
+        alt="Logo SEAP"
+        class="logo"
+      />
+      <div class="title">Sistema de Controle de Processos de Licitação</div>
+    </div>
 
-  <script>
-    // Redireciona para a home após 3,5s
-    setTimeout(() => {
-      window.location.href = "/";
-    }, 3500);
-  </script>
-</body>
+    <script>
+      // Redireciona para a home após 3,5s
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+    </script>
+  </body>
 </html>
