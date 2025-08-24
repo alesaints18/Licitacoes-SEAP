@@ -1,15 +1,15 @@
 import { useEffect } from "react";
 import { useLocation } from "wouter";
-import seapLogo from "@assets/0c23f6f0-fd84-44a4-8f77-554f3bee6049-removebg-preview_1756065735485.png";
+import seapIntroGif from "@assets/Seap Intro_1756074255110.gif";
 
 export function LoginIntro() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    // Redireciona para o dashboard após 2 segundos
+    // Redireciona para o dashboard após 6,5 segundos
     const timer = setTimeout(() => {
       setLocation("/");
-    }, 2000);
+    }, 6500);
 
     return () => clearTimeout(timer);
   }, [setLocation]);
@@ -52,15 +52,15 @@ export function LoginIntro() {
 
         .animate-fadeOut {
           animation: fadeOut 1s ease forwards;
-          animation-delay: 2s;
+          animation-delay: 5.5s;
         }
       `}</style>
       
       <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: '#5892c2' }}>
         <div className="text-center animate-fadeOut">
           <img 
-            src={seapLogo} 
-            alt="Logo SEAP" 
+            src={seapIntroGif} 
+            alt="SEAP Intro" 
             className="w-[50%] mx-auto opacity-0 animate-fadeInScale"
             style={{ width: '50%' }}
           />

@@ -16,14 +16,24 @@ export function DeadlineAlert() {
   const [showAlert, setShowAlert] = useState(false);
   const [processesNearDeadline, setProcessesNearDeadline] = useState<ProcessWithDeadline[]>([]);
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<number>>(new Set());
+  const [introCompleted, setIntroCompleted] = useState(false);
 
   const { data: processes = [] } = useQuery<Process[]>({
     queryKey: ['/api/processes'],
     refetchInterval: 5 * 60 * 1000, // Verifica a cada 5 minutos
   });
 
+  // Aguarda a conclusão da intro (6,5 segundos)
   useEffect(() => {
-    if (processes.length === 0) return;
+    const timer = setTimeout(() => {
+      setIntroCompleted(true);
+    }, 6500); // Mesma duração da intro
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (processes.length === 0 || !introCompleted) return;
 
     const today = new Date();
     const urgentProcesses: ProcessWithDeadline[] = [];
@@ -54,7 +64,7 @@ export function DeadlineAlert() {
     if (urgentProcesses.length > 0 && hasUndismissedProcesses && !showAlert) {
       setShowAlert(true);
     }
-  }, [processes, dismissedAlerts, showAlert]);
+  }, [processes, dismissedAlerts, showAlert, introCompleted]);
 
   // Função para calcular dias úteis entre duas datas
   const getBusinessDaysBetween = (startDate: Date, endDate: Date): number => {
