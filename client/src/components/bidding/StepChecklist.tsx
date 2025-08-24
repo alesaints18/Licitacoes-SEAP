@@ -198,12 +198,15 @@ const StepChecklist = ({
   const authorizationStep = steps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
   const completedAuthDecision = authorizationStep?.observations || "";
   
+  // Verificar se foi selecionada "DISPONIBILIDADE ORÇAMENTÁRIA"
+  const hasAvailableBudget = completedAuthDecision.includes("DISPONIBILIDADE ORÇAMENTÁRIA");
+  
   // Etapas condicionais que serão tratadas separadamente
   const conditionalStepNames = [
     "Devolver para correção ou arquivamento",
     "Solicitar ajuste/aditivo do plano de trabalho", 
     "Solicitar disponibilização de orçamento"
-    // REMOVIDO: "Autorizar emissão de R.O." - esta etapa deve ser exibida quando criada dinamicamente
+    // "Autorizar Emissão de R.O" será exibida condicionalmente quando hasAvailableBudget for true
   ];
   
   // Filtrar etapas do setor atual, EXCLUINDO as etapas condicionais
@@ -234,6 +237,12 @@ const StepChecklist = ({
       }
       return step.departmentId === currentDeptId;
     }
+    
+    // Mostrar "Autorizar Emissão de R.O" SOMENTE se "DISPONIBILIDADE ORÇAMENTÁRIA" foi selecionada
+    if (step.stepName === "Autorizar Emissão de R.O") {
+      return hasAvailableBudget && step.departmentId === currentDeptId;
+    }
+    
     // Para outras etapas, mostrar apenas não concluídas
     return step.departmentId === currentDeptId && !step.isCompleted;
   }) || [];

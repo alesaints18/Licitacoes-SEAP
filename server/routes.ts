@@ -74,9 +74,6 @@ async function createDefaultSteps(processId: number, modalityId: number) {
     // SECRETÁRIO DE ESTADO DA ADMINISTRAÇÃO PENITENCIÁRIA - SEAP (AUTORIZAÇÃO)
     { name: "Autorização pelo Secretário SEAP", departmentId: 5, phase: "Autorização", daysLimit: 2 },
     
-    // AUTORIZAÇÃO DE EMISSÃO DE R.O (ETAPA ADICIONAL NO SEAP)
-    { name: "Autorizar Emissão de R.O", departmentId: 5, phase: "Execução", daysLimit: 1 },
-    
     // CONTINUAÇÃO DO FLUXO - ETAPAS CONDICIONAIS BÁSICAS
     // Estas etapas serão criadas dinamicamente baseadas nas decisões anteriores
     { name: "Inserir Dotação Orçamentária", departmentId: 2, phase: "Execução", daysLimit: 10 },
