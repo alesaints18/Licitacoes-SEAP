@@ -486,8 +486,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         const isAuthorizedWithBudget = authStep?.isCompleted && 
           authStep?.observations?.includes("Disponibilidade Orçamentária");
 
-        // Verificar se a autorização foi feita com indisponibilidade orçamentária (pode estar completed ou não)
-        const isAuthorizedWithoutBudget = authStep?.observations && 
+        // Verificar se a autorização foi CONFIRMADA com indisponibilidade orçamentária
+        const isAuthorizedWithoutBudget = authStep?.isCompleted && authStep?.observations && 
           (authStep.observations.includes("Indisponibilidade Orçamentária Total") || 
            authStep.observations.includes("Indisponibilidade Orçamentária Parcial") ||
            authStep.observations.includes("Indisponibilidade Orçamentária total ou parcial") ||
@@ -495,11 +495,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
            authStep.observations.includes("Autorização: Indisponibilidade Orçamentária Parcial") ||
            authStep.observations.includes("Autorização: Indisponibilidade Orçamentária total ou parcial"));
 
-        console.log("🔍 ProcessDetail - Debug getSectorSteps:");
-        console.log("- authStep:", authStep);
-        console.log("- isAuthorizedWithBudget:", isAuthorizedWithBudget);
-        console.log("- isAuthorizedWithoutBudget:", isAuthorizedWithoutBudget);
-        console.log("- authStep?.observations:", authStep?.observations);
 
         // Só adicionar a etapa "Autorizar Emissão de R.O" se a autorização foi aprovada com disponibilidade orçamentária
         if (isAuthorizedWithBudget) {
