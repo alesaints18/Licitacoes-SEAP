@@ -202,8 +202,8 @@ const StepChecklist = ({
   const conditionalStepNames = [
     "Devolver para correção ou arquivamento",
     "Solicitar ajuste/aditivo do plano de trabalho", 
-    "Solicitar disponibilização de orçamento",
-    "Autorizar emissão de R.O."
+    "Solicitar disponibilização de orçamento"
+    // REMOVIDO: "Autorizar emissão de R.O." - esta etapa deve ser exibida quando criada dinamicamente
   ];
   
   // Filtrar etapas do setor atual, EXCLUINDO as etapas condicionais
