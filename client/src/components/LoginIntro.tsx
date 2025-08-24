@@ -56,12 +56,12 @@ export function LoginIntro() {
         }
       `}</style>
       
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900">
+      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: '#5892c2' }}>
         <div className="text-center animate-fadeOut">
           <img 
             src={seapLogo} 
             alt="Logo SEAP" 
-            className="w-[90%] mx-auto opacity-0 animate-fadeInScale"
+            className="w-[40%] mx-auto opacity-0 animate-fadeInScale"
           />
           <div className="mt-5 text-2xl font-bold text-white opacity-0 animate-fadeInDelayed" style={{ fontFamily: "Verdana" }}>
             Sistema de Controle de Processos de Licitação
