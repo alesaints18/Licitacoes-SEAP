@@ -234,7 +234,7 @@ export class DatabaseStorage implements IStorage {
           currentDepartmentId: previousDepartmentId,
           returnComments: returnCommentWithUser,
           status: 'in_progress', // Garantir que o status seja adequado
-          lastModified: new Date()
+          updatedAt: new Date()
         })
         .where(eq(processes.id, processId))
         .returning();

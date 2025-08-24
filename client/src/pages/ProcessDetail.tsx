@@ -482,13 +482,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         {
           name: "Autorização pelo Secretário SEAP",
           phase: "Autorização",
-          requiresDecision: true,
-          decisionOptions: {
-            primary: [
-              "NÃO AUTORIZAR A DESPESA OU SOLICITAR REFORMULAÇÃO DA DEMANDA",
-              "RECURSO DE CONVÊNIO INSUFICIENTE – VALOR ESTIMADO NA PESQUISA MAIOR QUE O VALOR CONVENIADO",
-            ],
-          },
         },
       ],
     };
@@ -677,7 +670,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         console.log("Etapa atualizada com sucesso");
 
         // Se a etapa "Autorizar Emissão de R.O" foi completada, transferir automaticamente para Finanças
-        if (isCompleted && stepName === "Autorizar Emissão de R.O") {
+        if (isCompleted && step.stepName === "Autorizar Emissão de R.O") {
           console.log("🔥 ProcessDetail - Etapa 'Autorizar Emissão de R.O' completada, transferindo para Finanças");
           
           try {

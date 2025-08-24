@@ -962,7 +962,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/processes/:id/return', isAuthenticated, async (req, res) => {
     try {
       const processId = parseInt(req.params.id);
-      const { returnComment, comment, targetDepartmentId } = req.body;
+      const { returnComment, comment, targetDepartmentId, departmentId } = req.body;
       const userId = req.user?.id;
 
       console.log(`=== RETORNO DE PROCESSO ===`);
@@ -977,7 +977,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`commentText value: "${commentText}"`);
       console.log(`commentText type: ${typeof commentText}`);
       console.log(`commentText trim: "${commentText?.trim()}"`);
+      // Suporte para ambos os formatos: targetDepartmentId e departmentId
+      const targetDeptId = targetDepartmentId || departmentId;
       console.log(`targetDepartmentId: ${targetDepartmentId}`);
+      console.log(`departmentId: ${departmentId}`);
+      console.log(`targetDeptId final: ${targetDeptId}`);
 
       if (!userId) {
         console.log(`❌ Usuário não autenticado`);
@@ -991,7 +995,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`✅ Validações passaram, chamando storage.returnProcess`);
 
-      const updatedProcess = await storage.returnProcess(processId, commentText.trim(), userId, targetDepartmentId);
+      const updatedProcess = await storage.returnProcess(processId, commentText.trim(), userId, targetDeptId);
       
       if (!updatedProcess) {
         console.log(`❌ Processo não encontrado no storage`);
