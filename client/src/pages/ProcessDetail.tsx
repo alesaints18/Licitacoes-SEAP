@@ -78,9 +78,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [authorizationDecision, setAuthorizationDecision] = useState("");
   const [stepForAuthorization, setStepForAuthorization] =
     useState<ProcessStep | null>(null);
-  const [authorizationRejectionModalOpen, setAuthorizationRejectionModalOpen] = useState(false);
-  const [authorizationRejectionDecision, setAuthorizationRejectionDecision] = useState("");
-  const [stepForAuthorizationRejection, setStepForAuthorizationRejection] =
+  const [authorizationRejectModalOpen, setAuthorizationRejectModalOpen] = useState(false);
+  const [authorizationRejectReason, setAuthorizationRejectReason] = useState("");
+  const [stepForAuthorizationReject, setStepForAuthorizationReject] =
     useState<ProcessStep | null>(null);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
@@ -722,6 +722,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       });
     }
   };
+
 
   // Função para completar autorização depois de escolher a opção
   const handleAuthorizationComplete = async () => {
@@ -1925,14 +1926,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <input
                     type="radio"
                     name="authorization-rejection-decision"
-                    value="Não autorizar a despesa ou solicitar reformulação da demanda"
-                    checked={authorizationRejectionDecision === "Não autorizar a despesa ou solicitar reformulação da demanda"}
+                    value="Não autorizar a defesa ou solicitar reformulação da demanda"
+                    checked={authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda"}
                     onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
                     className="mt-1"
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">
-                      Não autorizar a despesa ou solicitar reformulação da demanda
+                      Não autorizar a defesa ou solicitar reformulação da demanda
                     </div>
                   </div>
                 </label>
