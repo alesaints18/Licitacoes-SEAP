@@ -825,16 +825,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           queryKey: [`/api/processes/${parsedId}/steps`],
         });
 
-        toast({
-          title: "❌ Etapa Rejeitada",
-          description:
-            authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda"
-              ? `Rejeição: ${authorizationRejectionDecision}. Etapa de correção criada automaticamente.`
-              : authorizationRejectionDecision === "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
-                ? `Rejeição: ${authorizationRejectionDecision}. Etapa de ajuste criada automaticamente.`
-                : `Rejeição: ${authorizationRejectionDecision}`,
-          variant: "destructive",
-        });
+        // Toast removido conforme solicitado
+        // toast({
+        //   title: "❌ Etapa Rejeitada",
+        //   description:
+        //     authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda"
+        //       ? `Rejeição: ${authorizationRejectionDecision}. Etapa de correção criada automaticamente.`
+        //       : authorizationRejectionDecision === "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
+        //         ? `Rejeição: ${authorizationRejectionDecision}. Etapa de ajuste criada automaticamente.`
+        //         : `Rejeição: ${authorizationRejectionDecision}`,
+        //   variant: "destructive",
+        // });
 
         // Fechar modal e limpar estados
         setAuthorizationRejectionModalOpen(false);
@@ -1127,11 +1128,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         queryKey: [`/api/processes/${parsedId}/steps`],
       });
 
-      toast({
-        title: "❌ Etapa Rejeitada",
-        description: `Etapa "${stepToReject.stepName}" foi rejeitada`,
-        variant: "destructive",
-      });
+      // Toast removido conforme solicitado
+      // toast({
+      //   title: "❌ Etapa Rejeitada",
+      //   description: `Etapa "${stepToReject.stepName}" foi rejeitada`,
+      //   variant: "destructive",
+      // });
 
       setRejectModalOpen(false);
       setStepToReject(null);
