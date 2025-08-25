@@ -796,85 +796,42 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           "Não autorizar a defesa ou solicitar reformulação da demanda"
         ) {
           console.log(
-            "🔥🔥🔥 ProcessDetail - Verificando se etapa intermediária já existe",
+            "🔥🔥🔥 ProcessDetail - Tornando visível etapa 'Devolver para correção ou arquivamento'",
           );
 
           try {
-            // Verificar se a etapa já existe (forçar refresh do cache)
-            const stepsResponse = await fetch(
-              `/api/processes/${parsedId}/steps?_t=${Date.now()}`,
-            );
-            const allSteps = await stepsResponse.json();
-            const existingIntermediateStep = allSteps.find(
-              (s: ProcessStep) =>
-                s.stepName === "Devolver para correção ou arquivamento" &&
-                s.departmentId === stepForAuthorizationRejection.departmentId,
-            );
-
-            console.log(
-              "🔍 ProcessDetail - Etapas encontradas na verificação:",
-              allSteps.map((s) => s.stepName),
-            );
-            console.log(
-              "🔍 ProcessDetail - Etapa intermediária existente encontrada:",
-              existingIntermediateStep,
-            );
-
-            if (existingIntermediateStep) {
-              console.log(
-                "⚠️ ProcessDetail - Etapa intermediária já existe, apenas tornando visível:",
-                existingIntermediateStep,
+            // Buscar todas as etapas (incluindo invisíveis) para encontrar a etapa existente
+            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps/all`);
+            if (stepsResponse.ok) {
+              const allSteps = await stepsResponse.json();
+              const intermediateStep = allSteps.find(
+                (s: any) => s.stepName === "Devolver para correção ou arquivamento" && s.departmentId === stepForAuthorizationRejection.departmentId
               );
 
-              // Tornar a etapa visível se não estiver
-              if (!existingIntermediateStep.isVisible) {
+              if (intermediateStep) {
+                console.log(
+                  "✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' encontrada, tornando visível"
+                );
+                
+                // Tornar a etapa visível
                 const updateResponse = await apiRequest(
                   "PATCH",
-                  `/api/processes/${parsedId}/steps/${existingIntermediateStep.id}`,
+                  `/api/processes/${parsedId}/steps/${intermediateStep.id}`,
                   {
                     isVisible: true,
-                  },
+                  }
                 );
-
+                
                 if (updateResponse.ok) {
-                  console.log(
-                    "✅ ProcessDetail - Etapa intermediária tornada visível",
-                  );
+                  console.log("✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' tornada visível com sucesso");
                 }
-              }
-            } else {
-              console.log(
-                "🔥🔥🔥 ProcessDetail - Criando etapa intermediária 'Devolver para correção ou arquivamento' no mesmo setor",
-              );
-
-              // Criar etapa "Devolver para correção ou arquivamento" no mesmo departamento
-              const createIntermediateStepResponse = await apiRequest(
-                "POST",
-                `/api/processes/${parsedId}/steps`,
-                {
-                  stepName: "Devolver para correção ou arquivamento",
-                  departmentId: stepForAuthorizationRejection.departmentId, // Mesmo setor (Secretário de Estado)
-                  isVisible: true,
-                  isCompleted: false,
-                },
-              );
-
-              if (createIntermediateStepResponse.ok) {
-                const intermediateStep =
-                  await createIntermediateStepResponse.json();
-                console.log(
-                  "✅✅✅ ProcessDetail - Etapa intermediária 'Devolver para correção ou arquivamento' criada com sucesso:",
-                  intermediateStep,
-                );
               } else {
-                console.error(
-                  "❌❌❌ ProcessDetail - Erro ao criar etapa intermediária",
-                );
+                console.error("❌ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' não encontrada no banco de dados");
               }
             }
           } catch (intermediateStepError) {
             console.error(
-              "❌ ProcessDetail - Erro ao verificar/criar etapa intermediária:",
+              "❌ ProcessDetail - Erro ao tornar etapa visível:",
               intermediateStepError,
             );
           }
