@@ -1157,7 +1157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 6. SUBCC (departmentId = 11) - REMOVIDO ARQUIVAMENTO AUTOMÁTICO
       // Agora o SUBCC tem etapa interativa "Fluxo reavaliação do plano de trabalho" com modal de confirmação
       
-      if (departmentId === 6) {
+      if (departmentId === 4) {
         // Verificar se vem de "Solicitar disponibilização de orçamento" concluída
         const processSteps = await storage.getProcessSteps(processId);
         const budgetRequestStep = processSteps.find(s => 
@@ -1173,7 +1173,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await storage.createProcessStep({
               processId: processId,
               stepName: "Fluxo Repror",
-              departmentId: 6,
+              departmentId: 4,
               isCompleted: false,
               isVisible: true,
               observations: "Fluxo Repror criado automaticamente após transferência por solicitação de disponibilização de orçamento"

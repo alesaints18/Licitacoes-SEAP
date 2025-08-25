@@ -388,7 +388,7 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
       
       if (budgetRequestStep) {
         // Se "Solicitar disponibilização de orçamento" foi concluída, permite tramitar para Unidade de Orçamento e Finanças (Fluxo Repror)
-        const orcamentoFinancas = departments?.find(d => d.id === 6);
+        const orcamentoFinancas = departments?.find(d => d.id === 4);
         if (orcamentoFinancas) availableDepartments.push(orcamentoFinancas);
       } else {
         // PRIORIDADE 3: Verificar outros fluxos de autorização
@@ -397,7 +397,7 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
           // Baseado na decisão da autorização, liberar departamentos específicos
           if (authStep.observations?.includes("INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL")) {
             // Pode transferir para Unidade de Orçamento e Finanças (Fluxo Repror)
-            const orcamentoFinancas = departments?.find(d => d.id === 6);
+            const orcamentoFinancas = departments?.find(d => d.id === 4);
             if (orcamentoFinancas) availableDepartments.push(orcamentoFinancas);
           } else if (authStep.observations?.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
             // Permanece no mesmo setor (SEAP) para AUTORIZAR EMISSÃO DE R.O.
