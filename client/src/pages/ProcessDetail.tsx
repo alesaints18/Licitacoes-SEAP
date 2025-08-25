@@ -2190,14 +2190,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                     [],
                                   );
 
-                                // Converter etapas condicionais para o formato de sectorStep
+                                // Converter etapas condicionais para o formato de sectorStep, 
+                                // mas filtrar duplicatas que já existem nas etapas do setor
                                 const conditionalSectorSteps =
-                                  uniqueConditionalSteps.map((step) => ({
-                                    name: step.stepName,
-                                    phase: "Condicional",
-                                  }));
+                                  uniqueConditionalSteps
+                                    .filter((step) => {
+                                      // Excluir etapas condicionais que já existem nas etapas do setor
+                                      return !sectorSteps.some(
+                                        (sectorStep) => sectorStep.name === step.stepName
+                                      );
+                                    })
+                                    .map((step) => ({
+                                      name: step.stepName,
+                                      phase: "Condicional",
+                                    }));
 
-                                // Combinar etapas do setor com etapas condicionais
+                                // Combinar etapas do setor com etapas condicionais (sem duplicatas)
                                 const allSteps = [
                                   ...sectorSteps,
                                   ...conditionalSectorSteps,
