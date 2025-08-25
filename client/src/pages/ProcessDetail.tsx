@@ -2766,7 +2766,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
        {/* Botão de Correção do Checklist */}
                         {(() => {
                           // Verificar se há etapa "Fluxo Repror" visível - não mostrar botão corrigir para etapas de arquivamento
-                          const hasFluxoReprorStep = sectorSteps.some(step => 
+                          const currentSectorSteps = getSectorSteps(currentUser?.department || "", process?.modalityId || 1);
+                          const hasFluxoReprorStep = currentSectorSteps.some((step: any) => 
                             step.name === "Fluxo Repror" && 
                             steps?.some(s => s.stepName === step.name && s.isVisible === true)
                           );
