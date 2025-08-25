@@ -572,6 +572,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       // Administrativo - Secretário SEAP
       Administrativo: (() => {
+        console.log("🔥 ADMINISTRATIVO - Iniciando lógica do setor");
         const baseSteps = [
           {
             name: "Autorização pelo Secretário SEAP",
@@ -584,16 +585,25 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           (s) => s.stepName === "Autorização pelo Secretário SEAP",
         );
         
+        console.log("🔥 ADMINISTRATIVO - AuthStep encontrado:", {
+          found: !!authStep,
+          isCompleted: authStep?.isCompleted,
+          rejectionStatus: authStep?.rejectionStatus
+        });
+        
         const isRejectedForCorrection = authStep?.isCompleted && 
           authStep?.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda";
 
         // Se foi rejeitada para correção, mostrar etapa de correção no Secretário de Estado
         if (isRejectedForCorrection) {
+          console.log("🔥 ADMINISTRATIVO - Autorização rejeitada, adicionando etapa de correção");
           baseSteps.push({
             name: "Devolver para correção ou arquivamento",
             phase: "Correção",
           });
         }
+        
+        console.log("🔥 ADMINISTRATIVO - Steps finais:", baseSteps.map(s => s.name));
 
         // Verificar se a autorização foi aprovada com "Disponibilidade Orçamentária"
         const isAuthorizedWithBudget =
@@ -890,7 +900,26 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   // NÃO transferir automaticamente - usuário deve fazer tramitação manual
                 }
               } else {
-                console.error("❌ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' não encontrada no banco de dados");
+                console.log("⚠️ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' não encontrada, criando nova etapa");
+                
+                // Criar a etapa se não existir
+                const createResponse = await apiRequest(
+                  "POST",
+                  `/api/processes/${parsedId}/steps`,
+                  {
+                    stepName: "Devolver para correção ou arquivamento",
+                    departmentId: 5, // Secretário de Estado
+                    isCompleted: false,
+                    isVisible: true,
+                    observations: null,
+                  }
+                );
+                
+                if (createResponse.ok) {
+                  console.log("✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' criada com sucesso no Secretário de Estado");
+                } else {
+                  console.error("❌ ProcessDetail - Erro ao criar etapa 'Devolver para correção ou arquivamento'");
+                }
               }
             }
           } catch (intermediateStepError) {
