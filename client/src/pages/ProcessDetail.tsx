@@ -851,50 +851,34 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
-  // Função para lidar com etapas de correção (transferência para Divisão de Licitação)
+  // Função para lidar com etapas de correção (apenas concluir etapa)
   const handleCorrectionStepComplete = async (step: any, stepName: string) => {
     try {
       console.log(
         `🔄 ProcessDetail - Concluindo etapa de correção: ${stepName}`,
       );
 
-      // 1. Marcar a etapa de correção como concluída
+      // Marcar a etapa de correção como concluída
       await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
         isCompleted: true,
-        observations: `Correção finalizada: ${stepName} - Transferindo para Divisão de Licitação`,
+        observations: `Correção finalizada: ${stepName} - Pronto para tramitação manual`,
         userId: 1,
-      });
-
-      // 2. Transferir processo para Divisão de Licitação (departamento ID 2)
-      await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-        departmentId: 2
-      });
-
-      // 3. Criar etapa "Devolver para correção ou cancelar processo" na Divisão de Licitação
-      await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
-        stepName: "Devolver para correção ou cancelar processo",
-        departmentId: 2,
-        isVisible: true,
-        isCompleted: false
       });
 
       // Invalidar cache
       queryClient.invalidateQueries({
         queryKey: [`/api/processes/${parsedId}/steps`],
       });
-      queryClient.invalidateQueries({
-        queryKey: [`/api/processes/${parsedId}`],
-      });
 
       toast({
-        title: "✅ Processo Transferido",
-        description: `${stepName} concluída. Processo transferido para Divisão de Licitação.`,
+        title: "✅ Etapa Concluída",
+        description: `${stepName} concluída. Use o botão "Tramitar" para transferir o processo.`,
       });
     } catch (error) {
-      console.error("Erro ao transferir processo:", error);
+      console.error("Erro ao concluir etapa:", error);
       toast({
         title: "Erro",
-        description: "Erro ao transferir o processo para Divisão de Licitação",
+        description: "Erro ao concluir a etapa",
         variant: "destructive",
       });
     }
