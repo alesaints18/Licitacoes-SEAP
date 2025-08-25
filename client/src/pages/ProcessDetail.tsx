@@ -594,16 +594,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         const isRejectedForCorrection = authStep?.isCompleted && 
           authStep?.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda";
 
-        // Se foi rejeitada para correção, mostrar etapa de correção no Secretário de Estado
-        if (isRejectedForCorrection) {
-          console.log("🔥 ADMINISTRATIVO - Autorização rejeitada, adicionando etapa de correção");
-          baseSteps.push({
-            name: "Devolver para correção ou arquivamento",
-            phase: "Correção",
-          });
-        }
+        // REMOVIDO: Não criar automaticamente aqui para evitar duplicação
+        // A etapa será criada/tornada visível apenas quando necessário no modal de rejeição
         
         console.log("🔥 ADMINISTRATIVO - Steps finais:", baseSteps.map(s => s.name));
+        
+        // Debug: Verificar se a etapa condicional deve aparecer
+        if (isRejectedForCorrection) {
+          console.log("🔥 ADMINISTRATIVO - Condição de rejeição atendida, etapa condicional deve ser tratada pelo modal de autorização");
+        }
 
         // Verificar se a autorização foi aprovada com "Disponibilidade Orçamentária"
         const isAuthorizedWithBudget =
