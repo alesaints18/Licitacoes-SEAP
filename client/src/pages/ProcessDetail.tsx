@@ -1762,15 +1762,32 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                               })()
                                 .filter((sectorStep) => {
                                   // Mostrar apenas etapas pendentes (não concluídas)
-                                  const existingStep = steps?.find(
+                                  // Para etapas condicionais, encontrar a mais recente
+                                  const allMatchingSteps = steps?.filter(
                                     (s) => s.stepName === sectorStep.name,
-                                  );
+                                  ) || [];
+                                  
+                                  // Se for etapa condicional com duplicatas, usar apenas a mais recente
+                                  const existingStep = allMatchingSteps.length > 1
+                                    ? allMatchingSteps.reduce((latest, current) => 
+                                        current.id > latest.id ? current : latest
+                                      )
+                                    : allMatchingSteps[0];
+                                  
                                   return !existingStep?.isCompleted;
                                 })
                                 .map((sectorStep, index) => {
-                                  const existingStep = steps?.find(
+                                  // Para etapas condicionais, encontrar a mais recente
+                                  const allMatchingSteps = steps?.filter(
                                     (s) => s.stepName === sectorStep.name,
-                                  );
+                                  ) || [];
+                                  
+                                  // Se for etapa condicional com duplicatas, usar apenas a mais recente
+                                  const existingStep = allMatchingSteps.length > 1
+                                    ? allMatchingSteps.reduce((latest, current) => 
+                                        current.id > latest.id ? current : latest
+                                      )
+                                    : allMatchingSteps[0];
                                   const isCompleted =
                                     existingStep?.isCompleted || false;
 
