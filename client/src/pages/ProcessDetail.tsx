@@ -512,13 +512,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           });
         }
 
-        // Verificar se existem etapas condicionais criadas pelos modais (só incluir se realmente existem no banco)
+        // Verificar se existem etapas condicionais criadas pelos modais (seguindo padrão do modal de aprovação)
         const conditionalSteps = steps?.filter(s => 
           s.departmentId === 5 && // Mesmo departamento (SEAP)
           (s.stepName === "Devolver para correção ou arquivamento" || 
            s.stepName === "Solicitar ajuste/aditivo do plano de trabalho") &&
-          !s.observations?.includes("ETAPA_REMOVIDA") && // Não incluir se foi marcada como removida
-          s.observations?.includes("Etapa criada automaticamente após rejeição") // Só etapas criadas pelo modal
+          !s.observations?.includes("ETAPA_REMOVIDA") // Não incluir se foi marcada como removida
         );
 
         conditionalSteps?.forEach(conditionalStep => {
@@ -716,7 +715,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         );
       }
 
-      // Criar etapa condicional baseada na decisão de rejeição
+      // Criar etapa condicional baseada na decisão de rejeição (seguindo padrão do modal de aprovação)
       let conditionalStepName = "";
       
       if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
@@ -730,31 +729,38 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         
         try {
           // Verificar se a etapa já existe
-          const existingStepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
-          const existingSteps = await existingStepsResponse.json();
-          
-          const stepExists = existingSteps.some((step: any) => step.stepName === conditionalStepName);
+          const stepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
+          const currentSteps = await stepsResponse.json();
+          const stepExists = currentSteps.find((s: any) => s.stepName === conditionalStepName);
           
           if (!stepExists) {
+            // Criar etapa condicional no setor SEAP (ID 5)
+            console.log(`🔥🔥🔥 ProcessDetail - Criando etapa ${conditionalStepName} no departamento SEAP (ID: 5)`);
             const conditionalStepResponse = await apiRequest(
               "POST",
               `/api/processes/${parsedId}/steps`,
               {
                 stepName: conditionalStepName,
-                departmentId: process?.currentDepartmentId || 5, // Mesmo setor (SEAP)
-                isCompleted: false,
-                observations: `Etapa criada automaticamente após rejeição: ${authorizationRejectionDecision}`,
+                departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
+                userId: 1,
+                phase: "Correção",
               },
             );
 
             if (conditionalStepResponse.ok) {
-              console.log(`✅ ProcessDetail - Etapa ${conditionalStepName} criada com sucesso`);
+              console.log(`✅✅✅ ProcessDetail - Etapa ${conditionalStepName} criada com sucesso`);
+              const createdStep = await conditionalStepResponse.json();
+              console.log("🔥 ProcessDetail - Dados da etapa criada:", createdStep);
+            } else {
+              console.error(`❌❌❌ ProcessDetail - Erro ao criar etapa ${conditionalStepName}`);
+              const errorData = await conditionalStepResponse.text();
+              console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
             }
           } else {
-            console.log(`⚠️ ProcessDetail - Etapa ${conditionalStepName} já existe`);
+            console.log(`✅ ProcessDetail - Etapa ${conditionalStepName} já existe`);
           }
         } catch (etapasError) {
-          console.error("❌ ProcessDetail - Erro ao criar etapa condicional:", etapasError);
+          console.error("❌ ProcessDetail - Erro ao verificar/criar etapa:", etapasError);
         }
       }
 
