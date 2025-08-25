@@ -1851,8 +1851,42 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               console.log(
                                                 "🔥 ProcessDetail - Etapa de correção detectada - abrindo modal de correção",
                                               );
+                                              
+                                              // Se a etapa não existe, criar primeiro
+                                              if (!existingStep) {
+                                                console.log("🔧 Criando etapa de correção no banco de dados...");
+                                                try {
+                                                  const createResponse = await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
+                                                    stepName: "Devolver para correção ou cancelar processo",
+                                                    departmentId: process?.currentDepartmentId || 2,
+                                                    isVisible: true,
+                                                    isCompleted: false
+                                                  });
+                                                  
+                                                  if (createResponse.ok) {
+                                                    const newStep = await createResponse.json();
+                                                    console.log("✅ Etapa de correção criada:", newStep);
+                                                    
+                                                    // Atualizar lista de etapas
+                                                    queryClient.invalidateQueries({
+                                                      queryKey: [`/api/processes/${parsedId}/steps`],
+                                                    });
+                                                    
+                                                    // Usar a nova etapa
+                                                    setStepForCorrection(newStep);
+                                                  } else {
+                                                    console.error("❌ Erro ao criar etapa de correção");
+                                                    setStepForCorrection(null);
+                                                  }
+                                                } catch (error) {
+                                                  console.error("❌ Erro ao criar etapa de correção:", error);
+                                                  setStepForCorrection(null);
+                                                }
+                                              } else {
+                                                setStepForCorrection(existingStep);
+                                              }
+                                              
                                               setCorrectionModalOpen(true);
-                                              setStepForCorrection(existingStep || null);
                                               setCorrectionDecision(""); // Limpar seleção anterior
                                               return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
                                             }
