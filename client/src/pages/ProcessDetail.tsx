@@ -512,19 +512,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           });
         }
 
-        // Verificar se existem etapas condicionais que foram criadas pelos modais (buscando no banco)
-        const conditionalSteps = steps?.filter(s => 
-          s.departmentId === 5 && // Mesmo departamento (SEAP)
-          (s.stepName === "Devolver para correção ou arquivamento" || 
-           s.stepName === "Solicitar ajuste/aditivo do plano de trabalho")
-        );
-
-        conditionalSteps?.forEach(conditionalStep => {
-          baseSteps.push({
-            name: conditionalStep.stepName,
-            phase: "Correção",
-          });
-        });
+        // Etapas condicionais só aparecem quando criadas pelos modais
+        // Não incluir automaticamente - elas são adicionadas dinamicamente após confirmação dos modais
 
         return baseSteps;
       })(),
