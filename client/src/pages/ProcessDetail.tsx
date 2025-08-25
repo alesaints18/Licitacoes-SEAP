@@ -1680,9 +1680,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
                                 // Adicionar etapas condicionais visíveis que pertencem ao departamento atual
                                 const conditionalSteps = steps?.filter(step => {
-                                  // Etapas condicionais específicas
+                                  // Etapas condicionais específicas  
                                   const isConditionalStep = [
-                                    "Devolver para correção ou arquivamento",
+                                    "Devolver para correção ou arquivamento", // Apenas no Secretário de Estado
                                     "Solicitar ajuste/aditivo do plano de trabalho",
                                     "Autorizar Emissão de R.O",
                                     "Solicitar disponibilização de orçamento"
@@ -1690,6 +1690,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                   
                                   // Pertence ao departamento atual e está visível
                                   const belongsToCurrentDept = step.departmentId === process?.currentDepartmentId;
+                                  
+                                  // ESPECIAL: "Devolver para correção ou arquivamento" só aparece no Secretário de Estado (ID 5)
+                                  if (step.stepName === "Devolver para correção ou arquivamento") {
+                                    return belongsToCurrentDept && step.isVisible && process?.currentDepartmentId === 5;
+                                  }
                                   
                                   return isConditionalStep && belongsToCurrentDept && step.isVisible;
                                 }) || [];
