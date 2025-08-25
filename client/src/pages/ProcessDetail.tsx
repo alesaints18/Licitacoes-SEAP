@@ -3058,7 +3058,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
               <Archive className="h-5 w-5" />
-              Confirmar Arquivamento Final
+              Confirmar arquivamento do processo #{process?.pbdocNumber}?
             </DialogTitle>
             <DialogDescription>
               Tem certeza de que deseja arquivar este processo permanentemente?{" "}
@@ -3091,7 +3091,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 setStepForArchive(null);
               }}
             >
-              Cancelar
+              Não
             </Button>
             <Button
               onClick={() => {
@@ -3101,7 +3101,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               className="bg-red-600 hover:bg-red-700"
             >
               <Archive className="h-4 w-4 mr-2" />
-              Arquivar Processo
+              Sim
             </Button>
           </div>
         </DialogContent>
