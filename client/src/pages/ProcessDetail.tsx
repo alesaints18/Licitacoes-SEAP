@@ -1598,7 +1598,36 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                   "Process current department ID:",
                                   process?.currentDepartmentId,
                                 );
-                                return sectorSteps;
+
+                                // Adicionar etapas condicionais visíveis que pertencem ao departamento atual
+                                const conditionalSteps = steps?.filter(step => {
+                                  // Etapas condicionais específicas
+                                  const isConditionalStep = [
+                                    "Devolver para correção ou arquivamento",
+                                    "Solicitar ajuste/aditivo do plano de trabalho",
+                                    "Autorizar Emissão de R.O",
+                                    "Solicitar disponibilização de orçamento"
+                                  ].includes(step.stepName);
+                                  
+                                  // Pertence ao departamento atual e está visível
+                                  const belongsToCurrentDept = step.departmentId === process?.currentDepartmentId;
+                                  
+                                  return isConditionalStep && belongsToCurrentDept && step.isVisible;
+                                }) || [];
+
+                                // Converter etapas condicionais para o formato de sectorStep
+                                const conditionalSectorSteps = conditionalSteps.map(step => ({
+                                  name: step.stepName,
+                                  phase: "Condicional"
+                                }));
+
+                                // Combinar etapas do setor com etapas condicionais
+                                const allSteps = [...sectorSteps, ...conditionalSectorSteps];
+                                
+                                console.log("🔍 Etapas condicionais visíveis encontradas:", conditionalSteps.map(s => s.stepName));
+                                console.log("🔍 Total de etapas para exibir:", allSteps.length);
+                                
+                                return allSteps;
                               })()
                                 .filter((sectorStep) => {
                                   // Mostrar apenas etapas pendentes (não concluídas)
