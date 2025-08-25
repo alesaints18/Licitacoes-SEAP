@@ -2146,10 +2146,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               return; // NÃO CONTINUA
                                             }
 
-                                            // Verificar se é a etapa de Arquivar processo na Divisão de Licitação (COM MODAL DE CONFIRMAÇÃO)
+                                            // Verificar se é a etapa de Arquivar processo - Final (COM MODAL DE CONFIRMAÇÃO)
                                             if (
-                                              sectorStep.name === "Arquivar processo - Final" &&
-                                              currentUser.department === "Divisão de Licitação"
+                                              sectorStep.name === "Arquivar processo - Final"
                                             ) {
                                               console.log(
                                                 "🔥 ProcessDetail - Etapa de arquivamento final detectada - abrindo modal de confirmação",
