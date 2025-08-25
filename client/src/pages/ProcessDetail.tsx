@@ -87,11 +87,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
   const [rejectionComment, setRejectionComment] = useState("");
-  
+
   // Estados para modal de correção ou cancelamento
   const [correctionModalOpen, setCorrectionModalOpen] = useState(false);
   const [correctionDecision, setCorrectionDecision] = useState("");
-  const [stepForCorrection, setStepForCorrection] = useState<ProcessStep | null>(null);
+  const [stepForCorrection, setStepForCorrection] =
+    useState<ProcessStep | null>(null);
 
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
@@ -413,23 +414,27 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       // Licitações - Divisão de Licitação (com lógica condicional)
       Licitações: (() => {
         // Verificar se o processo está na Divisão de Licitação e tem etapa de Autorização rejeitada
-        const authorizationStep = steps?.find(s => 
-          s.stepName === "Autorização pelo Secretário SEAP" && 
-          s.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda" &&
-          s.isCompleted === true
+        const authorizationStep = steps?.find(
+          (s) =>
+            s.stepName === "Autorização pelo Secretário SEAP" &&
+            s.rejectionStatus ===
+              "Não autorizar a defesa ou solicitar reformulação da demanda" &&
+            s.isCompleted === true,
         );
-        
+
         // Se processo está na Divisão de Licitação E tem autorização rejeitada com motivo específico
         if (process?.currentDepartmentId === 2 && authorizationStep) {
-          console.log("🔍 DIVISÃO LICITAÇÃO - Processo veio de rejeição específica, mostrando apenas etapa de correção");
+          console.log(
+            "🔍 DIVISÃO LICITAÇÃO - Processo veio de rejeição específica, mostrando apenas etapa de correção",
+          );
           return [
             {
               name: "Devolver para correção ou cancelar processo",
               phase: "Correção",
-            }
+            },
           ];
         }
-        
+
         // Caso contrário, mostrar etapas normais da Divisão de Licitação
         return [
           {
@@ -515,7 +520,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         );
         if (intermediateStep) {
           baseSteps.push({
-            name: "Devolver para correção ou arquivamento", 
+            name: "Devolver para correção ou arquivamento",
             phase: "Correção",
           });
         }
@@ -723,12 +728,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Função para rejeitar autorização (baseada na função de aprovação)
   const handleAuthorizationRejection = async () => {
-    console.log("🔥 MODAL REJEIÇÃO - Função chamada!", { stepForAuthorizationRejection, authorizationRejectionDecision });
-    
+    console.log("🔥 MODAL REJEIÇÃO - Função chamada!", {
+      stepForAuthorizationRejection,
+      authorizationRejectionDecision,
+    });
+
     if (!stepForAuthorizationRejection || !authorizationRejectionDecision) {
-      console.log("🔥 MODAL REJEIÇÃO - Validação falhou:", { 
-        stepForAuthorizationRejection: !!stepForAuthorizationRejection, 
-        authorizationRejectionDecision: !!authorizationRejectionDecision 
+      console.log("🔥 MODAL REJEIÇÃO - Validação falhou:", {
+        stepForAuthorizationRejection: !!stepForAuthorizationRejection,
+        authorizationRejectionDecision: !!authorizationRejectionDecision,
       });
       return;
     }
@@ -740,17 +748,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       let stepId = stepForAuthorizationRejection.id;
-      
+
       // Se não tem ID, criar a etapa primeiro
       if (!stepId) {
         console.log("🔥🔥🔥 ProcessDetail - Criando etapa antes de rejeitar");
-        const createResponse = await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
-          stepName: stepForAuthorizationRejection.stepName,
-          departmentId: stepForAuthorizationRejection.departmentId,
-          isVisible: true,
-          isCompleted: false
-        });
-        
+        const createResponse = await apiRequest(
+          "POST",
+          `/api/processes/${parsedId}/steps`,
+          {
+            stepName: stepForAuthorizationRejection.stepName,
+            departmentId: stepForAuthorizationRejection.departmentId,
+            isVisible: true,
+            isCompleted: false,
+          },
+        );
+
         if (createResponse.ok) {
           const newStep = await createResponse.json();
           stepId = newStep.id;
@@ -773,31 +785,47 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       if (response.ok) {
-        console.log("🔍 ProcessDetail - Decisão de rejeição tomada:", authorizationRejectionDecision);
-        
+        console.log(
+          "🔍 ProcessDetail - Decisão de rejeição tomada:",
+          authorizationRejectionDecision,
+        );
+
         // Se a decisão for "Não autorizar a defesa", criar etapa intermediária no mesmo setor
-        if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
+        if (
+          authorizationRejectionDecision ===
+          "Não autorizar a defesa ou solicitar reformulação da demanda"
+        ) {
           console.log(
             "🔥🔥🔥 ProcessDetail - Verificando se etapa intermediária já existe",
           );
-          
+
           try {
             // Verificar se a etapa já existe (forçar refresh do cache)
-            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps?_t=${Date.now()}`);
+            const stepsResponse = await fetch(
+              `/api/processes/${parsedId}/steps?_t=${Date.now()}`,
+            );
             const allSteps = await stepsResponse.json();
             const existingIntermediateStep = allSteps.find(
-              (s: ProcessStep) => s.stepName === "Devolver para correção ou arquivamento" && s.departmentId === stepForAuthorizationRejection.departmentId
+              (s: ProcessStep) =>
+                s.stepName === "Devolver para correção ou arquivamento" &&
+                s.departmentId === stepForAuthorizationRejection.departmentId,
             );
-            
-            console.log("🔍 ProcessDetail - Etapas encontradas na verificação:", allSteps.map(s => s.stepName));
-            console.log("🔍 ProcessDetail - Etapa intermediária existente encontrada:", existingIntermediateStep);
-            
+
+            console.log(
+              "🔍 ProcessDetail - Etapas encontradas na verificação:",
+              allSteps.map((s) => s.stepName),
+            );
+            console.log(
+              "🔍 ProcessDetail - Etapa intermediária existente encontrada:",
+              existingIntermediateStep,
+            );
+
             if (existingIntermediateStep) {
               console.log(
                 "⚠️ ProcessDetail - Etapa intermediária já existe, apenas tornando visível:",
-                existingIntermediateStep
+                existingIntermediateStep,
               );
-              
+
               // Tornar a etapa visível se não estiver
               if (!existingIntermediateStep.isVisible) {
                 const updateResponse = await apiRequest(
@@ -805,63 +833,74 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   `/api/processes/${parsedId}/steps/${existingIntermediateStep.id}`,
                   {
                     isVisible: true,
-                  }
+                  },
                 );
-                
+
                 if (updateResponse.ok) {
-                  console.log("✅ ProcessDetail - Etapa intermediária tornada visível");
+                  console.log(
+                    "✅ ProcessDetail - Etapa intermediária tornada visível",
+                  );
                 }
               }
             } else {
               console.log(
                 "🔥🔥🔥 ProcessDetail - Criando etapa intermediária 'Devolver para correção ou arquivamento' no mesmo setor",
               );
-              
+
               // Criar etapa "Devolver para correção ou arquivamento" no mesmo departamento
               const createIntermediateStepResponse = await apiRequest(
-                "POST", 
+                "POST",
                 `/api/processes/${parsedId}/steps`,
                 {
                   stepName: "Devolver para correção ou arquivamento",
                   departmentId: stepForAuthorizationRejection.departmentId, // Mesmo setor (Secretário de Estado)
                   isVisible: true,
-                  isCompleted: false
-                }
+                  isCompleted: false,
+                },
               );
-              
+
               if (createIntermediateStepResponse.ok) {
-                const intermediateStep = await createIntermediateStepResponse.json();
+                const intermediateStep =
+                  await createIntermediateStepResponse.json();
                 console.log(
                   "✅✅✅ ProcessDetail - Etapa intermediária 'Devolver para correção ou arquivamento' criada com sucesso:",
-                  intermediateStep
+                  intermediateStep,
                 );
               } else {
                 console.error(
-                  "❌❌❌ ProcessDetail - Erro ao criar etapa intermediária"
+                  "❌❌❌ ProcessDetail - Erro ao criar etapa intermediária",
                 );
               }
             }
           } catch (intermediateStepError) {
             console.error(
               "❌ ProcessDetail - Erro ao verificar/criar etapa intermediária:",
-              intermediateStepError
+              intermediateStepError,
             );
           }
         }
 
         // Se a decisão for sobre recurso de convênio, tornar visível a etapa "Solicitar ajuste/aditivo do plano de trabalho"
-        if (authorizationRejectionDecision === "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado") {
+        if (
+          authorizationRejectionDecision ===
+          "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
+        ) {
           console.log(
             "🔥🔥🔥 ProcessDetail - Tornando visível etapa 'Solicitar ajuste/aditivo do plano de trabalho' para ajuste de convênio",
           );
 
           try {
             // Buscar todas as etapas (incluindo invisíveis) para encontrar a etapa condicional
-            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps/all`);
+            const stepsResponse = await fetch(
+              `/api/processes/${parsedId}/steps/all`,
+            );
             if (stepsResponse.ok) {
               const allSteps = await stepsResponse.json();
               const ajusteStep = allSteps.find(
-                (s: any) => s.stepName === "Solicitar ajuste/aditivo do plano de trabalho" && s.isVisible === false,
+                (s: any) =>
+                  s.stepName ===
+                    "Solicitar ajuste/aditivo do plano de trabalho" &&
+                  s.isVisible === false,
               );
 
               if (ajusteStep) {
@@ -968,12 +1007,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Função para completar correção depois de escolher a opção
   const handleCorrectionComplete = async () => {
-    console.log("🔥 MODAL CORREÇÃO - Função chamada!", { stepForCorrection, correctionDecision });
-    
+    console.log("🔥 MODAL CORREÇÃO - Função chamada!", {
+      stepForCorrection,
+      correctionDecision,
+    });
+
     if (!stepForCorrection || !correctionDecision) {
-      console.log("🔥 MODAL CORREÇÃO - Validação falhou:", { 
-        stepForCorrection: !!stepForCorrection, 
-        correctionDecision: !!correctionDecision 
+      console.log("🔥 MODAL CORREÇÃO - Validação falhou:", {
+        stepForCorrection: !!stepForCorrection,
+        correctionDecision: !!correctionDecision,
       });
       return;
     }
@@ -985,18 +1027,25 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       // Marcar a etapa de correção como concluída
-      await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${stepForCorrection.id}`, {
-        isCompleted: true,
-        observations: `Decisão: ${correctionDecision}`,
-        userId: currentUser?.id,
-      });
+      await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepForCorrection.id}`,
+        {
+          isCompleted: true,
+          observations: `Decisão: ${correctionDecision}`,
+          userId: currentUser?.id,
+        },
+      );
 
-      if (correctionDecision === "Encaminhar ao documento de formalização da demanda novamente") {
+      if (
+        correctionDecision ===
+        "Encaminhar ao documento de formalização da demanda novamente"
+      ) {
         toast({
           title: "✅ Decisão Registrada",
-          description: "Decisão registrada. Use o botão 'Tramitar' para transferir o processo ao setor apropriado para reiniciar o fluxo.",
+          description:
+            "Decisão registrada. Use o botão 'Tramitar' para transferir o processo ao setor apropriado para reiniciar o fluxo.",
         });
-
       } else if (correctionDecision === "Arquivar processo") {
         // Cancelar o processo
         await apiRequest("PATCH", `/api/processes/${parsedId}`, {
@@ -1021,7 +1070,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       queryClient.invalidateQueries({
         queryKey: [`/api/processes/${parsedId}`],
       });
-
     } catch (error) {
       console.error("Erro ao completar correção:", error);
       toast({
@@ -1034,12 +1082,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Função para completar autorização depois de escolher a opção
   const handleAuthorizationComplete = async () => {
-    console.log("🔥 MODAL AUTORIZAÇÃO - Função chamada!", { stepForAuthorization, authorizationDecision });
-    
+    console.log("🔥 MODAL AUTORIZAÇÃO - Função chamada!", {
+      stepForAuthorization,
+      authorizationDecision,
+    });
+
     if (!stepForAuthorization || !authorizationDecision) {
-      console.log("🔥 MODAL AUTORIZAÇÃO - Validação falhou:", { 
-        stepForAuthorization: !!stepForAuthorization, 
-        authorizationDecision: !!authorizationDecision 
+      console.log("🔥 MODAL AUTORIZAÇÃO - Validação falhou:", {
+        stepForAuthorization: !!stepForAuthorization,
+        authorizationDecision: !!authorizationDecision,
       });
       return;
     }
@@ -1069,11 +1120,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
           try {
             // Buscar todas as etapas (incluindo invisíveis) para encontrar a etapa condicional
-            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps/all`);
+            const stepsResponse = await fetch(
+              `/api/processes/${parsedId}/steps/all`,
+            );
             if (stepsResponse.ok) {
               const allSteps = await stepsResponse.json();
               const authRoStep = allSteps.find(
-                (s: any) => s.stepName === "Autorizar Emissão de R.O" && s.isVisible === false,
+                (s: any) =>
+                  s.stepName === "Autorizar Emissão de R.O" &&
+                  s.isVisible === false,
               );
 
               if (authRoStep) {
@@ -1125,12 +1180,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
           try {
             // Buscar todas as etapas (incluindo invisíveis) para encontrar a etapa condicional
-            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps/all`);
+            const stepsResponse = await fetch(
+              `/api/processes/${parsedId}/steps/all`,
+            );
             if (stepsResponse.ok) {
               const allSteps = await stepsResponse.json();
               const solicitarOrcamentoStep = allSteps.find(
                 (s: any) =>
-                  s.stepName === "Solicitar disponibilização de orçamento" && s.isVisible === false,
+                  s.stepName === "Solicitar disponibilização de orçamento" &&
+                  s.isVisible === false,
               );
 
               if (solicitarOrcamentoStep) {
@@ -1715,82 +1773,125 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                 );
 
                                 // Adicionar etapas condicionais visíveis que pertencem ao departamento atual
-                                const conditionalSteps = steps?.filter(step => {
-                                  // Etapas condicionais específicas  
-                                  const isConditionalStep = [
-                                    "Devolver para correção ou arquivamento", // Apenas no Secretário de Estado
-                                    "Solicitar ajuste/aditivo do plano de trabalho",
-                                    "Autorizar Emissão de R.O",
-                                    "Solicitar disponibilização de orçamento"
-                                  ].includes(step.stepName);
-                                  
-                                  // Pertence ao departamento atual e está visível
-                                  const belongsToCurrentDept = step.departmentId === process?.currentDepartmentId;
-                                  
-                                  // ESPECIAL: "Devolver para correção ou arquivamento" só aparece no Secretário de Estado (ID 5)
-                                  if (step.stepName === "Devolver para correção ou arquivamento") {
-                                    return belongsToCurrentDept && step.isVisible && process?.currentDepartmentId === 5;
-                                  }
-                                  
-                                  return isConditionalStep && belongsToCurrentDept && step.isVisible;
-                                }) || [];
+                                const conditionalSteps =
+                                  steps?.filter((step) => {
+                                    // Etapas condicionais específicas
+                                    const isConditionalStep = [
+                                      "Devolver para correção ou arquivamento", // Apenas no Secretário de Estado
+                                      "Solicitar ajuste/aditivo do plano de trabalho",
+                                      "Autorizar Emissão de R.O",
+                                      "Solicitar disponibilização de orçamento",
+                                    ].includes(step.stepName);
+
+                                    // Pertence ao departamento atual e está visível
+                                    const belongsToCurrentDept =
+                                      step.departmentId ===
+                                      process?.currentDepartmentId;
+
+                                    // ESPECIAL: "Devolver para correção ou arquivamento" só aparece no Secretário de Estado (ID 5)
+                                    if (
+                                      step.stepName ===
+                                      "Devolver para correção ou arquivamento"
+                                    ) {
+                                      return (
+                                        belongsToCurrentDept &&
+                                        step.isVisible &&
+                                        process?.currentDepartmentId === 5
+                                      );
+                                    }
+
+                                    return (
+                                      isConditionalStep &&
+                                      belongsToCurrentDept &&
+                                      step.isVisible
+                                    );
+                                  }) || [];
 
                                 // Remover duplicatas de etapas condicionais (usar apenas a mais recente)
-                                const uniqueConditionalSteps = conditionalSteps.reduce((unique: any[], current) => {
-                                  const existingIndex = unique.findIndex(step => step.stepName === current.stepName);
-                                  if (existingIndex >= 0) {
-                                    // Se já existe, manter apenas a mais recente (maior ID)
-                                    if (current.id > unique[existingIndex].id) {
-                                      unique[existingIndex] = current;
-                                    }
-                                  } else {
-                                    unique.push(current);
-                                  }
-                                  return unique;
-                                }, []);
+                                const uniqueConditionalSteps =
+                                  conditionalSteps.reduce(
+                                    (unique: any[], current) => {
+                                      const existingIndex = unique.findIndex(
+                                        (step) =>
+                                          step.stepName === current.stepName,
+                                      );
+                                      if (existingIndex >= 0) {
+                                        // Se já existe, manter apenas a mais recente (maior ID)
+                                        if (
+                                          current.id > unique[existingIndex].id
+                                        ) {
+                                          unique[existingIndex] = current;
+                                        }
+                                      } else {
+                                        unique.push(current);
+                                      }
+                                      return unique;
+                                    },
+                                    [],
+                                  );
 
                                 // Converter etapas condicionais para o formato de sectorStep
-                                const conditionalSectorSteps = uniqueConditionalSteps.map(step => ({
-                                  name: step.stepName,
-                                  phase: "Condicional"
-                                }));
+                                const conditionalSectorSteps =
+                                  uniqueConditionalSteps.map((step) => ({
+                                    name: step.stepName,
+                                    phase: "Condicional",
+                                  }));
 
                                 // Combinar etapas do setor com etapas condicionais
-                                const allSteps = [...sectorSteps, ...conditionalSectorSteps];
-                                
-                                console.log("🔍 Etapas condicionais visíveis encontradas:", conditionalSteps.map(s => s.stepName));
-                                console.log("🔍 Total de etapas para exibir:", allSteps.length);
-                                
+                                const allSteps = [
+                                  ...sectorSteps,
+                                  ...conditionalSectorSteps,
+                                ];
+
+                                console.log(
+                                  "🔍 Etapas condicionais visíveis encontradas:",
+                                  conditionalSteps.map((s) => s.stepName),
+                                );
+                                console.log(
+                                  "🔍 Total de etapas para exibir:",
+                                  allSteps.length,
+                                );
+
                                 return allSteps;
                               })()
                                 .filter((sectorStep) => {
                                   // Mostrar apenas etapas pendentes (não concluídas)
                                   // Para etapas condicionais, encontrar a mais recente
-                                  const allMatchingSteps = steps?.filter(
-                                    (s) => s.stepName === sectorStep.name,
-                                  ) || [];
-                                  
+                                  const allMatchingSteps =
+                                    steps?.filter(
+                                      (s) => s.stepName === sectorStep.name,
+                                    ) || [];
+
                                   // Se for etapa condicional com duplicatas, usar apenas a mais recente
-                                  const existingStep = allMatchingSteps.length > 1
-                                    ? allMatchingSteps.reduce((latest, current) => 
-                                        current.id > latest.id ? current : latest
-                                      )
-                                    : allMatchingSteps[0];
-                                  
+                                  const existingStep =
+                                    allMatchingSteps.length > 1
+                                      ? allMatchingSteps.reduce(
+                                          (latest, current) =>
+                                            current.id > latest.id
+                                              ? current
+                                              : latest,
+                                        )
+                                      : allMatchingSteps[0];
+
                                   return !existingStep?.isCompleted;
                                 })
                                 .map((sectorStep, index) => {
                                   // Para etapas condicionais, encontrar a mais recente
-                                  const allMatchingSteps = steps?.filter(
-                                    (s) => s.stepName === sectorStep.name,
-                                  ) || [];
-                                  
+                                  const allMatchingSteps =
+                                    steps?.filter(
+                                      (s) => s.stepName === sectorStep.name,
+                                    ) || [];
+
                                   // Se for etapa condicional com duplicatas, usar apenas a mais recente
-                                  const existingStep = allMatchingSteps.length > 1
-                                    ? allMatchingSteps.reduce((latest, current) => 
-                                        current.id > latest.id ? current : latest
-                                      )
-                                    : allMatchingSteps[0];
+                                  const existingStep =
+                                    allMatchingSteps.length > 1
+                                      ? allMatchingSteps.reduce(
+                                          (latest, current) =>
+                                            current.id > latest.id
+                                              ? current
+                                              : latest,
+                                        )
+                                      : allMatchingSteps[0];
                                   const isCompleted =
                                     existingStep?.isCompleted || false;
 
@@ -1840,87 +1941,142 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                             }
 
                                             // Verificar se é a etapa de Devolver para correção ou cancelar processo
-                                            if (sectorStep.name === "Devolver para correção ou cancelar processo") {
+                                            if (
+                                              sectorStep.name ===
+                                              "Devolver para correção ou cancelar processo"
+                                            ) {
                                               console.log(
                                                 "🔥 ProcessDetail - Etapa de correção detectada - abrindo modal de correção",
                                               );
-                                              
+
                                               // Se a etapa não existe, criar primeiro
                                               if (!existingStep) {
-                                                console.log("🔧 Criando etapa de correção no banco de dados...");
+                                                console.log(
+                                                  "🔧 Criando etapa de correção no banco de dados...",
+                                                );
                                                 try {
-                                                  const createResponse = await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
-                                                    stepName: "Devolver para correção ou cancelar processo",
-                                                    departmentId: process?.currentDepartmentId || 2,
-                                                    isVisible: true,
-                                                    isCompleted: false
-                                                  });
-                                                  
+                                                  const createResponse =
+                                                    await apiRequest(
+                                                      "POST",
+                                                      `/api/processes/${parsedId}/steps`,
+                                                      {
+                                                        stepName:
+                                                          "Devolver para correção ou cancelar processo",
+                                                        departmentId:
+                                                          process?.currentDepartmentId ||
+                                                          2,
+                                                        isVisible: true,
+                                                        isCompleted: false,
+                                                      },
+                                                    );
+
                                                   if (createResponse.ok) {
-                                                    const newStep = await createResponse.json();
-                                                    console.log("✅ Etapa de correção criada:", newStep);
-                                                    
+                                                    const newStep =
+                                                      await createResponse.json();
+                                                    console.log(
+                                                      "✅ Etapa de correção criada:",
+                                                      newStep,
+                                                    );
+
                                                     // Atualizar lista de etapas
-                                                    queryClient.invalidateQueries({
-                                                      queryKey: [`/api/processes/${parsedId}/steps`],
-                                                    });
-                                                    
+                                                    queryClient.invalidateQueries(
+                                                      {
+                                                        queryKey: [
+                                                          `/api/processes/${parsedId}/steps`,
+                                                        ],
+                                                      },
+                                                    );
+
                                                     // Usar a nova etapa
-                                                    setStepForCorrection(newStep);
+                                                    setStepForCorrection(
+                                                      newStep,
+                                                    );
                                                   } else {
-                                                    console.error("❌ Erro ao criar etapa de correção");
+                                                    console.error(
+                                                      "❌ Erro ao criar etapa de correção",
+                                                    );
                                                     setStepForCorrection(null);
                                                   }
                                                 } catch (error) {
-                                                  console.error("❌ Erro ao criar etapa de correção:", error);
+                                                  console.error(
+                                                    "❌ Erro ao criar etapa de correção:",
+                                                    error,
+                                                  );
                                                   setStepForCorrection(null);
                                                 }
                                               } else {
-                                                setStepForCorrection(existingStep);
+                                                setStepForCorrection(
+                                                  existingStep,
+                                                );
                                               }
-                                              
+
                                               setCorrectionModalOpen(true);
                                               setCorrectionDecision(""); // Limpar seleção anterior
                                               return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
                                             }
 
                                             if (existingStep) {
-                                              // Verificar se é a etapa de solicitação de ajuste/aditivo 
-                                              if (sectorStep.name === "Solicitar ajuste/aditivo do plano de trabalho") {
-                                                console.log("🔥 ProcessDetail - Etapa de ajuste detectada - marcando como concluída");
-                                                
+                                              // Verificar se é a etapa de solicitação de ajuste/aditivo
+                                              if (
+                                                sectorStep.name ===
+                                                "Solicitar ajuste/aditivo do plano de trabalho"
+                                              ) {
+                                                console.log(
+                                                  "🔥 ProcessDetail - Etapa de ajuste detectada - marcando como concluída",
+                                                );
+
                                                 try {
                                                   // Marcar a etapa como concluída - tramitação para SUBCC será feita manualmente
-                                                  await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${existingStep.id}`, {
-                                                    isCompleted: true,
-                                                    observations: "Solicitação de ajuste/aditivo concluída - Pronto para tramitação ao SUBCC",
-                                                    userId: currentUser?.id,
-                                                  });
+                                                  await apiRequest(
+                                                    "PATCH",
+                                                    `/api/processes/${parsedId}/steps/${existingStep.id}`,
+                                                    {
+                                                      isCompleted: true,
+                                                      observations:
+                                                        "Solicitação de ajuste/aditivo concluída - Pronto para tramitação ao SUBCC",
+                                                      userId: currentUser?.id,
+                                                    },
+                                                  );
 
                                                   // Atualizar dados na interface
-                                                  queryClient.invalidateQueries({
-                                                    queryKey: [`/api/processes/${parsedId}`],
-                                                  });
-                                                  queryClient.invalidateQueries({
-                                                    queryKey: [`/api/processes/${parsedId}/steps`],
-                                                  });
+                                                  queryClient.invalidateQueries(
+                                                    {
+                                                      queryKey: [
+                                                        `/api/processes/${parsedId}`,
+                                                      ],
+                                                    },
+                                                  );
+                                                  queryClient.invalidateQueries(
+                                                    {
+                                                      queryKey: [
+                                                        `/api/processes/${parsedId}/steps`,
+                                                      ],
+                                                    },
+                                                  );
 
                                                   toast({
                                                     title: "✅ Etapa Concluída",
-                                                    description: "Processo pronto para tramitação ao SUBCC para reavaliação do plano de trabalho",
+                                                    description:
+                                                      "Processo pronto para tramitação ao SUBCC para reavaliação do plano de trabalho",
                                                   });
-
                                                 } catch (error) {
-                                                  console.error("Erro ao concluir etapa:", error);
+                                                  console.error(
+                                                    "Erro ao concluir etapa:",
+                                                    error,
+                                                  );
                                                   toast({
                                                     title: "Erro",
-                                                    description: "Erro ao concluir etapa",
+                                                    description:
+                                                      "Erro ao concluir etapa",
                                                     variant: "destructive",
                                                   });
                                                 }
                                               }
                                               // Verificar se é etapa condicional de correção (apenas Devolver)
-                                              else if (sectorStep.name === "Devolver para correção ou arquivamento") {
+                                              else if (
+                                                sectorStep.name ===
+                                                "Devolver para correção ou arquivamento"
+                                              ) {
                                                 // Reset: remover todas as etapas condicionais e recriar apenas a autorização
                                                 await handleCorrectionStepComplete(
                                                   existingStep,
@@ -2007,23 +2163,29 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               setAuthorizationRejectionModalOpen(
                                                 true,
                                               );
-                                              
+
                                               // Se não existe step, criar um objeto temporário com as informações necessárias
                                               if (existingStep) {
-                                                setStepForAuthorizationRejection(existingStep);
+                                                setStepForAuthorizationRejection(
+                                                  existingStep,
+                                                );
                                               } else {
                                                 // Criar objeto temporário da etapa para usar no modal
                                                 const tempStep = {
                                                   id: null, // Será criado quando confirmado
                                                   stepName: sectorStep.name,
-                                                  departmentId: process?.currentDepartmentId || 0,
+                                                  departmentId:
+                                                    process?.currentDepartmentId ||
+                                                    0,
                                                   isVisible: true,
                                                   isCompleted: false,
-                                                  processId: parsedId
+                                                  processId: parsedId,
                                                 };
-                                                setStepForAuthorizationRejection(tempStep as any);
+                                                setStepForAuthorizationRejection(
+                                                  tempStep as any,
+                                                );
                                               }
-                                              
+
                                               setAuthorizationRejectionDecision(
                                                 "",
                                               ); // Limpar seleção anterior
@@ -2112,34 +2274,41 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                               variant="secondary"
                               onClick={async () => {
                                 try {
-                                  console.log("🔄 Corrigindo checklist - resetando todas as etapas");
-                                  
+                                  console.log(
+                                    "🔄 Corrigindo checklist - resetando todas as etapas",
+                                  );
+
                                   if (steps && currentDepartment) {
                                     // 1. Resetar todas as etapas do setor atual (marcar como incompletas)
                                     const allSectorSteps = steps.filter(
-                                      (step) => step.departmentId === process?.currentDepartmentId
+                                      (step) =>
+                                        step.departmentId ===
+                                        process?.currentDepartmentId,
                                     );
 
                                     for (const step of allSectorSteps) {
                                       await apiRequest(
                                         "PATCH",
                                         `/api/processes/${parsedId}/steps/${step.id}`,
-                                        { 
+                                        {
                                           isCompleted: false,
                                           observations: null,
                                           rejectedAt: null,
-                                          rejectionStatus: null
+                                          rejectionStatus: null,
                                         },
                                       );
                                     }
 
                                     // 2. Tornar invisíveis todas as etapas condicionais
-                                    const conditionalSteps = steps.filter(step => [
-                                      "Devolver para correção ou arquivamento",
-                                      "Solicitar ajuste/aditivo do plano de trabalho", 
-                                      "Autorizar Emissão de R.O",
-                                      "Solicitar disponibilização de orçamento"
-                                    ].includes(step.stepName));
+                                    const conditionalSteps = steps.filter(
+                                      (step) =>
+                                        [
+                                          "Devolver para correção ou arquivamento",
+                                          "Solicitar ajuste/aditivo do plano de trabalho",
+                                          "Autorizar Emissão de R.O",
+                                          "Solicitar disponibilização de orçamento",
+                                        ].includes(step.stepName),
+                                    );
 
                                     for (const step of conditionalSteps) {
                                       await apiRequest(
@@ -2157,7 +2326,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
                                     toast({
                                       title: "Checklist resetado",
-                                      description: "Todas as etapas foram resetadas para o estado inicial.",
+                                      description:
+                                        "Todas as etapas foram resetadas para o estado inicial.",
                                     });
                                   }
                                 } catch (error) {
@@ -2174,7 +2344,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                               Corrigir
                             </Button>
                             <p className="text-sm text-gray-600 mt-2">
-                              Reseta todas as etapas para o estado inicial e esconde etapas condicionais
+                              Reseta todas as etapas para o estado inicial e
+                              esconde etapas condicionais
                             </p>
                           </center>
                         </div>
@@ -2526,7 +2697,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">
-                      Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado
+                      Recurso de convênio insuficiente - Valor estimado na
+                      pesquisa maior que o valor conveniado
                     </div>
                   </div>
                 </label>
@@ -2561,10 +2733,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       </Dialog>
 
       {/* Modal de Correção ou Cancelamento */}
-      <Dialog
-        open={correctionModalOpen}
-        onOpenChange={setCorrectionModalOpen}
-      >
+      <Dialog open={correctionModalOpen} onOpenChange={setCorrectionModalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-orange-600">
@@ -2586,17 +2755,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     name="correction-decision"
                     value="Encaminhar ao documento de formalização da demanda novamente"
                     checked={
-                      correctionDecision === "Encaminhar ao documento de formalização da demanda novamente"
+                      correctionDecision ===
+                      "Encaminhar ao documento de formalização da demanda novamente"
                     }
                     onChange={(e) => setCorrectionDecision(e.target.value)}
                     className="mt-1"
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">
-                      Encaminhar ao documento de formalização da demanda novamente
+                      Encaminhar ao documento de formalização da demanda
+                      novamente
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      O processo será transferido para a Divisão de Licitação e reiniciado no fluxo inicial
+                      O processo será transferido para a Divisão de Licitação e
+                      reiniciado no fluxo inicial
                     </div>
                   </div>
                 </label>
@@ -2608,9 +2780,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     type="radio"
                     name="correction-decision"
                     value="Arquivar processo"
-                    checked={
-                      correctionDecision === "Arquivar processo"
-                    }
+                    checked={correctionDecision === "Arquivar processo"}
                     onChange={(e) => setCorrectionDecision(e.target.value)}
                     className="mt-1"
                   />
@@ -2619,7 +2789,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       Arquivar processo
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      O processo será transferido para a Divisão de Licitação com etapa de correção
+                      O processo será transferido para a Divisão de Licitação
+                      com etapa de correção
                     </div>
                   </div>
                 </label>
