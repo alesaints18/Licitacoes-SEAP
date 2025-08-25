@@ -35,14 +35,14 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   });
 
   // Get current user
-  const { data: currentUser } = useQuery({
+  const { data: currentUser } = useQuery<any>({
     queryKey: ['/api/auth/status'],
   });
 
   const isAdmin = currentUser?.role === 'admin';
 
   // Get process steps
-  const { data: steps } = useQuery({
+  const { data: steps } = useQuery<any[]>({
     queryKey: [`/api/processes/${parsedId}/steps`],
     enabled: !!process,
   });
@@ -129,7 +129,7 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   }
 
   // Get process steps to check completion
-  const { data: processSteps } = useQuery({
+  const { data: processSteps } = useQuery<any[]>({
     queryKey: [`/api/processes/${parsedId}/steps`],
     enabled: !!process,
   });
@@ -225,7 +225,7 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   });
   
   // Determinar os departamentos disponíveis baseado no fluxo específico
-  const availableDepartments = [];
+  const availableDepartments: Department[] = [];
   
   // Função auxiliar para verificar se NPP completou suas etapas
   const isNPPCompleted = () => {
