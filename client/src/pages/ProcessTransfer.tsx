@@ -185,8 +185,7 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
         { name: "Mapa Comparativo de Preços", phase: "Preparação" }
       ],
       "Unidade de Orçamento e Finanças": [
-        { name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.", phase: "Execução" },
-        { name: "Fluxo Repror", phase: "Fluxo Repror" }
+        { name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.", phase: "Execução" }
       ],
       "Secretário de Estado da Administração Penitenciária - SEAP": [
         { name: "Autorização pelo Secretário SEAP", phase: "Autorização" }

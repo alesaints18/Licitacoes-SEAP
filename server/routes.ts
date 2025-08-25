@@ -1181,23 +1181,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             console.log(`Etapa "Fluxo Repror" criada para processo ${processId}`);
           }
         } else {
-          // Verificar se é para Fluxo Repror já existente (indisponibilidade orçamentária)
-          const hasReprorStep = processSteps.find(s => s.stepName === "Fluxo Repror");
-          
-          if (hasReprorStep) {
-            console.log(`Processo ${processId} transferido para Unidade de Orçamento e Finanças (Fluxo Repror) - arquivando automaticamente`);
-            await storage.deleteProcess(processId, userId, "Processo arquivado automaticamente - Fluxo Repror (Indisponibilidade Orçamentária)");
-            
-            // Notificar arquivamento via WebSocket
-            broadcast({
-              type: 'process_deleted',
-              processId: processId,
-              message: `Processo ${process.pbdocNumber} arquivado automaticamente - Fluxo Repror`,
-              timestamp: new Date().toISOString()
-            });
-            
-            console.log(`Processo ${processId} arquivado automaticamente - Fluxo Repror`);
-          }
+          // REMOVIDO: Arquivamento automático por Fluxo Repror
+          // O arquivamento deve ser manual através do modal de confirmação
+          console.log(`Processo ${processId} transferido para Unidade de Orçamento e Finanças - fluxo normal`);
         }
       } else {
         // Verificar se processo foi transferido para Divisão de Licitação e tem primeira etapa de correção concluída
