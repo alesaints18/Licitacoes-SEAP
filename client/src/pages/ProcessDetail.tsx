@@ -658,13 +658,23 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           },
         ];
 
-        // REMOVIDO: A etapa "Devolver para correção ou arquivamento" é tratada apenas como etapa condicional
-        // para evitar duplicação na interface
-
-        // Verificar se a autorização foi aprovada com "Disponibilidade Orçamentária"
+        // Verificar se a autorização foi rejeitada com "Não autorizar a defesa ou solicitar reformulação da demanda"
         const authStep = steps?.find(
           (s) => s.stepName === "Autorização pelo Secretário SEAP",
         );
+        
+        const isRejectedForCorrection = authStep?.isCompleted && 
+          authStep?.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda";
+
+        // Se foi rejeitada para correção, mostrar etapa de correção no Secretário de Estado
+        if (isRejectedForCorrection) {
+          baseSteps.push({
+            name: "Devolver para correção ou arquivamento",
+            phase: "Correção",
+          });
+        }
+
+        // Verificar se a autorização foi aprovada com "Disponibilidade Orçamentária"
         const isAuthorizedWithBudget =
           authStep?.isCompleted &&
           authStep?.observations?.includes("Disponibilidade Orçamentária");
@@ -707,10 +717,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             phase: "Preparação",
           });
         }
-
-        // REGRA: Etapas condicionais NÃO aparecem automaticamente
-        // Elas são criadas dinamicamente APENAS quando o modal é confirmado
-        // Igual ao modal de aprovação
 
         return baseSteps;
       })(),
@@ -941,7 +947,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             if (stepsResponse.ok) {
               const allSteps = await stepsResponse.json();
               const intermediateStep = allSteps.find(
-                (s: any) => s.stepName === "Devolver para correção ou arquivamento" && s.departmentId === 2 // Divisão de Licitação
+                (s: any) => s.stepName === "Devolver para correção ou arquivamento" && s.departmentId === 5 // Secretário de Estado
               );
 
               if (intermediateStep) {
@@ -949,7 +955,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   "✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' encontrada, tornando visível"
                 );
                 
-                // Tornar a etapa visível
+                // Tornar a etapa visível no próprio Secretário de Estado
                 const updateResponse = await apiRequest(
                   "PATCH",
                   `/api/processes/${parsedId}/steps/${intermediateStep.id}`,
@@ -959,27 +965,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 );
                 
                 if (updateResponse.ok) {
-                  console.log("✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' tornada visível com sucesso");
-                  
-                  // Transferir automaticamente o processo para a Divisão de Licitação (departmentId: 2)
-                  console.log("🔥🔥🔥 ProcessDetail - Transferindo processo automaticamente para Divisão de Licitação");
-                  try {
-                    const transferResponse = await apiRequest(
-                      "POST",
-                      `/api/processes/${parsedId}/transfer`,
-                      {
-                        departmentId: 2, // Divisão de Licitação
-                      }
-                    );
-
-                    if (transferResponse.ok) {
-                      console.log("✅✅✅ ProcessDetail - Processo transferido automaticamente para Divisão de Licitação");
-                    } else {
-                      console.error("❌ ProcessDetail - Erro ao transferir processo automaticamente");
-                    }
-                  } catch (transferError) {
-                    console.error("❌ ProcessDetail - Erro na transferência automática:", transferError);
-                  }
+                  console.log("✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' tornada visível com sucesso no Secretário de Estado");
+                  // NÃO transferir automaticamente - usuário deve fazer tramitação manual
                 }
               } else {
                 console.error("❌ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' não encontrada no banco de dados");

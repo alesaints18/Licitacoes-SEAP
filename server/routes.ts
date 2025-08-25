@@ -114,7 +114,7 @@ async function createDefaultSteps(processId: number, modalityId: number, skipFor
     // Etapas que aparecerão após decisões dos modais
     { name: "Autorizar Emissão de R.O", departmentId: 5, phase: "Execução", daysLimit: 2, isVisible: false },
     { name: "Solicitar disponibilização de orçamento", departmentId: 5, phase: "Preparação", daysLimit: 3, isVisible: false },
-    { name: "Devolver para correção ou arquivamento", departmentId: 2, phase: "Correção", daysLimit: 2, isVisible: false },
+    { name: "Devolver para correção ou arquivamento", departmentId: 5, phase: "Correção", daysLimit: 2, isVisible: false },
     { name: "Solicitar ajuste/aditivo do plano de trabalho", departmentId: 5, phase: "Correção", daysLimit: 5, isVisible: false },
     { name: "Devolver para correção ou cancelar processo", departmentId: 2, phase: "Correção", daysLimit: 2, isVisible: false },
     { name: "Arquivar processo", departmentId: 1, phase: "Arquivamento", daysLimit: 1, isVisible: false },
