@@ -494,17 +494,23 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           ];
         }
 
-        // Verificar se a etapa "Devolver para correção ou cancelar processo" foi concluída
-        const correctionStepCompleted = steps?.find(
+        // Verificar se AMBAS as etapas de correção foram concluídas (não apenas a segunda)
+        const firstCorrectionCompleted = steps?.find(
+          (s) =>
+            s.stepName === "Devolver para correção ou arquivamento" &&
+            s.isCompleted === true,
+        );
+        
+        const secondCorrectionCompleted = steps?.find(
           (s) =>
             s.stepName === "Devolver para correção ou cancelar processo" &&
             s.isCompleted === true,
         );
 
-        // Se a etapa de correção foi concluída E não há etapa de arquivamento final, não mostrar mais nenhuma etapa na Divisão de Licitação
-        if (process?.currentDepartmentId === 2 && correctionStepCompleted && !archiveFinalStep) {
+        // Se AMBAS as etapas de correção foram concluídas E não há etapa de arquivamento final, não mostrar mais nenhuma etapa na Divisão de Licitação
+        if (process?.currentDepartmentId === 2 && firstCorrectionCompleted && secondCorrectionCompleted && !archiveFinalStep) {
           console.log(
-            "🔍 DIVISÃO LICITAÇÃO - Etapa de correção concluída, não exibindo etapas (processo tratado)",
+            "🔍 DIVISÃO LICITAÇÃO - AMBAS etapas de correção concluídas, não exibindo etapas (processo tratado)",
           );
           return [];
         }
