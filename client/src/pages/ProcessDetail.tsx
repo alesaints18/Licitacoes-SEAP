@@ -709,6 +709,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       if (response.ok) {
+        console.log("🔍 ProcessDetail - Decisão de rejeição tomada:", authorizationRejectionDecision);
+        
         // Se a decisão for "Não autorizar a defesa", tornar visível a etapa "Devolver para correção ou arquivamento"
         if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
           console.log(
