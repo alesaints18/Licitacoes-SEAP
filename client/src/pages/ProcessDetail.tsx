@@ -2241,67 +2241,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                 "🔥 ProcessDetail - Etapa de correção detectada - abrindo modal de correção",
                                               );
 
-                                              // Se a etapa não existe, criar primeiro
+                                              // Verificar se a etapa existe - se não existe, não deve estar visível ainda
                                               if (!existingStep) {
                                                 console.log(
-                                                  "🔧 Criando etapa de correção no banco de dados...",
+                                                  "❌ Etapa 'Devolver para correção ou cancelar processo' não encontrada - não deve estar visível ainda.",
                                                 );
-                                                try {
-                                                  const createResponse =
-                                                    await apiRequest(
-                                                      "POST",
-                                                      `/api/processes/${parsedId}/steps`,
-                                                      {
-                                                        stepName:
-                                                          "Devolver para correção ou cancelar processo",
-                                                        departmentId:
-                                                          process?.currentDepartmentId ||
-                                                          2,
-                                                        isVisible: true,
-                                                        isCompleted: false,
-                                                      },
-                                                    );
-
-                                                  if (createResponse.ok) {
-                                                    const newStep =
-                                                      await createResponse.json();
-                                                    console.log(
-                                                      "✅ Etapa de correção criada:",
-                                                      newStep,
-                                                    );
-
-                                                    // Atualizar lista de etapas
-                                                    queryClient.invalidateQueries(
-                                                      {
-                                                        queryKey: [
-                                                          `/api/processes/${parsedId}/steps`,
-                                                        ],
-                                                      },
-                                                    );
-
-                                                    // Usar a nova etapa
-                                                    setStepForCorrection(
-                                                      newStep,
-                                                    );
-                                                  } else {
-                                                    console.error(
-                                                      "❌ Erro ao criar etapa de correção",
-                                                    );
-                                                    setStepForCorrection(null);
-                                                  }
-                                                } catch (error) {
-                                                  console.error(
-                                                    "❌ Erro ao criar etapa de correção:",
-                                                    error,
-                                                  );
-                                                  setStepForCorrection(null);
-                                                }
-                                              } else {
-                                                setStepForCorrection(
-                                                  existingStep,
-                                                );
+                                                toast({
+                                                  title: "Etapa não disponível",
+                                                  description: "Esta etapa só está disponível após tramitação manual do processo.",
+                                                  variant: "destructive"
+                                                });
+                                                return; // NÃO CONTINUA
                                               }
 
+                                              // Se a etapa existe, usar ela
+                                              setStepForCorrection(existingStep);
                                               setCorrectionModalOpen(true);
                                               setCorrectionDecision(""); // Limpar seleção anterior
                                               return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
