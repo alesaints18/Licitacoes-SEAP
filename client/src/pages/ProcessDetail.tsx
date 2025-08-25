@@ -1083,14 +1083,31 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             "Decisão registrada. Use o botão 'Tramitar' para transferir o processo ao setor apropriado para reiniciar o fluxo.",
         });
       } else if (correctionDecision === "Arquivar processo") {
-        // Cancelar o processo
-        await apiRequest("PATCH", `/api/processes/${parsedId}`, {
-          status: "canceled",
-        });
+        // Transferir o processo para o Setor Demandante para arquivamento
+        await apiRequest(
+          "POST",
+          `/api/processes/${parsedId}/transfer`,
+          {
+            departmentId: 1, // Setor Demandante
+            userId: currentUser?.id,
+          }
+        );
+        
+        // Criar etapa "Arquivar processo" no Setor Demandante
+        await apiRequest(
+          "POST",
+          `/api/processes/${parsedId}/steps`,
+          {
+            stepName: "Arquivar processo",
+            departmentId: 1, // Setor Demandante
+            isVisible: true,
+            isCompleted: false,
+          },
+        );
 
         toast({
-          title: "✅ Processo Cancelado",
-          description: "Processo foi arquivado/cancelado conforme solicitado.",
+          title: "✅ Processo Transferido",
+          description: "Processo transferido para o Setor Demandante para arquivamento.",
         });
       }
 
