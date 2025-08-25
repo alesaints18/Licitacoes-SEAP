@@ -108,6 +108,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [fluxoReprorModalOpen, setFluxoReprorModalOpen] = useState(false);
   const [stepForFluxoRepror, setStepForFluxoRepror] = useState<ProcessStep | null>(null);
 
+  // Estados para modal de Autorizar Emissão de R.O
+  const [authorizeRoModalOpen, setAuthorizeRoModalOpen] = useState(false);
+  const [authorizeRoDecision, setAuthorizeRoDecision] = useState("");
+  const [stepForAuthorizeRo, setStepForAuthorizeRo] = useState<ProcessStep | null>(null);
+
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
   const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
@@ -1622,6 +1627,68 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
+  // Função para completar Autorizar Emissão de R.O depois de escolher a opção
+  const handleAuthorizeRoComplete = async () => {
+    console.log("🔥 MODAL AUTORIZAR R.O - Função chamada!", {
+      stepForAuthorizeRo,
+      authorizeRoDecision,
+    });
+
+    if (!stepForAuthorizeRo || !authorizeRoDecision) {
+      console.log("🔥 MODAL AUTORIZAR R.O - Validação falhou:", {
+        stepForAuthorizeRo: !!stepForAuthorizeRo,
+        authorizeRoDecision: !!authorizeRoDecision,
+      });
+      return;
+    }
+
+    try {
+      console.log(
+        "🔥🔥🔥 ProcessDetail - Completando Autorizar R.O com decisão:",
+        authorizeRoDecision,
+      );
+
+      const response = await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepForAuthorizeRo.id}`,
+        {
+          isCompleted: true,
+          observations: `Autorizar Emissão de R.O: ${authorizeRoDecision}`,
+          userId: currentUser?.id,
+        },
+      );
+
+      if (response.ok) {
+        // Fechar modal e limpar estados
+        setAuthorizeRoModalOpen(false);
+        setStepForAuthorizeRo(null);
+        setAuthorizeRoDecision("");
+
+        // Invalidar cache para garantir atualização
+        queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}/steps`],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}`],
+        });
+
+        toast({
+          title: "✅ Etapa Concluída",
+          description: `Autorização de Emissão de R.O processada: ${authorizeRoDecision}`,
+        });
+      } else {
+        throw new Error("Erro ao completar autorização");
+      }
+    } catch (error) {
+      console.error("Erro ao completar Autorizar R.O:", error);
+      toast({
+        title: "❌ Erro",
+        description: "Erro ao processar Autorizar Emissão de R.O",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Função para rejeitar uma etapa
   const handleStepReject = (step: ProcessStep) => {
     setStepToReject(step);
@@ -2305,6 +2372,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                 existingStep || null,
                                               );
                                               setAuthorizationDecision(""); // Limpar seleção anterior
+                                              return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
+                                            }
+
+                                            // Verificar se é a etapa de Autorizar Emissão de R.O
+                                            if (
+                                              sectorStep.name === "Autorizar Emissão de R.O"
+                                            ) {
+                                              console.log(
+                                                "🔥 ProcessDetail - Etapa Autorizar Emissão de R.O detectada - abrindo modal de autorização",
+                                              );
+                                              setAuthorizeRoModalOpen(true);
+                                              setStepForAuthorizeRo(
+                                                existingStep || null,
+                                              );
+                                              setAuthorizeRoDecision(""); // Limpar seleção anterior
                                               return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
                                             }
 
@@ -3169,6 +3251,89 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             >
               <Check className="h-4 w-4 mr-2" />
               Confirmar Autorização
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Autorizar Emissão de R.O */}
+      <Dialog
+        open={authorizeRoModalOpen}
+        onOpenChange={setAuthorizeRoModalOpen}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <Check className="h-5 w-5" />
+              Autorizar Emissão de R.O
+            </DialogTitle>
+            <DialogDescription>
+              Selecione uma das opções para a etapa:{" "}
+              <strong>Autorizar Emissão de R.O</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="authorize-ro-decision"
+                    value="Autorizar"
+                    checked={authorizeRoDecision === "Autorizar"}
+                    onChange={(e) => setAuthorizeRoDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      Autorizar
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="authorize-ro-decision"
+                    value="Anexar"
+                    checked={authorizeRoDecision === "Anexar"}
+                    onChange={(e) => setAuthorizeRoDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      Anexar
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setAuthorizeRoModalOpen(false);
+                setAuthorizeRoDecision("");
+                setStepForAuthorizeRo(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                console.log("🔥 BOTÃO AUTORIZAR R.O - Clicado!");
+                handleAuthorizeRoComplete();
+              }}
+              disabled={!authorizeRoDecision}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Check className="h-4 w-4 mr-2" />
+              Confirmar
             </Button>
           </div>
         </DialogContent>
