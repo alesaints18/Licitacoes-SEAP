@@ -348,6 +348,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     "Unidade de Orçamento e Finanças": 4,
     Administrativo: 5,
     "Setor Administrativo": 5,
+    Correção: 12,
+    "Zona de Correção": 12,
   };
 
   // Function to get sector-specific steps
@@ -364,12 +366,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Procuradoria Geral do Estado - PGE": "Jurídico",
       "Secretário de Estado da Administração Penitenciária - SEAP":
         "Administrativo",
+      "Zona de Correção": "Correção", // Nova zona especial
       Planejamento: "TI", // Mapeamento para o departamento atual do usuário admin
       TI: "TI",
       Licitações: "Licitações",
       Jurídico: "Jurídico",
       Financeiro: "Financeiro",
       Administrativo: "Administrativo",
+      Correção: "Correção",
     };
 
     const sector = departmentToSectorMap[userDepartment] || userDepartment;
@@ -561,6 +565,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         return baseSteps;
       })(),
+
+      // Correção - Zona de Correção
+      Correção: [
+        {
+          name: "Devolver para correção ou cancelar processo",
+          phase: "Correção",
+        },
+      ],
     };
 
     const result = stepsBySector[sector] || [];
@@ -787,9 +799,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               }
             }
 
-            // SEGUNDO: Transferir processo para Divisão de Licitação
+            // SEGUNDO: Transferir processo para Zona de Correção
             await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-              departmentId: 2 // Divisão de Licitação
+              departmentId: 12 // Zona de Correção
             });
 
             // TERCEIRO: Aguardar um pouco e resetar novamente (caso o servidor tenha criado etapas automaticamente)
@@ -814,7 +826,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 // Criar apenas etapa específica "Devolver para correção ou cancelar processo"
                 await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
                   stepName: "Devolver para correção ou cancelar processo",
-                  departmentId: 2,
+                  departmentId: 12, // Zona de Correção
                   isVisible: true,
                   isCompleted: false
                 });
@@ -998,7 +1010,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           }
         }
 
-        // SEGUNDO: Transferir processo para Divisão de Licitação
+        // SEGUNDO: Transferir processo para Divisão de Licitação (reiniciar fluxo)
         await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
           departmentId: 2 // Divisão de Licitação
         });
@@ -1075,7 +1087,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         // SEGUNDO: Transferir processo para Divisão de Licitação
         await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-          departmentId: 2 // Divisão de Licitação
+          departmentId: 12 // Zona de Correção
         });
 
         // TERCEIRO: Aguardar um pouco e resetar novamente (caso o servidor tenha criado etapas automaticamente)

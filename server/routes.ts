@@ -31,7 +31,13 @@ function broadcast(data: any) {
 }
 
 // Função para criar etapas padrão baseadas na modalidade - NOVO FLUXOGRAMA
-async function createDefaultSteps(processId: number, modalityId: number) {
+async function createDefaultSteps(processId: number, modalityId: number, skipForCorrectionZone = false) {
+  // Se for zona de correção (ID 12), não criar etapas padrão
+  if (skipForCorrectionZone) {
+    console.log(`Pulando criação de etapas padrão para processo ${processId} - zona de correção`);
+    return;
+  }
+
   // Helper para calcular data de vencimento baseada em dias úteis
   const addBusinessDays = (date: Date, days: number) => {
     const result = new Date(date);
