@@ -348,8 +348,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     "Unidade de Orçamento e Finanças": 4,
     Administrativo: 5,
     "Setor Administrativo": 5,
-    Correção: 12,
-    "Zona de Correção": 12,
   };
 
   // Function to get sector-specific steps
@@ -366,14 +364,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Procuradoria Geral do Estado - PGE": "Jurídico",
       "Secretário de Estado da Administração Penitenciária - SEAP":
         "Administrativo",
-      "Zona de Correção": "Correção", // Nova zona especial
       Planejamento: "TI", // Mapeamento para o departamento atual do usuário admin
       TI: "TI",
       Licitações: "Licitações",
       Jurídico: "Jurídico",
       Financeiro: "Financeiro",
       Administrativo: "Administrativo",
-      Correção: "Correção",
     };
 
     const sector = departmentToSectorMap[userDepartment] || userDepartment;
@@ -416,15 +412,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       // Licitações - Divisão de Licitação (com lógica condicional)
       Licitações: (() => {
-        // Verificar se existe etapa específica de correção na Divisão de Licitação
-        const correctionStep = steps?.find(s => 
-          s.stepName === "Devolver para correção ou cancelar processo" && 
-          s.departmentId === 2 && 
-          s.isVisible
+        // Verificar se o processo chegou após rejeição específica do Secretário SEAP
+        // Busca por etapa de "Autorização pelo Secretário SEAP" que foi rejeitada com motivo específico
+        const authorizationStep = steps?.find(s => 
+          s.stepName === "Autorização pelo Secretário SEAP" && 
+          s.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda"
         );
         
-        if (correctionStep) {
-          // Se há etapa de correção, mostrar apenas ela
+        if (authorizationStep && process?.currentDepartmentId === 2) {
+          // Se processo chegou na Divisão de Licitação após rejeição específica, mostrar apenas etapa de correção
           return [
             {
               name: "Devolver para correção ou cancelar processo",
@@ -565,14 +561,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         return baseSteps;
       })(),
-
-      // Correção - Zona de Correção
-      Correção: [
-        {
-          name: "Devolver para correção ou cancelar processo",
-          phase: "Correção",
-        },
-      ],
     };
 
     const result = stepsBySector[sector] || [];
@@ -1010,7 +998,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           }
         }
 
-        // SEGUNDO: Transferir processo para Divisão de Licitação (reiniciar fluxo)
+        // SEGUNDO: Transferir processo para Divisão de Licitação
         await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
           departmentId: 2 // Divisão de Licitação
         });
@@ -1109,9 +1097,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               }
             }
 
-            // Criar apenas etapa de arquivamento
+            // Criar apenas etapa de correção
             await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
-              stepName: "Arquivar processo",
+              stepName: "Devolver para correção ou cancelar processo",
               departmentId: 2,
               isVisible: true,
               isCompleted: false
@@ -1130,8 +1118,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         }, 1000); // Aguardar 1 segundo para garantir que a transferência foi processada
 
         toast({
-          title: "✅ Processo para Arquivamento",
-          description: "Processo transferido para Divisão de Licitação para arquivamento.",
+          title: "✅ Processo Enviado para Correção",
+          description: "Processo transferido para Divisão de Licitação com etapa de correção.",
         });
       }
 
@@ -2672,7 +2660,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       Arquivar processo
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      O processo será transferido para a Divisão de Licitação apenas para arquivamento
+                      O processo será transferido para a Divisão de Licitação com etapa de correção
                     </div>
                   </div>
                 </label>
