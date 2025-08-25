@@ -36,6 +36,7 @@ import {
   ChevronUp,
   X,
   Archive,
+  AlertTriangle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
