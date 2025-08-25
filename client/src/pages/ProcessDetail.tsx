@@ -2764,9 +2764,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       )}
        /*}
        {/* Botão de Correção do Checklist */}
-                        <div className="mt-6 pt-4 border-t border-gray-200">
-                          <center>
-                            <Button
+                        {(() => {
+                          // Verificar se há etapa "Fluxo Repror" visível - não mostrar botão corrigir para etapas de arquivamento
+                          const hasFluxoReprorStep = sectorSteps.some(step => 
+                            step.name === "Fluxo Repror" && 
+                            steps?.some(s => s.stepName === step.name && s.isVisible === true)
+                          );
+                          
+                          if (hasFluxoReprorStep) {
+                            return null; // Não mostrar botão de correção para etapas de arquivamento
+                          }
+                          
+                          return (
+                            <div className="mt-6 pt-4 border-t border-gray-200">
+                              <center>
+                                <Button
                               variant="secondary"
                               onClick={async () => {
                                 try {
@@ -2844,9 +2856,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                             <p className="text-sm text-gray-600 mt-2">
                               Reseta todas as etapas para o estado inicial e
                               esconde etapas condicionais
-                            </p>
-                          </center>
-                        </div>
+                                </p>
+                              </center>
+                            </div>
+                          );
+                        })()}
                         {/* Prazo de Finalização por Fase */}
                         {currentUser && process && (
                           <div className="mt-6 pt-4 border-t border-gray-200">
