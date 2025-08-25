@@ -2263,9 +2263,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       Não autorizar a defesa ou solicitar reformulação da
                       demanda
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Esta opção ativará a etapa "Devolver para correção ou arquivamento"
-                    </div>
                   </div>
                 </label>
               </div>
@@ -2288,9 +2285,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   <div>
                     <div className="text-sm font-medium text-gray-900">
                       Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Esta opção ativará a etapa "Solicitar ajuste/aditivo do plano de trabalho"
                     </div>
                   </div>
                 </label>
