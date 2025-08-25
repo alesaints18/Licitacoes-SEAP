@@ -2270,7 +2270,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               );
                                               
                                               setSubccRevaluationModalOpen(true);
-                                              setStepForSubccRevaluation(existingStep || null);
+                                              // Se a etapa não existe, criar um objeto temporário com as informações necessárias
+                                              if (existingStep) {
+                                                setStepForSubccRevaluation(existingStep);
+                                              } else {
+                                                // Criar objeto temporário para o modal funcionar
+                                                setStepForSubccRevaluation({
+                                                  id: null,
+                                                  stepName: "Fluxo reavaliação do plano de trabalho",
+                                                  departmentId: process?.currentDepartmentId || 11,
+                                                  processId: parsedId,
+                                                  isCompleted: false,
+                                                  isVisible: true,
+                                                } as any);
+                                              }
                                               return; // NÃO CONTINUA - Etapa só será concluída após confirmação no modal
                                             }
 
