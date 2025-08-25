@@ -406,33 +406,53 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       ],
 
       // Licitações - Divisão de Licitação (com lógica condicional)
-      Licitações: [
-        {
-          name: "Criar Processo - Órgão",
-          phase: "Preparação",
-        },
-        {
-          name: "Fazer Pesquisa de Preço - Órgão",
-          phase: "Preparação",
-        },
-        {
-          name: "Solicitar Pesquisa de Preços",
-          phase: "Preparação",
-        },
-        // Estas etapas só aparecem após NPP completar
-        ...(isNPPCompleted()
-          ? [
-              {
-                name: "Inserir Pesquisa no Sistema",
-                phase: "Execução",
-              },
-              {
-                name: "Solicitar Análise Orçamentária",
-                phase: "Execução",
-              },
-            ]
-          : []),
-      ],
+      Licitações: (() => {
+        // Verificar se existe etapa específica de correção na Divisão de Licitação
+        const correctionStep = steps?.find(s => 
+          s.stepName === "Devolver para correção ou cancelar processo" && 
+          s.departmentId === 2 && 
+          s.isVisible
+        );
+        
+        if (correctionStep) {
+          // Se há etapa de correção, mostrar apenas ela
+          return [
+            {
+              name: "Devolver para correção ou cancelar processo",
+              phase: "Correção",
+            }
+          ];
+        }
+        
+        // Caso contrário, mostrar etapas normais da Divisão de Licitação
+        return [
+          {
+            name: "Criar Processo - Órgão",
+            phase: "Preparação",
+          },
+          {
+            name: "Fazer Pesquisa de Preço - Órgão",
+            phase: "Preparação",
+          },
+          {
+            name: "Solicitar Pesquisa de Preços",
+            phase: "Preparação",
+          },
+          // Estas etapas só aparecem após NPP completar
+          ...(isNPPCompleted()
+            ? [
+                {
+                  name: "Inserir Pesquisa no Sistema",
+                  phase: "Execução",
+                },
+                {
+                  name: "Solicitar Análise Orçamentária",
+                  phase: "Execução",
+                },
+              ]
+            : []),
+        ];
+      })(),
 
       // NPP - Núcleo de Pesquisa de Preços
       NPP: [
