@@ -911,7 +911,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Função para completar correção depois de escolher a opção
   const handleCorrectionComplete = async () => {
+    console.log("🔥 MODAL CORREÇÃO - Função chamada!", { stepForCorrection, correctionDecision });
+    
     if (!stepForCorrection || !correctionDecision) {
+      console.log("🔥 MODAL CORREÇÃO - Validação falhou:", { 
+        stepForCorrection: !!stepForCorrection, 
+        correctionDecision: !!correctionDecision 
+      });
       return;
     }
 
