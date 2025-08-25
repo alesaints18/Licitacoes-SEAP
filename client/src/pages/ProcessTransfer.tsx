@@ -266,6 +266,15 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     if (nextDepartment) availableDepartments.push(nextDepartment);
   } else if (process.currentDepartmentId === 5) {
     // Secretário SEAP - depois da autorização, pode ir para diferentes fluxos
+    
+    // Verificar se etapa de devolução foi concluída
+    const correctionStep = processSteps?.find(s => s.stepName === "Devolver para correção ou arquivamento" && s.isCompleted);
+    if (correctionStep) {
+      // Pode transferir para Divisão de Licitação para correção
+      const divisaoLicitacao = departments?.find(d => d.id === 2);
+      if (divisaoLicitacao) availableDepartments.push(divisaoLicitacao);
+    }
+    
     // Verificar se tem etapa de autorização concluída
     const authStep = processSteps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
     if (authStep) {
