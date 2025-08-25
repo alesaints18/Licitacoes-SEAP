@@ -204,14 +204,29 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   let allStepsCompleted = false;
   
   if (process.currentDepartmentId === 2) {
-    // Divisão de Licitação - verificar se veio de rejeição específica
+    // Divisão de Licitação - verificar contexto específico
+    
+    // Verificar se veio do fluxo de arquivamento do Setor Demandante
+    const archiveFromDemandanteStep = processSteps?.find(s => 
+      s.stepName === "Arquivar processo" && 
+      s.departmentId === 1 &&
+      s.isCompleted === true
+    );
+    
+    // Verificar se veio de rejeição específica
     const authorizationStep = processSteps?.find(s => 
       s.stepName === "Autorização pelo Secretário SEAP" && 
       s.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda" &&
       s.isCompleted === true
     );
     
-    if (authorizationStep) {
+    if (archiveFromDemandanteStep) {
+      // Contexto de arquivamento - validar apenas etapa de arquivamento final
+      expectedSteps = [{ name: "Arquivar processo - Final" }];
+      currentDepartmentSteps = processSteps?.filter(step => 
+        step.stepName === "Arquivar processo - Final"
+      ) || [];
+    } else if (authorizationStep) {
       // Contexto de correção - validar apenas etapa de correção
       expectedSteps = [{ name: "Devolver para correção ou cancelar processo" }];
       currentDepartmentSteps = processSteps?.filter(step => 

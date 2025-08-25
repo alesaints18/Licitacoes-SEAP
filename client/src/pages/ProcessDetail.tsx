@@ -473,6 +473,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             s.departmentId === 2,
         );
 
+        // Verificar se processo vem do fluxo de arquivamento do Setor Demandante
+        const archiveFromDemandanteStep = steps?.find(
+          (s) =>
+            s.stepName === "Arquivar processo" &&
+            s.departmentId === 1 &&
+            s.isCompleted === true
+        );
+
         // Se existe etapa "Arquivar processo - Final" concluída, não mostrar nenhuma etapa
         if (process?.currentDepartmentId === 2 && archiveFinalStep && archiveFinalStep.isCompleted) {
           console.log(
@@ -485,6 +493,19 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         if (process?.currentDepartmentId === 2 && archiveFinalStep && !archiveFinalStep.isCompleted) {
           console.log(
             "🔍 DIVISÃO LICITAÇÃO - Processo com etapa de arquivamento final, mostrando apenas etapa final",
+          );
+          return [
+            {
+              name: "Arquivar processo - Final",
+              phase: "Arquivamento",
+            },
+          ];
+        }
+
+        // Se processo vem do fluxo de arquivamento do Setor Demandante e não há etapa final ainda
+        if (process?.currentDepartmentId === 2 && archiveFromDemandanteStep && !archiveFinalStep) {
+          console.log(
+            "🔍 DIVISÃO LICITAÇÃO - Processo vem de arquivamento do Setor Demandante, criando etapa de arquivamento final",
           );
           return [
             {
