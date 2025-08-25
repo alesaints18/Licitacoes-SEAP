@@ -268,18 +268,23 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     // Secretário SEAP - depois da autorização, pode ir para diferentes fluxos
     
     // Verificar se etapa de devolução foi concluída
-    const correctionStep = processSteps?.find(s => s.stepName === "Devolver para correção ou arquivamento" && s.isCompleted);
+    const correctionStep = processSteps?.find(s => s.stepName === "Devolver para correção ou cancelar processo" && s.isCompleted);
     if (correctionStep) {
       // Pode transferir para Divisão de Licitação para correção
       const divisaoLicitacao = departments?.find(d => d.id === 2);
       if (divisaoLicitacao) availableDepartments.push(divisaoLicitacao);
     }
     
-    // Verificar se tem etapa de autorização concluída
+    // Verificar se tem etapa de autorização concluída ou rejeitada
     const authStep = processSteps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
     if (authStep) {
+      // Se foi rejeitada especificamente com "Não autorizar a defesa", permite tramitar para Divisão de Licitação
+      if (authStep.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda") {
+        const divisaoLicitacao = departments?.find(d => d.id === 2);
+        if (divisaoLicitacao) availableDepartments.push(divisaoLicitacao);
+      }
       // Baseado na decisão da autorização, liberar departamentos específicos
-      if (authStep.observations?.includes("INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL")) {
+      else if (authStep.observations?.includes("INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL")) {
         // Pode transferir para Unidade de Orçamento e Finanças (Fluxo Repror)
         const orcamentoFinancas = departments?.find(d => d.id === 6);
         if (orcamentoFinancas) availableDepartments.push(orcamentoFinancas);
