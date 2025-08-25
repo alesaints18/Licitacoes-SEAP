@@ -727,9 +727,30 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         authorizationRejectionDecision,
       );
 
+      let stepId = stepForAuthorizationRejection.id;
+      
+      // Se não tem ID, criar a etapa primeiro
+      if (!stepId) {
+        console.log("🔥🔥🔥 ProcessDetail - Criando etapa antes de rejeitar");
+        const createResponse = await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
+          stepName: stepForAuthorizationRejection.stepName,
+          departmentId: stepForAuthorizationRejection.departmentId,
+          isVisible: true,
+          isCompleted: false
+        });
+        
+        if (createResponse.ok) {
+          const newStep = await createResponse.json();
+          stepId = newStep.id;
+          console.log("🔥🔥🔥 ProcessDetail - Etapa criada com ID:", stepId);
+        } else {
+          throw new Error("Erro ao criar etapa");
+        }
+      }
+
       const response = await apiRequest(
         "PATCH",
-        `/api/processes/${parsedId}/steps/${stepForAuthorizationRejection.id}`,
+        `/api/processes/${parsedId}/steps/${stepId}`,
         {
           isCompleted: true,
           observations: `REJEIÇÃO: ${authorizationRejectionDecision}`,
@@ -2008,9 +2029,23 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               setAuthorizationRejectionModalOpen(
                                                 true,
                                               );
-                                              setStepForAuthorizationRejection(
-                                                existingStep || null,
-                                              );
+                                              
+                                              // Se não existe step, criar um objeto temporário com as informações necessárias
+                                              if (existingStep) {
+                                                setStepForAuthorizationRejection(existingStep);
+                                              } else {
+                                                // Criar objeto temporário da etapa para usar no modal
+                                                const tempStep = {
+                                                  id: null, // Será criado quando confirmado
+                                                  stepName: sectorStep.name,
+                                                  departmentId: process?.currentDepartmentId || 0,
+                                                  isVisible: true,
+                                                  isCompleted: false,
+                                                  processId: parsedId
+                                                };
+                                                setStepForAuthorizationRejection(tempStep as any);
+                                              }
+                                              
                                               setAuthorizationRejectionDecision(
                                                 "",
                                               ); // Limpar seleção anterior
