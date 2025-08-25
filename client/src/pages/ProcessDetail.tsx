@@ -512,7 +512,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           });
         }
 
-        // Etapas condicionais só aparecem quando criadas pelo modal, não aqui
+        // Verificar se existem etapas condicionais criadas pelos modais (só incluir se realmente existem no banco)
+        const conditionalSteps = steps?.filter(s => 
+          s.departmentId === 5 && // Mesmo departamento (SEAP)
+          (s.stepName === "Devolver para correção ou arquivamento" || 
+           s.stepName === "Solicitar ajuste/aditivo do plano de trabalho") &&
+          !s.observations?.includes("ETAPA_REMOVIDA") && // Não incluir se foi marcada como removida
+          s.observations?.includes("Etapa criada automaticamente após rejeição") // Só etapas criadas pelo modal
+        );
+
+        conditionalSteps?.forEach(conditionalStep => {
+          baseSteps.push({
+            name: conditionalStep.stepName,
+            phase: "Correção",
+          });
+        });
 
         return baseSteps;
       })(),
