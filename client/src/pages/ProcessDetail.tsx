@@ -1943,6 +1943,138 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
                                             }
 
+                                            // Verificar se é a etapa de Arquivar processo no Setor Demandante
+                                            if (
+                                              sectorStep.name === "Arquivar processo" &&
+                                              process?.currentDepartmentId === 1
+                                            ) {
+                                              console.log(
+                                                "🔥 ProcessDetail - Etapa de arquivamento no Setor Demandante - transferindo para Divisão de Licitação",
+                                              );
+                                              
+                                              // Criar etapa se não existir
+                                              let stepId = existingStep?.id;
+                                              if (!existingStep) {
+                                                console.log("🔥🔥🔥 ProcessDetail - Criando etapa de arquivamento");
+                                                const createResponse = await apiRequest(
+                                                  "POST",
+                                                  `/api/processes/${parsedId}/steps`,
+                                                  {
+                                                    stepName: sectorStep.name,
+                                                    departmentId: process?.currentDepartmentId || 1,
+                                                    isVisible: true,
+                                                    isCompleted: false,
+                                                  },
+                                                );
+                                              
+                                                if (createResponse.ok) {
+                                                  const newStep = await createResponse.json();
+                                                  stepId = newStep.id;
+                                                  console.log("🔥🔥🔥 ProcessDetail - Etapa criada com ID:", stepId);
+                                                } else {
+                                                  throw new Error("Erro ao criar etapa");
+                                                }
+                                              }
+                                              
+                                              // Completar a etapa
+                                              await apiRequest(
+                                                "PATCH",
+                                                `/api/processes/${parsedId}/steps/${stepId}`,
+                                                {
+                                                  isCompleted: true,
+                                                  observations: "Processo encaminhado para arquivamento final",
+                                                  userId: currentUser?.id,
+                                                },
+                                              );
+                                              
+                                              // Transferir para Divisão de Licitação
+                                              await apiRequest(
+                                                "POST",
+                                                `/api/processes/${parsedId}/transfer`,
+                                                {
+                                                  departmentId: 2, // Divisão de Licitação
+                                                  userId: currentUser?.id,
+                                                }
+                                              );
+                                              
+                                              // Refetch dos dados
+                                              queryClient.invalidateQueries({
+                                                queryKey: [`/api/processes/${parsedId}`],
+                                              });
+                                              queryClient.invalidateQueries({
+                                                queryKey: [`/api/processes/${parsedId}/steps`],
+                                              });
+                                              
+                                              toast({
+                                                title: "✅ Processo Transferido",
+                                                description: "Processo encaminhado para arquivamento final na Divisão de Licitação.",
+                                              });
+                                              
+                                              return; // NÃO CONTINUA
+                                            }
+
+                                            // Verificar se é a etapa de Arquivar processo na Divisão de Licitação
+                                            if (
+                                              sectorStep.name === "Arquivar processo" &&
+                                              process?.currentDepartmentId === 2
+                                            ) {
+                                              console.log(
+                                                "🔥 ProcessDetail - Etapa de arquivamento na Divisão de Licitação - arquivando processo e redirecionando",
+                                              );
+                                              
+                                              // Criar etapa se não existir
+                                              let stepId = existingStep?.id;
+                                              if (!existingStep) {
+                                                console.log("🔥🔥🔥 ProcessDetail - Criando etapa de arquivamento final");
+                                                const createResponse = await apiRequest(
+                                                  "POST",
+                                                  `/api/processes/${parsedId}/steps`,
+                                                  {
+                                                    stepName: sectorStep.name,
+                                                    departmentId: process?.currentDepartmentId || 2,
+                                                    isVisible: true,
+                                                    isCompleted: false,
+                                                  },
+                                                );
+                                              
+                                                if (createResponse.ok) {
+                                                  const newStep = await createResponse.json();
+                                                  stepId = newStep.id;
+                                                  console.log("🔥🔥🔥 ProcessDetail - Etapa criada com ID:", stepId);
+                                                } else {
+                                                  throw new Error("Erro ao criar etapa");
+                                                }
+                                              }
+                                              
+                                              // Completar a etapa
+                                              await apiRequest(
+                                                "PATCH",
+                                                `/api/processes/${parsedId}/steps/${stepId}`,
+                                                {
+                                                  isCompleted: true,
+                                                  observations: "Processo arquivado permanentemente",
+                                                  userId: currentUser?.id,
+                                                },
+                                              );
+                                              
+                                              // Arquivar o processo (status canceled)
+                                              await apiRequest("PATCH", `/api/processes/${parsedId}`, {
+                                                status: "canceled",
+                                              });
+                                              
+                                              toast({
+                                                title: "✅ Processo Arquivado",
+                                                description: "Processo foi arquivado permanentemente. Redirecionando...",
+                                              });
+                                              
+                                              // Redirecionar para página de processos
+                                              setTimeout(() => {
+                                                window.location.href = "/processes";
+                                              }, 2000);
+                                              
+                                              return; // NÃO CONTINUA
+                                            }
+
                                             // Verificar se é a etapa de Devolver para correção ou cancelar processo
                                             if (
                                               sectorStep.name ===
