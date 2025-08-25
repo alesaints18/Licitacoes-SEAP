@@ -1099,7 +1099,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Função para completar autorização depois de escolher a opção
   const handleAuthorizationComplete = async () => {
+    console.log("🔥 MODAL AUTORIZAÇÃO - Função chamada!", { stepForAuthorization, authorizationDecision });
+    
     if (!stepForAuthorization || !authorizationDecision) {
+      console.log("🔥 MODAL AUTORIZAÇÃO - Validação falhou:", { 
+        stepForAuthorization: !!stepForAuthorization, 
+        authorizationDecision: !!authorizationDecision 
+      });
       return;
     }
 
@@ -2427,7 +2433,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               Cancelar
             </Button>
             <Button
-              onClick={handleAuthorizationComplete}
+              onClick={() => {
+                console.log("🔥 BOTÃO AUTORIZAÇÃO - Clicado!");
+                handleAuthorizationComplete();
+              }}
               disabled={!authorizationDecision}
               className="bg-green-600 hover:bg-green-700"
             >
@@ -2518,7 +2527,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               Cancelar
             </Button>
             <Button
-              onClick={handleAuthorizationRejection}
+              onClick={() => {
+                console.log("🔥 BOTÃO REJEIÇÃO - Clicado!");
+                handleAuthorizationRejection();
+              }}
               disabled={!authorizationRejectionDecision}
               className="bg-red-600 hover:bg-red-700"
             >
@@ -2608,7 +2620,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               Cancelar
             </Button>
             <Button
-              onClick={handleCorrectionComplete}
+              onClick={() => {
+                console.log("🔥 BOTÃO CORREÇÃO - Clicado!");
+                handleCorrectionComplete();
+              }}
               disabled={!correctionDecision}
               className="bg-orange-600 hover:bg-orange-700"
             >
