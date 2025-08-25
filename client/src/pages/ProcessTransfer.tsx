@@ -197,15 +197,43 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   // Verificar se todas as etapas do setor atual estão concluídas
   const currentDepartment = departments?.find(d => d.id === process.currentDepartmentId);
   const currentDepartmentName = currentDepartment?.name || "";
-  const expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
   
-  // Filtrar etapas baseado nos nomes esperados para o setor atual
-  const currentDepartmentSteps = processSteps?.filter(step => 
-    expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
-  ) || [];
+  // ESPECIAL: Verificar se estamos na Divisão de Licitação com etapa de correção
+  let expectedSteps: any[] = [];
+  let currentDepartmentSteps: any[] = [];
+  let allStepsCompleted = false;
+  
+  if (process.currentDepartmentId === 2) {
+    // Divisão de Licitação - verificar se veio de rejeição específica
+    const authorizationStep = processSteps?.find(s => 
+      s.stepName === "Autorização pelo Secretário SEAP" && 
+      s.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda" &&
+      s.isCompleted === true
+    );
+    
+    if (authorizationStep) {
+      // Contexto de correção - validar apenas etapa de correção
+      expectedSteps = [{ name: "Devolver para correção ou cancelar processo" }];
+      currentDepartmentSteps = processSteps?.filter(step => 
+        step.stepName === "Devolver para correção ou cancelar processo"
+      ) || [];
+    } else {
+      // Contexto normal da Divisão de Licitação
+      expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
+      currentDepartmentSteps = processSteps?.filter(step => 
+        expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
+      ) || [];
+    }
+  } else {
+    // Outros departamentos - lógica normal
+    expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
+    currentDepartmentSteps = processSteps?.filter(step => 
+      expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
+    ) || [];
+  }
   
   const incompleteSteps = currentDepartmentSteps.filter(step => !step.isCompleted);
-  const allStepsCompleted = expectedSteps.length > 0 && currentDepartmentSteps.length >= expectedSteps.length && incompleteSteps.length === 0;
+  allStepsCompleted = expectedSteps.length > 0 && currentDepartmentSteps.length >= expectedSteps.length && incompleteSteps.length === 0;
   
   // Debug temporário
   console.log("Transfer validation debug:", {

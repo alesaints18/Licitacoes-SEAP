@@ -936,7 +936,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       setCorrectionDecision("");
       setStepForCorrection(null);
 
-      // Invalidar cache imediato apenas para a interface
+      // Invalidar cache para garantir atualização
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}/steps`],
+      });
       queryClient.invalidateQueries({
         queryKey: [`/api/processes/${parsedId}`],
       });
