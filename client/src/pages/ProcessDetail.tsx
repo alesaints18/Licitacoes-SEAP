@@ -574,6 +574,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           phase: "Execução",
           nextSector: "Administrativo",
         },
+        {
+          name: "Fluxo Repror",
+          phase: "Fluxo Repror",
+        },
       ],
 
       // Administrativo - Secretário SEAP
