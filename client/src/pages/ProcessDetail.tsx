@@ -1659,6 +1659,42 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       if (response.ok) {
+        // Se a decisão for "Autorizar", criar etapa "Autorizar via sistema" no mesmo setor
+        if (authorizeRoDecision === "Autorizar") {
+          console.log(
+            "🔥🔥🔥 ProcessDetail - Criando etapa 'Autorizar via sistema' para decisão Autorizar",
+          );
+
+          try {
+            // Criar a etapa "Autorizar via sistema" no mesmo departamento (ID 5)
+            const createStepResponse = await apiRequest(
+              "POST",
+              `/api/processes/${parsedId}/steps`,
+              {
+                stepName: "Autorizar via sistema",
+                departmentId: 5, // Mesmo setor (Secretário de Estado da Administração Penitenciária - SEAP)
+                isVisible: true,
+                isCompleted: false,
+              },
+            );
+
+            if (createStepResponse.ok) {
+              console.log(
+                "✅✅✅ ProcessDetail - Etapa 'Autorizar via sistema' criada com sucesso",
+              );
+            } else {
+              console.error(
+                "❌❌❌ ProcessDetail - Erro ao criar etapa 'Autorizar via sistema'",
+              );
+            }
+          } catch (etapaError) {
+            console.error(
+              "❌❌❌ ProcessDetail - Erro ao criar etapa 'Autorizar via sistema':",
+              etapaError,
+            );
+          }
+        }
+
         // Fechar modal e limpar estados
         setAuthorizeRoModalOpen(false);
         setStepForAuthorizeRo(null);
@@ -1674,7 +1710,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         toast({
           title: "✅ Etapa Concluída",
-          description: `Autorização de Emissão de R.O processada: ${authorizeRoDecision}`,
+          description:
+            authorizeRoDecision === "Autorizar"
+              ? `Autorização de Emissão de R.O processada: ${authorizeRoDecision}. Próxima etapa 'Autorizar via sistema' criada automaticamente.`
+              : `Autorização de Emissão de R.O processada: ${authorizeRoDecision}`,
         });
       } else {
         throw new Error("Erro ao completar autorização");
