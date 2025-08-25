@@ -884,7 +884,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             if (stepsResponse.ok) {
               const allSteps = await stepsResponse.json();
               const intermediateStep = allSteps.find(
-                (s: any) => s.stepName === "Devolver para correção ou arquivamento" && s.departmentId === stepForAuthorizationRejection.departmentId
+                (s: any) => s.stepName === "Devolver para correção ou arquivamento" && s.departmentId === 2 // Divisão de Licitação
               );
 
               if (intermediateStep) {
