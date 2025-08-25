@@ -2189,24 +2189,48 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                 "🔥 ProcessDetail - Etapa de correção detectada - abrindo modal de correção",
                                               );
 
-                                              // Verificar se a etapa existe - se não existe, não deve estar visível ainda
+                                              // Se a etapa não existe, criar ela primeiro
                                               if (!existingStep) {
                                                 console.log(
-                                                  "❌ Etapa 'Devolver para correção ou cancelar processo' não encontrada - não deve estar visível ainda.",
+                                                  "🔄 ProcessDetail - Criando etapa 'Devolver para correção ou cancelar processo'",
                                                 );
-                                                toast({
-                                                  title: "Etapa não disponível",
-                                                  description: "Esta etapa só está disponível após tramitação manual do processo.",
-                                                  variant: "destructive"
-                                                });
-                                                return; // NÃO CONTINUA
-                                              }
+                                                
+                                                try {
+                                                  const response = await apiRequest(
+                                                    "POST",
+                                                    `/api/processes/${process.id}/steps`,
+                                                    {
+                                                      stepName: sectorStep.name,
+                                                      departmentId: process.currentDepartmentId,
+                                                      isCompleted: false,
+                                                      isVisible: true,
+                                                      observations: null,
+                                                    },
+                                                  );
 
-                                              // Se a etapa existe, usar ela
-                                              setStepForCorrection(existingStep);
-                                              setCorrectionModalOpen(true);
-                                              setCorrectionDecision(""); // Limpar seleção anterior
-                                              return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
+                                                  if (response.ok) {
+                                                    const newStep = await response.json();
+                                                    setStepForCorrection(newStep);
+                                                    setCorrectionModalOpen(true);
+                                                    setCorrectionDecision("");
+                                                    return;
+                                                  }
+                                                } catch (error) {
+                                                  console.error("Erro ao criar etapa:", error);
+                                                  toast({
+                                                    title: "Erro",
+                                                    description: "Erro ao criar etapa de correção",
+                                                    variant: "destructive",
+                                                  });
+                                                  return;
+                                                }
+                                              } else {
+                                                // Se a etapa existe, usar ela
+                                                setStepForCorrection(existingStep);
+                                                setCorrectionModalOpen(true);
+                                                setCorrectionDecision(""); // Limpar seleção anterior
+                                                return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
+                                              }
                                             }
 
                                             if (existingStep) {
