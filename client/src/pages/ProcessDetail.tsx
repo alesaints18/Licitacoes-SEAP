@@ -35,6 +35,7 @@ import {
   ChevronDown,
   ChevronUp,
   X,
+  Archive,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -93,6 +94,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [correctionDecision, setCorrectionDecision] = useState("");
   const [stepForCorrection, setStepForCorrection] =
     useState<ProcessStep | null>(null);
+
+  // Estado para o modal de arquivamento
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [stepForArchive, setStepForArchive] = useState<ProcessStep | null>(null);
 
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
@@ -1111,6 +1116,94 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
+  // Função para arquivar processo final
+  const handleArchiveProcess = async () => {
+    console.log("🔥 MODAL ARQUIVAMENTO - Função chamada!", {
+      stepForArchive,
+    });
+
+    if (!stepForArchive) {
+      console.log("🔥 MODAL ARQUIVAMENTO - Validação falhou");
+      return;
+    }
+
+    try {
+      console.log(
+        "🔥🔥🔥 ProcessDetail - Arquivando processo definitivamente",
+      );
+
+      // Criar etapa se não existir
+      let stepId = stepForArchive.id;
+      if (!stepId) {
+        console.log("🔥🔥🔥 ProcessDetail - Criando etapa de arquivamento final");
+        const createResponse = await apiRequest(
+          "POST",
+          `/api/processes/${parsedId}/steps`,
+          {
+            stepName: "Arquivar processo - Final",
+            departmentId: process?.currentDepartmentId || 2,
+            isVisible: true,
+            isCompleted: false,
+          },
+        );
+
+        if (createResponse.ok) {
+          const newStep = await createResponse.json();
+          stepId = newStep.id;
+          console.log("🔥🔥🔥 ProcessDetail - Etapa criada com ID:", stepId);
+        } else {
+          throw new Error("Erro ao criar etapa");
+        }
+      }
+
+      // Completar a etapa
+      await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepId}`,
+        {
+          isCompleted: true,
+          observations: "Processo arquivado permanentemente",
+          userId: currentUser?.id,
+        },
+      );
+
+      // Arquivar o processo (status canceled)
+      await apiRequest("PATCH", `/api/processes/${parsedId}`, {
+        status: "canceled",
+      });
+
+      // Fechar modal e limpar estados
+      setArchiveModalOpen(false);
+      setStepForArchive(null);
+
+      // Invalidar cache para garantir atualização
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}/steps`],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}`],
+      });
+
+      toast({
+        title: "✅ Processo Arquivado",
+        description: "Processo foi arquivado permanentemente. Redirecionando...",
+      });
+
+      // Redirecionar para página de processos
+      setTimeout(() => {
+        window.location.href = "/processes";
+      }, 2000);
+
+    } catch (error) {
+      console.error("Erro ao arquivar processo:", error);
+      toast({
+        title: "❌ Erro",
+        description: "Erro ao arquivar processo",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Função para completar autorização depois de escolher a opção
   const handleAuthorizationComplete = async () => {
     console.log("🔥 MODAL AUTORIZAÇÃO - Função chamada!", {
@@ -1971,13 +2064,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
                                             }
 
-                                            // Verificar se é a etapa de Arquivar processo no Setor Demandante
+                                            // Verificar se é a etapa de Arquivar processo no Setor Demandante (AGORA MANUAL)
                                             if (
                                               sectorStep.name === "Arquivar processo" &&
                                               currentUser.department === "Setor Demandante"
                                             ) {
                                               console.log(
-                                                "🔥 ProcessDetail - Etapa de arquivamento no Setor Demandante - transferindo para Divisão de Licitação",
+                                                "🔥 ProcessDetail - Etapa de arquivamento no Setor Demandante - completando etapa (transferência manual)",
                                               );
                                               
                                               // Criar etapa se não existir
@@ -2004,36 +2097,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                 }
                                               }
                                               
-                                              // Completar a etapa
+                                              // Apenas completar a etapa (sem transferir automaticamente)
                                               await apiRequest(
                                                 "PATCH",
                                                 `/api/processes/${parsedId}/steps/${stepId}`,
                                                 {
                                                   isCompleted: true,
-                                                  observations: "Processo encaminhado para arquivamento final",
+                                                  observations: "Processo pronto para arquivamento - aguardando transferência manual",
                                                   userId: currentUser?.id,
-                                                },
-                                              );
-                                              
-                                              // Transferir para Divisão de Licitação
-                                              await apiRequest(
-                                                "POST",
-                                                `/api/processes/${parsedId}/transfer`,
-                                                {
-                                                  departmentId: 2, // Divisão de Licitação
-                                                  userId: currentUser?.id,
-                                                }
-                                              );
-                                              
-                                              // Criar etapa "Arquivar processo - Final" na Divisão de Licitação
-                                              await apiRequest(
-                                                "POST",
-                                                `/api/processes/${parsedId}/steps`,
-                                                {
-                                                  stepName: "Arquivar processo - Final",
-                                                  departmentId: 2, // Divisão de Licitação
-                                                  isVisible: true,
-                                                  isCompleted: false,
                                                 },
                                               );
                                               
@@ -2046,73 +2117,25 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               });
                                               
                                               toast({
-                                                title: "✅ Processo Transferido",
-                                                description: "Processo encaminhado para arquivamento final na Divisão de Licitação.",
+                                                title: "✅ Etapa Concluída",
+                                                description: "Processo marcado para arquivamento. Utilize o botão 'Transferir Processo' para enviar à Divisão de Licitação.",
                                               });
                                               
                                               return; // NÃO CONTINUA
                                             }
 
-                                            // Verificar se é a etapa de Arquivar processo na Divisão de Licitação
+                                            // Verificar se é a etapa de Arquivar processo na Divisão de Licitação (COM MODAL DE CONFIRMAÇÃO)
                                             if (
                                               sectorStep.name === "Arquivar processo - Final" &&
                                               currentUser.department === "Divisão de Licitação"
                                             ) {
                                               console.log(
-                                                "🔥 ProcessDetail - Etapa de arquivamento na Divisão de Licitação - arquivando processo e redirecionando",
+                                                "🔥 ProcessDetail - Etapa de arquivamento final detectada - abrindo modal de confirmação",
                                               );
                                               
-                                              // Criar etapa se não existir
-                                              let stepId = existingStep?.id;
-                                              if (!existingStep) {
-                                                console.log("🔥🔥🔥 ProcessDetail - Criando etapa de arquivamento final");
-                                                const createResponse = await apiRequest(
-                                                  "POST",
-                                                  `/api/processes/${parsedId}/steps`,
-                                                  {
-                                                    stepName: sectorStep.name,
-                                                    departmentId: process?.currentDepartmentId || 2,
-                                                    isVisible: true,
-                                                    isCompleted: false,
-                                                  },
-                                                );
-                                              
-                                                if (createResponse.ok) {
-                                                  const newStep = await createResponse.json();
-                                                  stepId = newStep.id;
-                                                  console.log("🔥🔥🔥 ProcessDetail - Etapa criada com ID:", stepId);
-                                                } else {
-                                                  throw new Error("Erro ao criar etapa");
-                                                }
-                                              }
-                                              
-                                              // Completar a etapa
-                                              await apiRequest(
-                                                "PATCH",
-                                                `/api/processes/${parsedId}/steps/${stepId}`,
-                                                {
-                                                  isCompleted: true,
-                                                  observations: "Processo arquivado permanentemente",
-                                                  userId: currentUser?.id,
-                                                },
-                                              );
-                                              
-                                              // Arquivar o processo (status canceled)
-                                              await apiRequest("PATCH", `/api/processes/${parsedId}`, {
-                                                status: "canceled",
-                                              });
-                                              
-                                              toast({
-                                                title: "✅ Processo Arquivado",
-                                                description: "Processo foi arquivado permanentemente. Redirecionando...",
-                                              });
-                                              
-                                              // Redirecionar para página de processos
-                                              setTimeout(() => {
-                                                window.location.href = "/processes";
-                                              }, 2000);
-                                              
-                                              return; // NÃO CONTINUA
+                                              setArchiveModalOpen(true);
+                                              setStepForArchive(existingStep || null);
+                                              return; // NÃO CONTINUA - Etapa só será concluída após confirmação no modal
                                             }
 
                                             // Verificar se é a etapa de Devolver para correção ou cancelar processo
@@ -2994,6 +3017,61 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             >
               <ArrowRight className="h-4 w-4 mr-2" />
               Confirmar Ação
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmação de Arquivamento Final */}
+      <Dialog open={archiveModalOpen} onOpenChange={setArchiveModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Archive className="h-5 w-5" />
+              Confirmar Arquivamento Final
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza de que deseja arquivar este processo permanentemente?{" "}
+              <br />
+              <strong className="text-red-600">Esta ação não pode ser desfeita.</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                <div>
+                  <div className="text-sm font-medium text-yellow-800">
+                    Atenção
+                  </div>
+                  <div className="text-sm text-yellow-700 mt-1">
+                    O processo será arquivado definitivamente e não poderá mais ser processado ou modificado. Esta é uma ação irreversível.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setArchiveModalOpen(false);
+                setStepForArchive(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                console.log("🔥 BOTÃO ARQUIVAMENTO - Clicado!");
+                handleArchiveProcess();
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Arquivar Processo
             </Button>
           </div>
         </DialogContent>
