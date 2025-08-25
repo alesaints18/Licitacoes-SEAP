@@ -934,7 +934,24 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       });
 
       if (correctionDecision === "Encaminhar ao documento de formalização da demanda novamente") {
-        // Reiniciar processo - criar etapas iniciais do Setor Demandante
+        // Resetar processo completo - primeiro tornar todas as etapas invisíveis e não concluídas
+        const allStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
+        if (allStepsResponse.ok) {
+          const allSteps = await allStepsResponse.json();
+          
+          // Resetar todas as etapas existentes
+          for (const step of allSteps) {
+            await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
+              isCompleted: false,
+              isVisible: false,
+              observations: null,
+              completedBy: null,
+              completedAt: null
+            });
+          }
+        }
+
+        // Criar apenas as etapas iniciais do Setor Demandante como visíveis
         const initialSteps = [
           "Documento de Formalização da Demanda - DFD",
           "Estudo Técnico Preliminar - ETP", 
