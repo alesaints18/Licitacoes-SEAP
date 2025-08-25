@@ -512,8 +512,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           });
         }
 
-        // Etapas condicionais só aparecem quando criadas pelos modais
-        // Não incluir automaticamente - elas são adicionadas dinamicamente após confirmação dos modais
+        // Incluir etapas condicionais que existem no banco (criadas pelos modais)
+        const conditionalSteps = steps?.filter(s => 
+          s.departmentId === 5 && // Mesmo departamento (SEAP)
+          (s.stepName === "Devolver para correção ou arquivamento" || 
+           s.stepName === "Solicitar ajuste/aditivo do plano de trabalho")
+        );
+
+        if (conditionalSteps && conditionalSteps.length > 0) {
+          conditionalSteps.forEach(conditionalStep => {
+            baseSteps.push({
+              name: conditionalStep.stepName,
+              phase: "Correção",
+            });
+          });
+        }
 
         return baseSteps;
       })(),
