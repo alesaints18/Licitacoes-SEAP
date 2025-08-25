@@ -331,10 +331,23 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     const nextDepartment = departments?.find(d => d.id === 2);
     if (nextDepartment) availableDepartments.push(nextDepartment);
   } else if (process.currentDepartmentId === 2) {
-    // Divisão de Licitação - verificar se etapa de correção foi concluída
+    // Divisão de Licitação - verificar diferentes contextos
+    
+    // Verificar se é contexto de arquivamento final
+    const archiveFinalStep = processSteps?.find(s => 
+      s.stepName === "Arquivar processo - Final" && 
+      s.departmentId === 2 && 
+      s.isCompleted
+    );
+    
+    // Verificar se etapa de correção foi concluída
     const correctionStep = processSteps?.find(s => s.stepName === "Devolver para correção ou cancelar processo" && s.isCompleted);
     
-    if (correctionStep) {
+    if (archiveFinalStep) {
+      // Se arquivamento final foi concluído, processo está finalizado - não permitir transferências
+      console.log("🔍 TRANSFER - Processo arquivado, não permitindo transferências");
+      // availableDepartments fica vazio = processo finalizado
+    } else if (correctionStep) {
       // Se etapa de correção foi concluída, permitir tramitação para Setor Demandante para reiniciar fluxo
       const setorDemandante = departments?.find(d => d.id === 1);
       if (setorDemandante) availableDepartments.push(setorDemandante);
@@ -448,23 +461,41 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
               )}
 
               {/* Mostrar próximo departamento disponível */}
-              {availableDepartments.map((dept) => (
-                <div key={dept.id} className="flex items-center space-x-3">
-                  <div className="flex-1 p-4 rounded-lg border-2 bg-orange-50 border-orange-300 text-orange-800 border-dashed">
+              {availableDepartments.length > 0 ? (
+                availableDepartments.map((dept) => (
+                  <div key={dept.id} className="flex items-center space-x-3">
+                    <div className="flex-1 p-4 rounded-lg border-2 bg-orange-50 border-orange-300 text-orange-800 border-dashed">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium">{dept.name}</h4>
+                          <p className="text-sm opacity-75">Próximo</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded">
+                            Destino
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="flex items-center space-x-3">
+                  <div className="flex-1 p-4 rounded-lg border-2 bg-green-50 border-green-300 text-green-800">
                     <div className="flex items-center justify-between">
                       <div>
-                        <h4 className="font-medium">{dept.name}</h4>
-                        <p className="text-sm opacity-75">Próximo</p>
+                        <h4 className="font-medium">Processo Finalizado</h4>
+                        <p className="text-sm opacity-75">Não há mais departamentos para transferência</p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span className="text-xs bg-orange-200 text-orange-800 px-2 py-1 rounded">
-                          Destino
+                        <span className="text-xs bg-green-200 text-green-800 px-2 py-1 rounded">
+                          Concluído
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
-              ))}
+              )}
             </div>
 
             {/* Fluxo sequencial padrão (oculto, mantido apenas para referência) */}
