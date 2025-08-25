@@ -1108,31 +1108,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             "Decisão registrada. Use o botão 'Tramitar' para transferir o processo ao setor apropriado para reiniciar o fluxo.",
         });
       } else if (correctionDecision === "Arquivar processo") {
-        // Transferir o processo para o Setor Demandante para arquivamento
-        await apiRequest(
-          "POST",
-          `/api/processes/${parsedId}/transfer`,
-          {
-            departmentId: 1, // Setor Demandante
-            userId: currentUser?.id,
-          }
-        );
+        // NÃO transferir automaticamente - usuário deve fazer tramitação manual
         
-        // Criar etapa "Arquivar processo" no Setor Demandante
-        await apiRequest(
-          "POST",
-          `/api/processes/${parsedId}/steps`,
-          {
-            stepName: "Arquivar processo",
-            departmentId: 1, // Setor Demandante
-            isVisible: true,
-            isCompleted: false,
-          },
-        );
-
         toast({
-          title: "✅ Processo Transferido",
-          description: "Processo transferido para o Setor Demandante para arquivamento.",
+          title: "✅ Decisão Registrada",
+          description: "Decisão registrada. Use o botão 'Tramitar' para transferir o processo ao setor apropriado para arquivamento.",
         });
       }
 
