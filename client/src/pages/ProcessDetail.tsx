@@ -1873,27 +1873,40 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                               variant="secondary"
                               onClick={async () => {
                                 try {
-                                  // Corrigir apenas etapas do setor atual
+                                  console.log("🔄 Corrigindo checklist - resetando todas as etapas");
+                                  
                                   if (steps && currentDepartment) {
-                                    const sectorSteps = getSectorSteps(
-                                      currentDepartment.name,
-                                      process?.modalityId || 1,
+                                    // 1. Resetar todas as etapas do setor atual (marcar como incompletas)
+                                    const allSectorSteps = steps.filter(
+                                      (step) => step.departmentId === process?.currentDepartmentId
                                     );
 
-                                    // Filtrar apenas etapas do setor atual que estão concluídas
-                                    const currentSectorSteps = steps.filter(
-                                      (step) =>
-                                        sectorSteps.some(
-                                          (sectorStep) =>
-                                            sectorStep.name === step.stepName,
-                                        ) && step.isCompleted,
-                                    );
-
-                                    for (const step of currentSectorSteps) {
+                                    for (const step of allSectorSteps) {
                                       await apiRequest(
                                         "PATCH",
                                         `/api/processes/${parsedId}/steps/${step.id}`,
-                                        { isCompleted: false },
+                                        { 
+                                          isCompleted: false,
+                                          observations: null,
+                                          rejectedAt: null,
+                                          rejectionStatus: null
+                                        },
+                                      );
+                                    }
+
+                                    // 2. Tornar invisíveis todas as etapas condicionais
+                                    const conditionalSteps = steps.filter(step => [
+                                      "Devolver para correção ou arquivamento",
+                                      "Solicitar ajuste/aditivo do plano de trabalho", 
+                                      "Autorizar Emissão de R.O",
+                                      "Solicitar disponibilização de orçamento"
+                                    ].includes(step.stepName));
+
+                                    for (const step of conditionalSteps) {
+                                      await apiRequest(
+                                        "PATCH",
+                                        `/api/processes/${parsedId}/steps/${step.id}`,
+                                        { isVisible: false },
                                       );
                                     }
 
@@ -1904,15 +1917,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                     });
 
                                     toast({
-                                      title: "Checklist corrigido",
-                                      description: `Etapas do setor ${currentDepartment.name} foram desmarcadas.`,
+                                      title: "Checklist resetado",
+                                      description: "Todas as etapas foram resetadas para o estado inicial.",
                                     });
                                   }
                                 } catch (error) {
                                   toast({
                                     title: "Erro",
                                     description:
-                                      "Não foi possível corrigir o checklist.",
+                                      "Não foi possível resetar o checklist.",
                                     variant: "destructive",
                                   });
                                 }
@@ -1922,8 +1935,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                               Corrigir
                             </Button>
                             <p className="text-sm text-gray-600 mt-2">
-                              Remove apenas as marcações do setor atual feitas
-                              incorretamente
+                              Reseta todas as etapas para o estado inicial e esconde etapas condicionais
                             </p>
                           </center>
                         </div>
