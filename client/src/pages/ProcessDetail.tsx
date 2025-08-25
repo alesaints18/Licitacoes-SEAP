@@ -1184,14 +1184,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         `/api/processes/${parsedId}/steps/${stepId}`,
         {
           isCompleted: true,
-          observations: "Processo arquivado permanentemente",
+          observations: "Processo arquivado - Não autorizado pelo Secretário de Estado da Administração - SEAP",
           userId: currentUser?.id,
         },
       );
 
-      // Arquivar o processo (status canceled)
-      await apiRequest("PATCH", `/api/processes/${parsedId}`, {
-        status: "canceled",
+      // Arquivar o processo (soft delete para aba Arquivados)
+      await apiRequest("DELETE", `/api/processes/${parsedId}`, {
+        deletionReason: "Arquivado por processo não autorizado pelo Secretário de Estado da Administração - SEAP",
       });
 
       // Fechar modal e limpar estados
@@ -1208,7 +1208,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       toast({
         title: "✅ Processo Arquivado",
-        description: "Processo foi arquivado permanentemente. Redirecionando...",
+        description: "Processo foi arquivado e movido para a aba 'Arquivados'. Redirecionando...",
       });
 
       // Redirecionar para página de processos
@@ -3060,9 +3060,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               Confirmar arquivamento do processo #{process?.pbdocNumber}?
             </DialogTitle>
             <DialogDescription>
-              Tem certeza de que deseja arquivar este processo permanentemente?{" "}
+              Tem certeza de que deseja arquivar este processo?{" "}
               <br />
-              <strong className="text-red-600">Esta ação não pode ser desfeita.</strong>
+              O processo será movido para a aba "Arquivados" com o motivo: <strong className="text-blue-600">"Arquivado por processo não autorizado pelo Secretário de Estado da Administração - SEAP"</strong>
             </DialogDescription>
           </DialogHeader>
 
@@ -3075,7 +3075,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     Atenção
                   </div>
                   <div className="text-sm text-yellow-700 mt-1">
-                    O processo será arquivado definitivamente e não poderá mais ser processado ou modificado. Esta é uma ação irreversível.
+                    O processo será arquivado e movido para a aba "Arquivados". O processo poderá ser restaurado posteriormente se necessário.
                   </div>
                 </div>
               </div>
