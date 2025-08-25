@@ -512,20 +512,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           });
         }
 
-        // Verificar se existem etapas condicionais criadas por rejeições (só incluir se não foram removidas)
-        const conditionalSteps = steps?.filter(s => 
-          s.departmentId === 5 && // Mesmo departamento (SEAP)
-          (s.stepName === "Devolver para correção ou arquivamento" || 
-           s.stepName === "Solicitar ajuste/aditivo do plano de trabalho") &&
-          !s.observations?.includes("ETAPA_REMOVIDA") // Não incluir se foi marcada como removida
-        );
-
-        conditionalSteps?.forEach(conditionalStep => {
-          baseSteps.push({
-            name: conditionalStep.stepName,
-            phase: "Correção",
-          });
-        });
+        // Etapas condicionais só aparecem quando criadas pelo modal, não aqui
 
         return baseSteps;
       })(),
