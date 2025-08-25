@@ -2269,6 +2269,32 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   </div>
                 </label>
               </div>
+
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="authorization-rejection-decision"
+                    value="Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
+                    checked={
+                      authorizationRejectionDecision ===
+                      "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
+                    }
+                    onChange={(e) =>
+                      setAuthorizationRejectionDecision(e.target.value)
+                    }
+                    className="mt-1"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Esta opção ativará a etapa "Solicitar ajuste/aditivo do plano de trabalho"
+                    </div>
+                  </div>
+                </label>
+              </div>
             </div>
           </div>
 
