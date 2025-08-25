@@ -246,15 +246,24 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     const nextDepartment = departments?.find(d => d.id === 2);
     if (nextDepartment) availableDepartments.push(nextDepartment);
   } else if (process.currentDepartmentId === 2) {
-    // Divisão de Licitação - lógica condicional baseada no status NPP
-    if (isNPPCompleted()) {
-      // Se NPP já completou, segunda etapa da Divisão vai direto para Orçamento
-      const nextDepartment = departments?.find(d => d.id === 4); // Unidade de Orçamento e Finanças
-      if (nextDepartment) availableDepartments.push(nextDepartment);
+    // Divisão de Licitação - verificar se etapa de correção foi concluída
+    const correctionStep = processSteps?.find(s => s.stepName === "Devolver para correção ou cancelar processo" && s.isCompleted);
+    
+    if (correctionStep) {
+      // Se etapa de correção foi concluída, permitir tramitação para Setor Demandante para reiniciar fluxo
+      const setorDemandante = departments?.find(d => d.id === 1);
+      if (setorDemandante) availableDepartments.push(setorDemandante);
     } else {
-      // Primeira etapa da Divisão vai para NPP
-      const nextDepartment = departments?.find(d => d.id === 3); // NPP
-      if (nextDepartment) availableDepartments.push(nextDepartment);
+      // Lógica normal da Divisão de Licitação baseada no status NPP
+      if (isNPPCompleted()) {
+        // Se NPP já completou, segunda etapa da Divisão vai direto para Orçamento
+        const nextDepartment = departments?.find(d => d.id === 4); // Unidade de Orçamento e Finanças
+        if (nextDepartment) availableDepartments.push(nextDepartment);
+      } else {
+        // Primeira etapa da Divisão vai para NPP
+        const nextDepartment = departments?.find(d => d.id === 3); // NPP
+        if (nextDepartment) availableDepartments.push(nextDepartment);
+      }
     }
   } else if (process.currentDepartmentId === 3) {
     // NPP → Divisão de Licitação (retorno)
@@ -266,14 +275,6 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     if (nextDepartment) availableDepartments.push(nextDepartment);
   } else if (process.currentDepartmentId === 5) {
     // Secretário SEAP - depois da autorização, pode ir para diferentes fluxos
-    
-    // Verificar se etapa de devolução foi concluída
-    const correctionStep = processSteps?.find(s => s.stepName === "Devolver para correção ou cancelar processo" && s.isCompleted);
-    if (correctionStep) {
-      // Pode transferir para Divisão de Licitação para correção
-      const divisaoLicitacao = departments?.find(d => d.id === 2);
-      if (divisaoLicitacao) availableDepartments.push(divisaoLicitacao);
-    }
     
     // Verificar se tem etapa de autorização concluída ou rejeitada
     const authStep = processSteps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
