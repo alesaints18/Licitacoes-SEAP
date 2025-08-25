@@ -249,6 +249,23 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
         expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
       ) || [];
     }
+  } else if (process.currentDepartmentId === 1) {
+    // Setor Demandante - verificar se está no contexto de arquivamento
+    const archiveStep = processSteps?.find(s => 
+      s.stepName === "Arquivar processo" && s.departmentId === 1
+    );
+    
+    if (archiveStep) {
+      // Se existe etapa de arquivamento, validar apenas ela
+      expectedSteps = [{ name: "Arquivar processo" }];
+      currentDepartmentSteps = [archiveStep];
+    } else {
+      // Contexto normal do Setor Demandante
+      expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
+      currentDepartmentSteps = processSteps?.filter(step => 
+        expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
+      ) || [];
+    }
   } else {
     // Outros departamentos - lógica normal
     expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
