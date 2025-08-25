@@ -711,7 +711,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Função para rejeitar autorização (baseada na função de aprovação)
   const handleAuthorizationRejection = async () => {
+    console.log("🔥 MODAL REJEIÇÃO - Função chamada!", { stepForAuthorizationRejection, authorizationRejectionDecision });
+    
     if (!stepForAuthorizationRejection || !authorizationRejectionDecision) {
+      console.log("🔥 MODAL REJEIÇÃO - Validação falhou:", { 
+        stepForAuthorizationRejection: !!stepForAuthorizationRejection, 
+        authorizationRejectionDecision: !!authorizationRejectionDecision 
+      });
       return;
     }
 
