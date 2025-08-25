@@ -2028,7 +2028,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                       "Devolver para correção ou arquivamento", // Apenas no Secretário de Estado
                                       "Solicitar ajuste/aditivo do plano de trabalho",
                                       "Autorizar Emissão de R.O",
-                                      "Solicitar disponibilização de orçamento",
                                     ].includes(step.stepName);
 
                                     // Pertence ao departamento atual e está visível
