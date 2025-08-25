@@ -97,6 +97,7 @@ export interface IStorage {
 
   // Process step operations
   getProcessSteps(processId: number): Promise<ProcessStep[]>;
+  getAllProcessSteps(processId: number): Promise<ProcessStep[]>;
   createProcessStep(step: InsertProcessStep): Promise<ProcessStep>;
   updateProcessStep(id: number, stepData: Partial<InsertProcessStep>): Promise<ProcessStep | undefined>;
   deleteProcessStep(id: number): Promise<boolean>;
@@ -548,6 +549,12 @@ export class MemStorage implements IStorage {
 
   // Process step methods
   async getProcessSteps(processId: number): Promise<ProcessStep[]> {
+    return Array.from(this.processSteps.values()).filter(
+      step => step.processId === processId && step.isVisible !== false
+    );
+  }
+
+  async getAllProcessSteps(processId: number): Promise<ProcessStep[]> {
     return Array.from(this.processSteps.values()).filter(
       step => step.processId === processId
     );

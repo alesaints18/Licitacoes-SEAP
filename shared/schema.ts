@@ -77,6 +77,7 @@ export const processSteps = pgTable('process_steps', {
   rejectedAt: timestamp('rejected_at'), // Data da rejeição
   rejectionStatus: text('rejection_status'), // 'rejected_with_approval' para rejeições que permitem continuidade
   isLocked: boolean('is_locked').default(false), // Para etapas que ficam bloqueadas até serem liberadas por uma decisão
+  isVisible: boolean('is_visible').notNull().default(true), // Controla se a etapa é visível no frontend
 });
 
 // Process participants table - controla quais usuários e setores têm acesso a cada processo

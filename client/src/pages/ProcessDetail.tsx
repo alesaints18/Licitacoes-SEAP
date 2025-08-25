@@ -709,125 +709,103 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       if (response.ok) {
-        // Se a decisão for "Não autorizar a defesa", criar a etapa "Devolver para correção ou arquivamento"
+        // Se a decisão for "Não autorizar a defesa", tornar visível a etapa "Devolver para correção ou arquivamento"
         if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
           console.log(
-            "🔥🔥🔥 ProcessDetail - Criando etapa 'Devolver para correção ou arquivamento' para reformulação da demanda",
+            "🔥🔥🔥 ProcessDetail - Tornando visível etapa 'Devolver para correção ou arquivamento' para reformulação da demanda",
           );
 
           try {
-            // Verificar se a etapa já existe
-            const stepsResponse = await apiRequest(
-              "GET",
-              `/api/processes/${parsedId}/steps`,
-            );
-            const currentSteps = await stepsResponse.json();
-            const devolverStepExists = currentSteps.find(
-              (s: any) => s.stepName === "Devolver para correção ou arquivamento",
-            );
-
-            if (!devolverStepExists) {
-              // Criar etapa "Devolver para correção ou arquivamento" no setor SEAP (ID 5)
-              console.log(
-                "🔥🔥🔥 ProcessDetail - Criando etapa no departamento SEAP (ID: 5)",
-              );
-              const devolverResponse = await apiRequest(
-                "POST",
-                `/api/processes/${parsedId}/steps`,
-                {
-                  stepName: "Devolver para correção ou arquivamento",
-                  departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
-                  userId: currentUser?.id,
-                  phase: "Correção",
-                },
+            // Buscar todas as etapas (incluindo invisíveis) para encontrar a etapa condicional
+            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps/all`);
+            if (stepsResponse.ok) {
+              const allSteps = await stepsResponse.json();
+              const devolverStep = allSteps.find(
+                (s: any) => s.stepName === "Devolver para correção ou arquivamento",
               );
 
-              if (devolverResponse.ok) {
+              if (devolverStep) {
+                // Tornar a etapa visível
                 console.log(
-                  "✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' criada com sucesso",
+                  "🔥🔥🔥 ProcessDetail - Tornando etapa 'Devolver para correção ou arquivamento' visível",
                 );
-                const createdStep = await devolverResponse.json();
-                console.log(
-                  "🔥 ProcessDetail - Dados da etapa criada:",
-                  createdStep,
+                const updateResponse = await apiRequest(
+                  "PATCH",
+                  `/api/processes/${parsedId}/steps/${devolverStep.id}`,
+                  {
+                    isVisible: true,
+                  },
                 );
+
+                if (updateResponse.ok) {
+                  console.log(
+                    "✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' tornada visível com sucesso",
+                  );
+                } else {
+                  console.error(
+                    "❌❌❌ ProcessDetail - Erro ao tornar etapa 'Devolver para correção ou arquivamento' visível",
+                  );
+                }
               } else {
-                console.error(
-                  "❌❌❌ ProcessDetail - Erro ao criar etapa 'Devolver para correção ou arquivamento'",
+                console.log(
+                  "⚠️ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' não encontrada",
                 );
-                const errorData = await devolverResponse.text();
-                console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
               }
-            } else {
-              console.log(
-                "✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' já existe",
-              );
             }
           } catch (etapasError) {
             console.error(
-              "❌ ProcessDetail - Erro ao verificar/criar etapa:",
+              "❌ ProcessDetail - Erro ao verificar/atualizar etapa:",
               etapasError,
             );
           }
         }
 
-        // Se a decisão for sobre recurso de convênio, criar a etapa "Solicitar ajuste/aditivo do plano de trabalho"
+        // Se a decisão for sobre recurso de convênio, tornar visível a etapa "Solicitar ajuste/aditivo do plano de trabalho"
         if (authorizationRejectionDecision === "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado") {
           console.log(
-            "🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar ajuste/aditivo do plano de trabalho' para ajuste de convênio",
+            "🔥🔥🔥 ProcessDetail - Tornando visível etapa 'Solicitar ajuste/aditivo do plano de trabalho' para ajuste de convênio",
           );
 
           try {
-            // Verificar se a etapa já existe
-            const stepsResponse = await apiRequest(
-              "GET",
-              `/api/processes/${parsedId}/steps`,
-            );
-            const currentSteps = await stepsResponse.json();
-            const ajusteStepExists = currentSteps.find(
-              (s: any) => s.stepName === "Solicitar ajuste/aditivo do plano de trabalho",
-            );
-
-            if (!ajusteStepExists) {
-              // Criar etapa "Solicitar ajuste/aditivo do plano de trabalho" no setor SEAP (ID 5)
-              console.log(
-                "🔥🔥🔥 ProcessDetail - Criando etapa no departamento SEAP (ID: 5)",
-              );
-              const ajusteResponse = await apiRequest(
-                "POST",
-                `/api/processes/${parsedId}/steps`,
-                {
-                  stepName: "Solicitar ajuste/aditivo do plano de trabalho",
-                  departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
-                  userId: currentUser?.id,
-                  phase: "Correção",
-                },
+            // Buscar todas as etapas (incluindo invisíveis) para encontrar a etapa condicional
+            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps/all`);
+            if (stepsResponse.ok) {
+              const allSteps = await stepsResponse.json();
+              const ajusteStep = allSteps.find(
+                (s: any) => s.stepName === "Solicitar ajuste/aditivo do plano de trabalho",
               );
 
-              if (ajusteResponse.ok) {
+              if (ajusteStep) {
+                // Tornar a etapa visível
                 console.log(
-                  "✅✅✅ ProcessDetail - Etapa 'Solicitar ajuste/aditivo do plano de trabalho' criada com sucesso",
+                  "🔥🔥🔥 ProcessDetail - Tornando etapa 'Solicitar ajuste/aditivo do plano de trabalho' visível",
                 );
-                const createdStep = await ajusteResponse.json();
-                console.log(
-                  "🔥 ProcessDetail - Dados da etapa criada:",
-                  createdStep,
+                const updateResponse = await apiRequest(
+                  "PATCH",
+                  `/api/processes/${parsedId}/steps/${ajusteStep.id}`,
+                  {
+                    isVisible: true,
+                  },
                 );
+
+                if (updateResponse.ok) {
+                  console.log(
+                    "✅✅✅ ProcessDetail - Etapa 'Solicitar ajuste/aditivo do plano de trabalho' tornada visível com sucesso",
+                  );
+                } else {
+                  console.error(
+                    "❌❌❌ ProcessDetail - Erro ao tornar etapa 'Solicitar ajuste/aditivo do plano de trabalho' visível",
+                  );
+                }
               } else {
-                console.error(
-                  "❌❌❌ ProcessDetail - Erro ao criar etapa 'Solicitar ajuste/aditivo do plano de trabalho'",
+                console.log(
+                  "⚠️ ProcessDetail - Etapa 'Solicitar ajuste/aditivo do plano de trabalho' não encontrada",
                 );
-                const errorData = await ajusteResponse.text();
-                console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
               }
-            } else {
-              console.log(
-                "✅ ProcessDetail - Etapa 'Solicitar ajuste/aditivo do plano de trabalho' já existe",
-              );
             }
           } catch (etapasError) {
             console.error(
-              "❌ ProcessDetail - Erro ao verificar/criar etapa de ajuste:",
+              "❌ ProcessDetail - Erro ao verificar/atualizar etapa de ajuste:",
               etapasError,
             );
           }
@@ -962,69 +940,58 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       );
 
       if (response.ok) {
-        // Se a decisão for "Disponibilidade Orçamentária", criar a etapa "Autorizar Emissão de R.O"
+        // Se a decisão for "Disponibilidade Orçamentária", tornar visível a etapa "Autorizar Emissão de R.O"
         if (authorizationDecision === "Disponibilidade Orçamentária") {
           console.log(
-            "🔥🔥🔥 ProcessDetail - Criando etapa 'Autorizar Emissão de R.O' para disponibilidade orçamentária",
+            "🔥🔥🔥 ProcessDetail - Tornando visível etapa 'Autorizar Emissão de R.O' para disponibilidade orçamentária",
           );
 
           try {
-            // Verificar se a etapa já existe
-            const stepsResponse = await apiRequest(
-              "GET",
-              `/api/processes/${parsedId}/steps`,
-            );
-            const currentSteps = await stepsResponse.json();
-            const authRoStepExists = currentSteps.find(
-              (s: any) => s.stepName === "Autorizar Emissão de R.O",
-            );
-
-            if (!authRoStepExists) {
-              // Criar etapa "Autorizar Emissão de R.O" no setor SEAP (ID 5)
-              console.log(
-                "🔥🔥🔥 ProcessDetail - Criando etapa no departamento SEAP (ID: 5)",
-              );
-              const authRoResponse = await apiRequest(
-                "POST",
-                `/api/processes/${parsedId}/steps`,
-                {
-                  stepName: "Autorizar Emissão de R.O",
-                  departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
-                  userId: currentUser?.id,
-                  phase: "Execução",
-                },
+            // Buscar todas as etapas (incluindo invisíveis) para encontrar a etapa condicional
+            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps/all`);
+            if (stepsResponse.ok) {
+              const allSteps = await stepsResponse.json();
+              const authRoStep = allSteps.find(
+                (s: any) => s.stepName === "Autorizar Emissão de R.O",
               );
 
-              if (authRoResponse.ok) {
+              if (authRoStep) {
+                // Tornar a etapa visível
                 console.log(
-                  "✅✅✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' criada com sucesso",
+                  "🔥🔥🔥 ProcessDetail - Tornando etapa 'Autorizar Emissão de R.O' visível",
                 );
-                const createdStep = await authRoResponse.json();
-                console.log(
-                  "🔥 ProcessDetail - Dados da etapa criada:",
-                  createdStep,
+                const updateResponse = await apiRequest(
+                  "PATCH",
+                  `/api/processes/${parsedId}/steps/${authRoStep.id}`,
+                  {
+                    isVisible: true,
+                  },
                 );
+
+                if (updateResponse.ok) {
+                  console.log(
+                    "✅✅✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' tornada visível com sucesso",
+                  );
+                } else {
+                  console.error(
+                    "❌❌❌ ProcessDetail - Erro ao tornar etapa 'Autorizar Emissão de R.O' visível",
+                  );
+                }
               } else {
-                console.error(
-                  "❌❌❌ ProcessDetail - Erro ao criar etapa 'Autorizar Emissão de R.O'",
+                console.log(
+                  "⚠️ ProcessDetail - Etapa 'Autorizar Emissão de R.O' não encontrada",
                 );
-                const errorData = await authRoResponse.text();
-                console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
               }
-            } else {
-              console.log(
-                "✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' já existe",
-              );
             }
           } catch (etapasError) {
             console.error(
-              "❌ ProcessDetail - Erro ao verificar/criar etapa:",
+              "❌ ProcessDetail - Erro ao verificar/atualizar etapa:",
               etapasError,
             );
           }
         }
 
-        // Se a decisão for indisponibilidade orçamentária, criar a etapa "Solicitar disponibilização de orçamento"
+        // Se a decisão for indisponibilidade orçamentária, tornar visível a etapa "Solicitar disponibilização de orçamento"
         if (
           authorizationDecision === "Indisponibilidade Orçamentária Total" ||
           authorizationDecision === "Indisponibilidade Orçamentária Parcial" ||
@@ -1032,61 +999,50 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             "Indisponibilidade Orçamentária total ou parcial"
         ) {
           console.log(
-            "🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar disponibilização de orçamento' para indisponibilidade orçamentária",
+            "🔥🔥🔥 ProcessDetail - Tornando visível etapa 'Solicitar disponibilização de orçamento' para indisponibilidade orçamentária",
           );
 
           try {
-            // Verificar se a etapa já existe
-            const stepsResponse = await apiRequest(
-              "GET",
-              `/api/processes/${parsedId}/steps`,
-            );
-            const currentSteps = await stepsResponse.json();
-            const solicitarOrcamentoStepExists = currentSteps.find(
-              (s: any) =>
-                s.stepName === "Solicitar disponibilização de orçamento",
-            );
-
-            if (!solicitarOrcamentoStepExists) {
-              // Criar etapa "Solicitar disponibilização de orçamento" no setor SEAP (ID 5)
-              console.log(
-                "🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar disponibilização de orçamento' no departamento SEAP (ID: 5)",
-              );
-              const solicitarOrcamentoResponse = await apiRequest(
-                "POST",
-                `/api/processes/${parsedId}/steps`,
-                {
-                  stepName: "Solicitar disponibilização de orçamento",
-                  departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
-                  userId: currentUser?.id,
-                  phase: "Preparação",
-                },
+            // Buscar todas as etapas (incluindo invisíveis) para encontrar a etapa condicional
+            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps/all`);
+            if (stepsResponse.ok) {
+              const allSteps = await stepsResponse.json();
+              const solicitarOrcamentoStep = allSteps.find(
+                (s: any) =>
+                  s.stepName === "Solicitar disponibilização de orçamento",
               );
 
-              if (solicitarOrcamentoResponse.ok) {
+              if (solicitarOrcamentoStep) {
+                // Tornar a etapa visível
                 console.log(
-                  "✅✅✅ ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' criada com sucesso",
+                  "🔥🔥🔥 ProcessDetail - Tornando etapa 'Solicitar disponibilização de orçamento' visível",
                 );
-                const createdStep = await solicitarOrcamentoResponse.json();
-                console.log(
-                  "🔥 ProcessDetail - Dados da etapa criada:",
-                  createdStep,
+                const updateResponse = await apiRequest(
+                  "PATCH",
+                  `/api/processes/${parsedId}/steps/${solicitarOrcamentoStep.id}`,
+                  {
+                    isVisible: true,
+                  },
                 );
+
+                if (updateResponse.ok) {
+                  console.log(
+                    "✅✅✅ ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' tornada visível com sucesso",
+                  );
+                } else {
+                  console.error(
+                    "❌❌❌ ProcessDetail - Erro ao tornar etapa 'Solicitar disponibilização de orçamento' visível",
+                  );
+                }
               } else {
-                console.error(
-                  "❌❌❌ ProcessDetail - Erro ao criar etapa 'Solicitar disponibilização de orçamento'",
+                console.log(
+                  "⚠️ ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' não encontrada",
                 );
-                const errorData = await solicitarOrcamentoResponse.text();
-                console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
               }
-            } else {
-              console.log(
-                "✅ ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' já existe",
-              );
             }
           } catch (etapasError) {
             console.error(
-              "❌ ProcessDetail - Erro ao verificar/criar etapa de orçamento:",
+              "❌ ProcessDetail - Erro ao verificar/atualizar etapa de orçamento:",
               etapasError,
             );
           }

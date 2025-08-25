@@ -103,7 +103,16 @@ async function createDefaultSteps(processId: number, modalityId: number) {
     { name: "Publicação do Contrato", departmentId: 5, phase: "Finalização", daysLimit: 5 }
   ];
 
-  // Criar todas as etapas para o processo com prazos calculados
+  // Etapas condicionais que serão criadas como invisíveis
+  const conditionalSteps = [
+    // Etapas que aparecerão após decisões dos modais
+    { name: "Autorizar Emissão de R.O", departmentId: 5, phase: "Execução", daysLimit: 2, isVisible: false },
+    { name: "Solicitar disponibilização de orçamento", departmentId: 5, phase: "Preparação", daysLimit: 3, isVisible: false },
+    { name: "Devolver para correção ou arquivamento", departmentId: 5, phase: "Correção", daysLimit: 2, isVisible: false },
+    { name: "Solicitar ajuste/aditivo do plano de trabalho", departmentId: 5, phase: "Correção", daysLimit: 5, isVisible: false },
+  ];
+
+  // Criar todas as etapas visíveis para o processo com prazos calculados
   let currentDate = new Date();
   
   for (const step of defaultSteps) {
@@ -117,14 +126,31 @@ async function createDefaultSteps(processId: number, modalityId: number) {
       isCompleted: false,
       observations: null,
       completedBy: null,
-      dueDate: dueDate
+      dueDate: dueDate,
+      isVisible: true // Etapas normais são sempre visíveis
     });
     
     // Atualizar a data base para a próxima etapa (considerar que a etapa atual pode ser finalizada imediatamente)
     currentDate = dueDate;
   }
+
+  // Criar etapas condicionais como invisíveis
+  for (const step of conditionalSteps) {
+    const dueDate = addBusinessDays(currentDate, step.daysLimit);
+    
+    await storage.createProcessStep({
+      processId: processId,
+      stepName: step.name,
+      departmentId: step.departmentId,
+      isCompleted: false,
+      observations: null,
+      completedBy: null,
+      dueDate: dueDate,
+      isVisible: false // Etapas condicionais são criadas como invisíveis
+    });
+  }
   
-  console.log(`Criadas ${defaultSteps.length} etapas padrão para o processo ${processId} com novo fluxograma`);
+  console.log(`Criadas ${defaultSteps.length} etapas visíveis e ${conditionalSteps.length} etapas condicionais para o processo ${processId} com novo fluxograma`);
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -1195,6 +1221,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Stack trace:", error instanceof Error ? error.stack : 'No stack trace');
       res.status(500).json({ 
         message: "Erro ao buscar etapas do processo", 
+        error: error instanceof Error ? error.message : String(error)
+      });
+    }
+  });
+
+  // Rota para buscar TODAS as etapas (incluindo invisíveis) para um processo
+  app.get('/api/processes/:processId/steps/all', isAuthenticated, async (req, res) => {
+    try {
+      const processId = parseInt(req.params.processId);
+      console.log(`Buscando TODAS as etapas (incluindo invisíveis) para o processo ${processId}`);
+      
+      if (isNaN(processId)) {
+        console.log("ID do processo é inválido:", req.params.processId);
+        return res.status(400).json({ message: "ID do processo inválido" });
+      }
+      
+      const allSteps = await storage.getAllProcessSteps(processId);
+      console.log(`Todas as etapas encontradas para processo ${processId}:`, allSteps?.length || 0);
+      
+      res.json(allSteps || []);
+    } catch (error) {
+      console.error("Erro completo ao buscar todas as etapas:", error);
+      res.status(500).json({ 
+        message: "Erro ao buscar todas as etapas do processo", 
         error: error instanceof Error ? error.message : String(error)
       });
     }

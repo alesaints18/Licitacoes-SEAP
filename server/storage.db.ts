@@ -377,6 +377,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getProcessSteps(processId: number): Promise<ProcessStep[]> {
+    return await db.select().from(processSteps).where(
+      and(
+        eq(processSteps.processId, processId),
+        eq(processSteps.isVisible, true)
+      )
+    );
+  }
+
+  async getAllProcessSteps(processId: number): Promise<ProcessStep[]> {
     return await db.select().from(processSteps).where(eq(processSteps.processId, processId));
   }
 
