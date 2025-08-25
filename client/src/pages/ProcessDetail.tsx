@@ -401,7 +401,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             s.isCompleted === true,
         );
 
-        // Se processo está no Setor Demandante E tem decisão de arquivamento
+        // Verificar se a etapa "Arquivar processo" foi concluída no Setor Demandante
+        const archiveStepCompleted = steps?.find(
+          (s) =>
+            s.stepName === "Arquivar processo" &&
+            s.isCompleted === true,
+        );
+
+        // Se a etapa de arquivamento foi concluída, não mostrar mais nenhuma etapa no Setor Demandante
+        if (process?.currentDepartmentId === 1 && archiveStepCompleted) {
+          console.log(
+            "🔍 SETOR DEMANDANTE - Etapa de arquivamento concluída, não exibindo etapas (processo arquivado)",
+          );
+          return [];
+        }
+
+        // Se processo está no Setor Demandante E tem decisão de arquivamento (mas arquivamento ainda não concluído)
         if (process?.currentDepartmentId === 1 && correctionStep) {
           console.log(
             "🔍 SETOR DEMANDANTE - Processo veio de decisão de arquivamento, mostrando apenas etapa de arquivamento",
@@ -446,28 +461,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             s.isCompleted === true,
         );
 
-        // Verificar se o processo está na Divisão de Licitação e tem decisão de arquivamento retornada
-        const archiveStep = steps?.find(
+        // Verificar se a etapa "Devolver para correção ou cancelar processo" foi concluída
+        const correctionStepCompleted = steps?.find(
           (s) =>
             s.stepName === "Devolver para correção ou cancelar processo" &&
-            s.observations?.includes("Decisão: Arquivar processo") &&
             s.isCompleted === true,
         );
 
-        // Se processo está na Divisão de Licitação E tem decisão de arquivamento retornada
-        if (process?.currentDepartmentId === 2 && archiveStep) {
+        // Se a etapa de correção foi concluída, não mostrar mais nenhuma etapa na Divisão de Licitação
+        if (process?.currentDepartmentId === 2 && correctionStepCompleted) {
           console.log(
-            "🔍 DIVISÃO LICITAÇÃO - Processo retornado com decisão de arquivamento, mostrando apenas etapa de arquivamento",
+            "🔍 DIVISÃO LICITAÇÃO - Etapa de correção concluída, não exibindo etapas (processo tratado)",
           );
-          return [
-            {
-              name: "Arquivar processo",
-              phase: "Arquivamento",
-            },
-          ];
+          return [];
         }
 
-        // Se processo está na Divisão de Licitação E tem autorização rejeitada com motivo específico
+        // Se processo está na Divisão de Licitação E tem autorização rejeitada (mas correção ainda não concluída)
         if (process?.currentDepartmentId === 2 && authorizationStep) {
           console.log(
             "🔍 DIVISÃO LICITAÇÃO - Processo veio de rejeição específica, mostrando apenas etapa de correção",
