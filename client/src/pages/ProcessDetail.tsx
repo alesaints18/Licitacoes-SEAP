@@ -455,152 +455,52 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         ];
       })(),
 
-      // Licitações - Divisão de Licitação (com lógica condicional)
+      // Licitações - Divisão de Licitação (com lógica condicional simplificada)
       Licitações: (() => {
-        // Verificar se o processo está na Divisão de Licitação e tem etapa de Autorização rejeitada
-        const authorizationStep = steps?.find(
-          (s) =>
-            s.stepName === "Autorização pelo Secretário SEAP" &&
-            s.rejectionStatus ===
-              "Não autorizar a defesa ou solicitar reformulação da demanda" &&
-            s.isCompleted === true,
-        );
-
-        // Verificar se existe etapa "Arquivar processo - Final" para a Divisão de Licitação (PRIORIDADE)
+        // PRIORIDADE 1: Verificar se existe etapa "Arquivar processo - Final"
         const archiveFinalStep = steps?.find(
-          (s) =>
-            s.stepName === "Arquivar processo - Final" &&
-            s.departmentId === 2,
+          (s) => s.stepName === "Arquivar processo - Final" && s.departmentId === 2
         );
 
-        // Verificar se processo vem do fluxo de arquivamento do Setor Demandante
-        const archiveFromDemandanteStep = steps?.find(
-          (s) =>
-            s.stepName === "Arquivar processo" &&
-            s.departmentId === 1 &&
-            s.isCompleted === true
-        );
-
-        // Se existe etapa "Arquivar processo - Final" concluída, não mostrar nenhuma etapa
-        if (process?.currentDepartmentId === 2 && archiveFinalStep && archiveFinalStep.isCompleted) {
-          console.log(
-            "🔍 DIVISÃO LICITAÇÃO - Etapa de arquivamento final concluída, não exibindo etapas (processo arquivado)",
-          );
-          return [];
-        }
-
-        // Se existe etapa "Arquivar processo - Final" não concluída, mostrar apenas ela
-        if (process?.currentDepartmentId === 2 && archiveFinalStep && !archiveFinalStep.isCompleted) {
-          console.log(
-            "🔍 DIVISÃO LICITAÇÃO - Processo com etapa de arquivamento final, mostrando apenas etapa final",
-          );
-          return [
-            {
-              name: "Arquivar processo - Final",
-              phase: "Arquivamento",
-            },
-          ];
-        }
-
-        // Se processo vem do fluxo de arquivamento do Setor Demandante e não há etapa final ainda
-        if (process?.currentDepartmentId === 2 && archiveFromDemandanteStep && !archiveFinalStep) {
-          console.log(
-            "🔍 DIVISÃO LICITAÇÃO - Processo vem de arquivamento do Setor Demandante, criando etapa de arquivamento final",
-          );
-          return [
-            {
-              name: "Arquivar processo - Final",
-              phase: "Arquivamento",
-            },
-          ];
-        }
-
-        // Verificar se AMBAS as etapas de correção foram concluídas (não apenas a segunda)
-        const firstCorrectionCompleted = steps?.find(
-          (s) =>
-            s.stepName === "Devolver para correção ou arquivamento" &&
-            s.isCompleted === true,
-        );
-        
-        const secondCorrectionCompleted = steps?.find(
-          (s) =>
-            s.stepName === "Devolver para correção ou cancelar processo" &&
-            s.isCompleted === true,
-        );
-
-        // Se AMBAS as etapas de correção foram concluídas E não há etapa de arquivamento final, não mostrar mais nenhuma etapa na Divisão de Licitação
-        if (process?.currentDepartmentId === 2 && firstCorrectionCompleted && secondCorrectionCompleted && !archiveFinalStep) {
-          console.log(
-            "🔍 DIVISÃO LICITAÇÃO - AMBAS etapas de correção concluídas, não exibindo etapas (processo tratado)",
-          );
-          return [];
-        }
-
-        // Se processo está na Divisão de Licitação E tem autorização rejeitada
-        if (process?.currentDepartmentId === 2 && authorizationStep) {
-          
-          // Primeiro: verificar se existe "Devolver para correção ou arquivamento" visível
-          const firstCorrectionStep = steps?.find(
-            (s) =>
-              s.stepName === "Devolver para correção ou arquivamento" &&
-              s.departmentId === 2 &&
-              s.isVisible === true
-          );
-          
-          console.log("🔥 DEBUG - Buscando primeira etapa de correção:", {
-            found: !!firstCorrectionStep,
-            stepName: firstCorrectionStep?.stepName,
-            departmentId: firstCorrectionStep?.departmentId,
-            isVisible: firstCorrectionStep?.isVisible,
-            isCompleted: firstCorrectionStep?.isCompleted,
-            totalSteps: steps?.length,
-            correctionSteps: steps?.filter(s => s.stepName.includes("Devolver")).map(s => ({
-              name: s.stepName,
-              departmentId: s.departmentId,
-              isVisible: s.isVisible,
-              isCompleted: s.isCompleted
-            }))
-          });
-          
-          // Se a primeira etapa existe e não está concluída, mostrar ela
-          if (firstCorrectionStep && !firstCorrectionStep.isCompleted) {
-            console.log(
-              "🔍 DIVISÃO LICITAÇÃO - Mostrando primeira etapa: Devolver para correção ou arquivamento",
-            );
-            return [
-              {
-                name: "Devolver para correção ou arquivamento", 
-                phase: "Correção",
-              },
-            ];
+        if (archiveFinalStep) {
+          if (archiveFinalStep.isCompleted) {
+            console.log("🔍 DIVISÃO LICITAÇÃO - Processo arquivado, sem etapas");
+            return [];
+          } else {
+            console.log("🔍 DIVISÃO LICITAÇÃO - Mostrando etapa de arquivamento final");
+            return [{ name: "Arquivar processo - Final", phase: "Arquivamento" }];
           }
-          
-          // Se a primeira etapa foi concluída, mostrar a segunda
-          if (firstCorrectionStep && firstCorrectionStep.isCompleted) {
-            console.log(
-              "🔍 DIVISÃO LICITAÇÃO - Primeira etapa concluída, mostrando segunda: Devolver para correção ou cancelar processo",
-            );
-            return [
-              {
-                name: "Devolver para correção ou cancelar processo",
-                phase: "Correção",
-              },
-            ];
-          }
-          
-          // Se não encontrou a primeira etapa, mostrar a segunda (fallback)
-          console.log(
-            "🔍 DIVISÃO LICITAÇÃO - Primeira etapa não encontrada, mostrando segunda como fallback",
-          );
-          return [
-            {
-              name: "Devolver para correção ou cancelar processo",
-              phase: "Correção",
-            },
-          ];
         }
 
-        // Caso contrário, mostrar etapas normais da Divisão de Licitação
+        // PRIORIDADE 2: Verificar se vem do fluxo de arquivamento do Setor Demandante
+        const archiveFromDemandante = steps?.find(
+          (s) => s.stepName === "Arquivar processo" && s.departmentId === 1 && s.isCompleted === true
+        );
+
+        if (archiveFromDemandante && process?.currentDepartmentId === 2) {
+          console.log("🔍 DIVISÃO LICITAÇÃO - Criando etapa de arquivamento final");
+          return [{ name: "Arquivar processo - Final", phase: "Arquivamento" }];
+        }
+
+        // PRIORIDADE 3: Verificar se vem do fluxo de correção (autorização rejeitada)
+        const authorizationRejected = steps?.find(
+          (s) => s.stepName === "Autorização pelo Secretário SEAP" && 
+                 s.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda" && 
+                 s.isCompleted === true
+        );
+
+        if (authorizationRejected && process?.currentDepartmentId === 2) {
+          // Verificar qual etapa de correção mostrar
+          const correctionStep = steps?.find(
+            (s) => s.stepName === "Devolver para correção ou cancelar processo" && s.departmentId === 2
+          );
+          
+          console.log("🔍 DIVISÃO LICITAÇÃO - Fluxo de correção ativo");
+          return [{ name: "Devolver para correção ou cancelar processo", phase: "Correção" }];
+        }
+
+        // PADRÃO: Fluxo normal da Divisão de Licitação
+        console.log("🔍 DIVISÃO LICITAÇÃO - Fluxo normal");
         return [
           {
             name: "Criar Processo - Órgão",

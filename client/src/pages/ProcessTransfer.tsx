@@ -204,40 +204,38 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
   let allStepsCompleted = false;
   
   if (process.currentDepartmentId === 2) {
-    // Divisão de Licitação - verificar contexto específico
+    // Divisão de Licitação - validação simplificada
     
-    // Verificar se veio do fluxo de arquivamento do Setor Demandante
-    const archiveFromDemandanteStep = processSteps?.find(s => 
-      s.stepName === "Arquivar processo" && 
-      s.departmentId === 1 &&
-      s.isCompleted === true
+    // PRIORIDADE 1: Arquivamento
+    const archiveFinalStep = processSteps?.find(s => 
+      s.stepName === "Arquivar processo - Final" && s.departmentId === 2
     );
     
-    // Verificar se veio de rejeição específica
-    const authorizationStep = processSteps?.find(s => 
-      s.stepName === "Autorização pelo Secretário SEAP" && 
-      s.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda" &&
-      s.isCompleted === true
+    const archiveFromDemandante = processSteps?.find(s => 
+      s.stepName === "Arquivar processo" && s.departmentId === 1 && s.isCompleted === true
     );
     
-    if (archiveFromDemandanteStep) {
-      // Contexto de arquivamento - validar apenas etapa de arquivamento final
+    if (archiveFinalStep || archiveFromDemandante) {
       expectedSteps = [{ name: "Arquivar processo - Final" }];
       currentDepartmentSteps = processSteps?.filter(step => 
         step.stepName === "Arquivar processo - Final"
       ) || [];
-    } else if (authorizationStep) {
-      // Contexto de correção - validar apenas etapa de correção
-      expectedSteps = [{ name: "Devolver para correção ou cancelar processo" }];
-      currentDepartmentSteps = processSteps?.filter(step => 
-        step.stepName === "Devolver para correção ou cancelar processo"
-      ) || [];
     } else {
-      // Contexto normal da Divisão de Licitação
-      expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
-      currentDepartmentSteps = processSteps?.filter(step => 
-        expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
-      ) || [];
+      // PRIORIDADE 2: Correção
+      const correctionStep = processSteps?.find(s => 
+        s.stepName === "Devolver para correção ou cancelar processo" && s.departmentId === 2
+      );
+      
+      if (correctionStep) {
+        expectedSteps = [{ name: "Devolver para correção ou cancelar processo" }];
+        currentDepartmentSteps = [correctionStep];
+      } else {
+        // PADRÃO: Fluxo normal
+        expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
+        currentDepartmentSteps = processSteps?.filter(step => 
+          expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
+        ) || [];
+      }
     }
   } else if (process.currentDepartmentId === 5) {
     // Secretário de Estado - verificar se existe etapa intermediária
@@ -331,36 +329,35 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     const nextDepartment = departments?.find(d => d.id === 2);
     if (nextDepartment) availableDepartments.push(nextDepartment);
   } else if (process.currentDepartmentId === 2) {
-    // Divisão de Licitação - verificar diferentes contextos
+    // Divisão de Licitação - lógica simplificada baseada em prioridades
     
-    // Verificar se é contexto de arquivamento final
-    const archiveFinalStep = processSteps?.find(s => 
-      s.stepName === "Arquivar processo - Final" && 
-      s.departmentId === 2 && 
-      s.isCompleted
+    // PRIORIDADE 1: Arquivamento final concluído = processo finalizado
+    const archiveFinalCompleted = processSteps?.find(s => 
+      s.stepName === "Arquivar processo - Final" && s.departmentId === 2 && s.isCompleted
     );
     
-    // Verificar se etapa de correção foi concluída
-    const correctionStep = processSteps?.find(s => s.stepName === "Devolver para correção ou cancelar processo" && s.isCompleted);
-    
-    if (archiveFinalStep) {
-      // Se arquivamento final foi concluído, processo está finalizado - não permitir transferências
-      console.log("🔍 TRANSFER - Processo arquivado, não permitindo transferências");
-      // availableDepartments fica vazio = processo finalizado
-    } else if (correctionStep) {
-      // Se etapa de correção foi concluída, permitir tramitação para Setor Demandante para reiniciar fluxo
-      const setorDemandante = departments?.find(d => d.id === 1);
-      if (setorDemandante) availableDepartments.push(setorDemandante);
+    if (archiveFinalCompleted) {
+      console.log("🔍 TRANSFER - Processo arquivado, bloqueando transferências");
+      // availableDepartments fica vazio = sem transferências
     } else {
-      // Lógica normal da Divisão de Licitação baseada no status NPP
-      if (isNPPCompleted()) {
-        // Se NPP já completou, segunda etapa da Divisão vai direto para Orçamento
-        const nextDepartment = departments?.find(d => d.id === 4); // Unidade de Orçamento e Finanças
-        if (nextDepartment) availableDepartments.push(nextDepartment);
+      // PRIORIDADE 2: Verificar se é fluxo de correção concluído
+      const correctionCompleted = processSteps?.find(s => 
+        s.stepName === "Devolver para correção ou cancelar processo" && s.departmentId === 2 && s.isCompleted
+      );
+      
+      if (correctionCompleted) {
+        // Correção concluída → pode ir para Setor Demandante
+        const setorDemandante = departments?.find(d => d.id === 1);
+        if (setorDemandante) availableDepartments.push(setorDemandante);
       } else {
-        // Primeira etapa da Divisão vai para NPP
-        const nextDepartment = departments?.find(d => d.id === 3); // NPP
-        if (nextDepartment) availableDepartments.push(nextDepartment);
+        // PRIORIDADE 3: Fluxo normal baseado no NPP
+        if (isNPPCompleted()) {
+          const nextDepartment = departments?.find(d => d.id === 4);
+          if (nextDepartment) availableDepartments.push(nextDepartment);
+        } else {
+          const nextDepartment = departments?.find(d => d.id === 3);
+          if (nextDepartment) availableDepartments.push(nextDepartment);
+        }
       }
     }
   } else if (process.currentDepartmentId === 3) {
