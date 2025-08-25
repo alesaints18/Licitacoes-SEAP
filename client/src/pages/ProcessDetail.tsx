@@ -763,79 +763,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       if (response.ok) {
         console.log("🔍 ProcessDetail - Decisão de rejeição tomada:", authorizationRejectionDecision);
         
-        // Se a decisão for "Não autorizar a defesa", resetar processo e criar etapa específica
+        // Se a decisão for "Não autorizar a defesa", permitir tramitação manual
         if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
           console.log(
-            "🔥🔥🔥 ProcessDetail - Resetando processo e criando etapa 'Devolver para correção ou cancelar processo'",
+            "🔥🔥🔥 ProcessDetail - Etapa rejeitada, usuário pode tramitar manualmente para Divisão de Licitação",
           );
-
-          try {
-            // PRIMEIRO: Resetar processo completo - tornar todas as etapas invisíveis
-            const allStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
-            if (allStepsResponse.ok) {
-              const allSteps = await allStepsResponse.json();
-              
-              // Resetar todas as etapas existentes
-              for (const step of allSteps) {
-                await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
-                  isCompleted: false,
-                  isVisible: false,
-                  observations: null,
-                  completedBy: null,
-                  completedAt: null
-                });
-              }
-            }
-
-            // SEGUNDO: Transferir processo para Zona de Correção
-            await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-              departmentId: 12 // Zona de Correção
-            });
-
-            // TERCEIRO: Aguardar um pouco e resetar novamente (caso o servidor tenha criado etapas automaticamente)
-            setTimeout(async () => {
-              try {
-                const newStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
-                if (newStepsResponse.ok) {
-                  const newSteps = await newStepsResponse.json();
-                  
-                  // Resetar novamente todas as etapas que foram criadas automaticamente
-                  for (const step of newSteps) {
-                    await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
-                      isCompleted: false,
-                      isVisible: false,
-                      observations: null,
-                      completedBy: null,
-                      completedAt: null
-                    });
-                  }
-                }
-
-                // Criar apenas etapa específica "Devolver para correção ou cancelar processo"
-                await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
-                  stepName: "Devolver para correção ou cancelar processo",
-                  departmentId: 12, // Zona de Correção
-                  isVisible: true,
-                  isCompleted: false
-                });
-
-                // Invalidar cache após as mudanças
-                queryClient.invalidateQueries({
-                  queryKey: [`/api/processes/${parsedId}/steps`],
-                });
-                queryClient.invalidateQueries({
-                  queryKey: [`/api/processes/${parsedId}`],
-                });
-              } catch (error) {
-                console.error("Erro ao resetar etapas após transferência:", error);
-              }
-            }, 1000); // Aguardar 1 segundo para garantir que a transferência foi processada
-          } catch (etapasError) {
-            console.error(
-              "❌ ProcessDetail - Erro ao resetar e transferir processo:",
-              etapasError,
-            );
-          }
         }
 
         // Se a decisão for sobre recurso de convênio, tornar visível a etapa "Solicitar ajuste/aditivo do plano de trabalho"
