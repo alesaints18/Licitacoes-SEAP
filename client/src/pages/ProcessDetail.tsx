@@ -684,141 +684,182 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
-  // Função para rejeitar autorização
+  // Função para rejeitar autorização (baseada na função de aprovação)
   const handleAuthorizationRejection = async () => {
-    if (!stepForAuthorizationRejection || !authorizationRejectionDecision)
+    if (!stepForAuthorizationRejection || !authorizationRejectionDecision) {
       return;
+    }
 
     try {
-      let stepId = stepForAuthorizationRejection.id;
+      console.log(
+        "🔥🔥🔥 ProcessDetail - Rejeitando autorização com decisão:",
+        authorizationRejectionDecision,
+      );
 
-      // Se a etapa não existir, criar primeiro
-      if (!stepForAuthorizationRejection.id) {
-        const response = await apiRequest(
-          "POST",
-          `/api/processes/${parsedId}/steps`,
-          {
-            stepName: "Autorização pelo Secretário SEAP",
-            departmentId: stepForAuthorizationRejection.departmentId,
-            isCompleted: false,
-            observations: `REJEIÇÃO: ${authorizationRejectionDecision}`,
-          },
-        );
+      const response = await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepForAuthorizationRejection.id}`,
+        {
+          isCompleted: true,
+          observations: `REJEIÇÃO: ${authorizationRejectionDecision}`,
+          rejectedAt: new Date().toISOString(),
+          rejectionStatus: authorizationRejectionDecision,
+          userId: currentUser?.id,
+        },
+      );
 
-        if (response.ok) {
-          const newStep = await response.json();
-          stepId = newStep.id;
-        }
-      } else {
-        // Atualizar a etapa existente como rejeitada mas CONCLUÍDA
-        await apiRequest(
-          "PATCH",
-          `/api/processes/${parsedId}/steps/${stepId}`,
-          {
-            isCompleted: true, // MARCAR COMO CONCLUÍDA
-            observations: `REJEIÇÃO: ${authorizationRejectionDecision}`,
-            rejectedAt: new Date().toISOString(),
-            rejectionStatus: authorizationRejectionDecision,
-            userId: 1, // ID do usuário atual
-          },
-        );
-      }
-
-      // Criar etapa condicional baseada na decisão de rejeição (seguindo padrão do modal de aprovação)
-      let conditionalStepName = "";
-
-      if (
-        authorizationRejectionDecision ===
-        "Não autorizar a defesa ou solicitar reformulação da demanda"
-      ) {
-        conditionalStepName = "Devolver para correção ou arquivamento";
-      } else if (
-        authorizationRejectionDecision ===
-        "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
-      ) {
-        conditionalStepName = "Solicitar ajuste/aditivo do plano de trabalho";
-      }
-
-      if (conditionalStepName) {
-        console.log(
-          `🔥🔥🔥 ProcessDetail - Criando etapa condicional: ${conditionalStepName}`,
-        );
-
-        try {
-          // Verificar se a etapa já existe
-          const stepsResponse = await apiRequest(
-            "GET",
-            `/api/processes/${parsedId}/steps`,
-          );
-          const currentSteps = await stepsResponse.json();
-          const stepExists = currentSteps.find(
-            (s: any) => s.stepName === conditionalStepName,
+      if (response.ok) {
+        // Se a decisão for "Não autorizar a defesa", criar a etapa "Devolver para correção ou arquivamento"
+        if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
+          console.log(
+            "🔥🔥🔥 ProcessDetail - Criando etapa 'Devolver para correção ou arquivamento' para reformulação da demanda",
           );
 
-          if (!stepExists) {
-            // Criar etapa condicional no setor SEAP (ID 5)
-            console.log(
-              `🔥🔥🔥 ProcessDetail - Criando etapa ${conditionalStepName} no departamento SEAP (ID: 5)`,
-            );
-            const conditionalStepResponse = await apiRequest(
-              "POST",
+          try {
+            // Verificar se a etapa já existe
+            const stepsResponse = await apiRequest(
+              "GET",
               `/api/processes/${parsedId}/steps`,
-              {
-                stepName: conditionalStepName,
-                departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
-                userId: 1,
-                phase: "Correção",
-              },
+            );
+            const currentSteps = await stepsResponse.json();
+            const devolverStepExists = currentSteps.find(
+              (s: any) => s.stepName === "Devolver para correção ou arquivamento",
             );
 
-            if (conditionalStepResponse.ok) {
+            if (!devolverStepExists) {
+              // Criar etapa "Devolver para correção ou arquivamento" no setor SEAP (ID 5)
               console.log(
-                `✅✅✅ ProcessDetail - Etapa ${conditionalStepName} criada com sucesso`,
+                "🔥🔥🔥 ProcessDetail - Criando etapa no departamento SEAP (ID: 5)",
               );
-              const createdStep = await conditionalStepResponse.json();
-              console.log(
-                "🔥 ProcessDetail - Dados da etapa criada:",
-                createdStep,
+              const devolverResponse = await apiRequest(
+                "POST",
+                `/api/processes/${parsedId}/steps`,
+                {
+                  stepName: "Devolver para correção ou arquivamento",
+                  departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
+                  userId: currentUser?.id,
+                  phase: "Correção",
+                },
               );
+
+              if (devolverResponse.ok) {
+                console.log(
+                  "✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' criada com sucesso",
+                );
+                const createdStep = await devolverResponse.json();
+                console.log(
+                  "🔥 ProcessDetail - Dados da etapa criada:",
+                  createdStep,
+                );
+              } else {
+                console.error(
+                  "❌❌❌ ProcessDetail - Erro ao criar etapa 'Devolver para correção ou arquivamento'",
+                );
+                const errorData = await devolverResponse.text();
+                console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
+              }
             } else {
-              console.error(
-                `❌❌❌ ProcessDetail - Erro ao criar etapa ${conditionalStepName}`,
+              console.log(
+                "✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' já existe",
               );
-              const errorData = await conditionalStepResponse.text();
-              console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
             }
-          } else {
-            console.log(
-              `✅ ProcessDetail - Etapa ${conditionalStepName} já existe`,
+          } catch (etapasError) {
+            console.error(
+              "❌ ProcessDetail - Erro ao verificar/criar etapa:",
+              etapasError,
             );
           }
-        } catch (etapasError) {
-          console.error(
-            "❌ ProcessDetail - Erro ao verificar/criar etapa:",
-            etapasError,
-          );
         }
+
+        // Se a decisão for sobre recurso de convênio, criar a etapa "Solicitar ajuste/aditivo do plano de trabalho"
+        if (authorizationRejectionDecision === "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado") {
+          console.log(
+            "🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar ajuste/aditivo do plano de trabalho' para ajuste de convênio",
+          );
+
+          try {
+            // Verificar se a etapa já existe
+            const stepsResponse = await apiRequest(
+              "GET",
+              `/api/processes/${parsedId}/steps`,
+            );
+            const currentSteps = await stepsResponse.json();
+            const ajusteStepExists = currentSteps.find(
+              (s: any) => s.stepName === "Solicitar ajuste/aditivo do plano de trabalho",
+            );
+
+            if (!ajusteStepExists) {
+              // Criar etapa "Solicitar ajuste/aditivo do plano de trabalho" no setor SEAP (ID 5)
+              console.log(
+                "🔥🔥🔥 ProcessDetail - Criando etapa no departamento SEAP (ID: 5)",
+              );
+              const ajusteResponse = await apiRequest(
+                "POST",
+                `/api/processes/${parsedId}/steps`,
+                {
+                  stepName: "Solicitar ajuste/aditivo do plano de trabalho",
+                  departmentId: 5, // SEAP - Secretário de Estado da Administração Penitenciária
+                  userId: currentUser?.id,
+                  phase: "Correção",
+                },
+              );
+
+              if (ajusteResponse.ok) {
+                console.log(
+                  "✅✅✅ ProcessDetail - Etapa 'Solicitar ajuste/aditivo do plano de trabalho' criada com sucesso",
+                );
+                const createdStep = await ajusteResponse.json();
+                console.log(
+                  "🔥 ProcessDetail - Dados da etapa criada:",
+                  createdStep,
+                );
+              } else {
+                console.error(
+                  "❌❌❌ ProcessDetail - Erro ao criar etapa 'Solicitar ajuste/aditivo do plano de trabalho'",
+                );
+                const errorData = await ajusteResponse.text();
+                console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
+              }
+            } else {
+              console.log(
+                "✅ ProcessDetail - Etapa 'Solicitar ajuste/aditivo do plano de trabalho' já existe",
+              );
+            }
+          } catch (etapasError) {
+            console.error(
+              "❌ ProcessDetail - Erro ao verificar/criar etapa de ajuste:",
+              etapasError,
+            );
+          }
+        }
+
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}`],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: [`/api/processes/${parsedId}/steps`],
+        });
+
+        toast({
+          title: "❌ Etapa Rejeitada",
+          description:
+            authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda"
+              ? `Rejeição: ${authorizationRejectionDecision}. Etapa de correção criada automaticamente.`
+              : authorizationRejectionDecision === "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
+                ? `Rejeição: ${authorizationRejectionDecision}. Etapa de ajuste criada automaticamente.`
+                : `Rejeição: ${authorizationRejectionDecision}`,
+          variant: "destructive",
+        });
+
+        // Fechar modal e limpar estados
+        setAuthorizationRejectionModalOpen(false);
+        setAuthorizationRejectionDecision("");
+        setStepForAuthorizationRejection(null);
       }
-
-      // Invalidar cache
-      queryClient.invalidateQueries({
-        queryKey: [`/api/processes/${parsedId}/steps`],
-      });
-
-      toast({
-        title: "❌ Etapa Rejeitada",
-        description: `Rejeição: ${authorizationRejectionDecision}${conditionalStepName ? `. Nova etapa criada: ${conditionalStepName}` : ""}`,
-        variant: "destructive",
-      });
-
-      // Fechar modal e limpar estados
-      setAuthorizationRejectionModalOpen(false);
-      setAuthorizationRejectionDecision("");
-      setStepForAuthorizationRejection(null);
     } catch (error) {
       toast({
         title: "Erro",
-        description: "Não foi possível rejeitar a etapa",
+        description: "Erro ao rejeitar autorização",
         variant: "destructive",
       });
     }
