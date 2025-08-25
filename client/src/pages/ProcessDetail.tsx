@@ -412,15 +412,16 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       // Licitações - Divisão de Licitação (com lógica condicional)
       Licitações: (() => {
-        // Verificar se o processo chegou após rejeição específica do Secretário SEAP
-        // Busca por etapa de "Autorização pelo Secretário SEAP" que foi rejeitada com motivo específico
+        // Verificar se o processo está na Divisão de Licitação e tem etapa de Autorização rejeitada
         const authorizationStep = steps?.find(s => 
           s.stepName === "Autorização pelo Secretário SEAP" && 
-          s.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda"
+          s.rejectionStatus === "Não autorizar a defesa ou solicitar reformulação da demanda" &&
+          s.isCompleted === true
         );
         
-        if (authorizationStep && process?.currentDepartmentId === 2) {
-          // Se processo chegou na Divisão de Licitação após rejeição específica, mostrar apenas etapa de correção
+        // Se processo está na Divisão de Licitação E tem autorização rejeitada com motivo específico
+        if (process?.currentDepartmentId === 2 && authorizationStep) {
+          console.log("🔍 DIVISÃO LICITAÇÃO - Processo veio de rejeição específica, mostrando apenas etapa de correção");
           return [
             {
               name: "Devolver para correção ou cancelar processo",
@@ -913,145 +914,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       });
 
       if (correctionDecision === "Encaminhar ao documento de formalização da demanda novamente") {
-        // PRIMEIRO: Resetar processo completo - tornar todas as etapas invisíveis
-        const allStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
-        if (allStepsResponse.ok) {
-          const allSteps = await allStepsResponse.json();
-          
-          // Resetar todas as etapas existentes
-          for (const step of allSteps) {
-            await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
-              isCompleted: false,
-              isVisible: false,
-              observations: null,
-              completedBy: null,
-              completedAt: null
-            });
-          }
-        }
-
-        // SEGUNDO: Transferir processo para Divisão de Licitação
-        await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-          departmentId: 2 // Divisão de Licitação
-        });
-
-        // TERCEIRO: Aguardar um pouco e resetar novamente (caso o servidor tenha criado etapas automaticamente)
-        setTimeout(async () => {
-          try {
-            const newStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
-            if (newStepsResponse.ok) {
-              const newSteps = await newStepsResponse.json();
-              
-              // Resetar novamente todas as etapas que foram criadas automaticamente
-              for (const step of newSteps) {
-                await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
-                  isCompleted: false,
-                  isVisible: false,
-                  observations: null,
-                  completedBy: null,
-                  completedAt: null
-                });
-              }
-            }
-
-            // Criar apenas as etapas iniciais da Divisão de Licitação como visíveis
-            const initialSteps = [
-              "Criar Processo - Órgão",
-              "Fazer Pesquisa de Preço - Órgão",
-              "Solicitar Pesquisa de Preços"
-            ];
-
-            for (const stepName of initialSteps) {
-              await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
-                stepName,
-                departmentId: 2,
-                isVisible: true,
-                isCompleted: false
-              });
-            }
-
-            // Invalidar cache após as mudanças
-            queryClient.invalidateQueries({
-              queryKey: [`/api/processes/${parsedId}/steps`],
-            });
-            queryClient.invalidateQueries({
-              queryKey: [`/api/processes/${parsedId}`],
-            });
-          } catch (error) {
-            console.error("Erro ao resetar etapas após transferência:", error);
-          }
-        }, 1000); // Aguardar 1 segundo para garantir que a transferência foi processada
-
         toast({
-          title: "✅ Processo Reiniciado",
-          description: "Processo transferido para Divisão de Licitação e reiniciado no fluxo inicial.",
+          title: "✅ Decisão Registrada",
+          description: "Decisão registrada. Use o botão 'Tramitar' para transferir o processo ao setor apropriado para reiniciar o fluxo.",
         });
 
       } else if (correctionDecision === "Arquivar processo") {
-        // PRIMEIRO: Resetar processo completo - tornar todas as etapas invisíveis
-        const allStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
-        if (allStepsResponse.ok) {
-          const allSteps = await allStepsResponse.json();
-          
-          // Resetar todas as etapas existentes
-          for (const step of allSteps) {
-            await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
-              isCompleted: false,
-              isVisible: false,
-              observations: null,
-              completedBy: null,
-              completedAt: null
-            });
-          }
-        }
-
-        // SEGUNDO: Transferir processo para Divisão de Licitação
-        await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-          departmentId: 12 // Zona de Correção
+        // Cancelar o processo
+        await apiRequest("PATCH", `/api/processes/${parsedId}`, {
+          status: "canceled",
         });
 
-        // TERCEIRO: Aguardar um pouco e resetar novamente (caso o servidor tenha criado etapas automaticamente)
-        setTimeout(async () => {
-          try {
-            const newStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
-            if (newStepsResponse.ok) {
-              const newSteps = await newStepsResponse.json();
-              
-              // Resetar novamente todas as etapas que foram criadas automaticamente
-              for (const step of newSteps) {
-                await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
-                  isCompleted: false,
-                  isVisible: false,
-                  observations: null,
-                  completedBy: null,
-                  completedAt: null
-                });
-              }
-            }
-
-            // Criar apenas etapa de correção
-            await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
-              stepName: "Devolver para correção ou cancelar processo",
-              departmentId: 2,
-              isVisible: true,
-              isCompleted: false
-            });
-
-            // Invalidar cache após as mudanças
-            queryClient.invalidateQueries({
-              queryKey: [`/api/processes/${parsedId}/steps`],
-            });
-            queryClient.invalidateQueries({
-              queryKey: [`/api/processes/${parsedId}`],
-            });
-          } catch (error) {
-            console.error("Erro ao resetar etapas após transferência:", error);
-          }
-        }, 1000); // Aguardar 1 segundo para garantir que a transferência foi processada
-
         toast({
-          title: "✅ Processo Enviado para Correção",
-          description: "Processo transferido para Divisão de Licitação com etapa de correção.",
+          title: "✅ Processo Cancelado",
+          description: "Processo foi arquivado/cancelado conforme solicitado.",
         });
       }
 
