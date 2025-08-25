@@ -2434,6 +2434,40 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                     variant: "destructive",
                                                   });
                                                 }
+                                              }
+                                              // Verificar se é a etapa especial de Autorização pelo Secretário SEAP
+                                              else if (
+                                                sectorStep.name === "Autorização pelo Secretário SEAP"
+                                              ) {
+                                                console.log(
+                                                  "🔥 ProcessDetail - Etapa 'Autorização pelo Secretário SEAP' detectada - abrindo modal de autorização",
+                                                );
+                                                setAuthorizationModalOpen(true);
+
+                                                // Se não existe step, criar um objeto temporário com as informações necessárias
+                                                if (existingStep) {
+                                                  setStepForAuthorization(existingStep);
+                                                } else {
+                                                  // Criar objeto temporário para a etapa
+                                                  const tempStep = {
+                                                    id: 0, // ID temporário
+                                                    processId: parsedId,
+                                                    stepName: sectorStep.name,
+                                                    departmentId: process.currentDepartmentId,
+                                                    isCompleted: false,
+                                                    observations: null,
+                                                    completedAt: null,
+                                                    completedBy: null,
+                                                    dueDate: null,
+                                                    rejectedAt: null,
+                                                    rejectionStatus: null,
+                                                    isLocked: false,
+                                                    isVisible: true,
+                                                  };
+                                                  setStepForAuthorization(tempStep);
+                                                }
+                                                setAuthorizationDecision(""); // Limpar seleção anterior
+                                                return; // NÃO CONTINUA - Modal deve ser usado
                                               } else {
                                                 // Etapa normal, apenas atualizar
                                                 handleStepToggle(
