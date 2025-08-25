@@ -278,6 +278,14 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
         // Permanece no mesmo setor (SEAP) para AUTORIZAR EMISSÃO DE R.O.
         const seap = departments?.find(d => d.id === 5);
         if (seap) availableDepartments.push(seap);
+      } else if (authStep.observations?.includes("Recurso de convênio insuficiente")) {
+        // Verificar se a etapa de ajuste foi concluída
+        const adjustmentStep = processSteps?.find(s => s.stepName === "Solicitar ajuste/aditivo do plano de trabalho" && s.isCompleted);
+        if (adjustmentStep) {
+          // Pode transferir para SUBCC para reavaliação do plano de trabalho
+          const subcc = departments?.find(d => d.id === 11);
+          if (subcc) availableDepartments.push(subcc);
+        }
       }
     }
   } else {
