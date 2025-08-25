@@ -103,6 +103,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [subccRevaluationModalOpen, setSubccRevaluationModalOpen] = useState(false);
   const [stepForSubccRevaluation, setStepForSubccRevaluation] = useState<ProcessStep | null>(null);
 
+  // Estado para o modal de Fluxo Repror
+  const [fluxoReprorModalOpen, setFluxoReprorModalOpen] = useState(false);
+  const [stepForFluxoRepror, setStepForFluxoRepror] = useState<ProcessStep | null>(null);
+
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
   const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
@@ -1244,6 +1248,94 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
+  // Função para arquivar processo por Fluxo Repror
+  const handleFluxoReprorArchive = async () => {
+    console.log("🔥 MODAL FLUXO REPROR - Função chamada!", {
+      stepForFluxoRepror,
+    });
+
+    if (!stepForFluxoRepror) {
+      console.log("🔥 MODAL FLUXO REPROR - Validação falhou");
+      return;
+    }
+
+    try {
+      console.log(
+        "🔥🔥🔥 ProcessDetail - Arquivando processo por Fluxo Repror",
+      );
+
+      // Criar etapa se não existir
+      let stepId = stepForFluxoRepror.id;
+      if (!stepId) {
+        console.log("🔥🔥🔥 ProcessDetail - Criando etapa de Fluxo Repror");
+        const createResponse = await apiRequest(
+          "POST",
+          `/api/processes/${parsedId}/steps`,
+          {
+            stepName: "Fluxo Repror",
+            departmentId: process?.currentDepartmentId || 4,
+            isVisible: true,
+            isCompleted: false,
+          },
+        );
+
+        if (createResponse.ok) {
+          const newStep = await createResponse.json();
+          stepId = newStep.id;
+          console.log("🔥🔥🔥 ProcessDetail - Etapa criada com ID:", stepId);
+        } else {
+          throw new Error("Erro ao criar etapa");
+        }
+      }
+
+      // Completar a etapa
+      await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepId}`,
+        {
+          isCompleted: true,
+          observations: "Processo arquivado por reavaliação - Unidade de Orçamento e Finanças",
+          userId: currentUser?.id,
+        },
+      );
+
+      // Arquivar o processo (soft delete para aba Arquivados)
+      await apiRequest("DELETE", `/api/processes/${parsedId}`, {
+        deletionReason: "Arquivado por processo em reavaliação pela Unidade de Orçamento e Finanças",
+      });
+
+      // Fechar modal e limpar estados
+      setFluxoReprorModalOpen(false);
+      setStepForFluxoRepror(null);
+
+      // Invalidar cache para garantir atualização
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}/steps`],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}`],
+      });
+
+      toast({
+        title: "✅ Processo Arquivado",
+        description: "Processo foi arquivado por reavaliação pela Unidade de Orçamento e Finanças e movido para a aba 'Arquivados'. Redirecionando...",
+      });
+
+      // Redirecionar para página de processos
+      setTimeout(() => {
+        window.location.href = "/processes";
+      }, 2000);
+
+    } catch (error) {
+      console.error("Erro ao arquivar processo por Fluxo Repror:", error);
+      toast({
+        title: "❌ Erro",
+        description: "Erro ao arquivar processo por Fluxo Repror",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Função para arquivar processo final
   const handleArchiveProcess = async () => {
     console.log("🔥 MODAL ARQUIVAMENTO - Função chamada!", {
@@ -2261,6 +2353,19 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               
                                               setArchiveModalOpen(true);
                                               setStepForArchive(existingStep || null);
+                                              return; // NÃO CONTINUA - Etapa só será concluída após confirmação no modal
+                                            }
+
+                                            // Verificar se é a etapa de Fluxo Repror (COM MODAL DE CONFIRMAÇÃO)
+                                            if (
+                                              sectorStep.name === "Fluxo Repror"
+                                            ) {
+                                              console.log(
+                                                "🔥 ProcessDetail - Etapa de Fluxo Repror detectada - abrindo modal de confirmação",
+                                              );
+                                              
+                                              setFluxoReprorModalOpen(true);
+                                              setStepForFluxoRepror(existingStep || null);
                                               return; // NÃO CONTINUA - Etapa só será concluída após confirmação no modal
                                             }
 
@@ -3316,6 +3421,66 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               onClick={() => {
                 console.log("🔥 BOTÃO REAVALIAÇÃO SUBCC - Clicado!");
                 handleSubccRevaluation();
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Sim
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmação de Arquivamento - Fluxo Repror */}
+      <Dialog open={fluxoReprorModalOpen} onOpenChange={setFluxoReprorModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Archive className="h-5 w-5" />
+              Confirmar arquivamento do processo #{process?.pbdocNumber}?
+            </DialogTitle>
+            <DialogDescription>
+              {stepForFluxoRepror ? (
+                <div className="space-y-4">
+                  <p className="text-gray-600">
+                    Este processo será <strong>arquivado</strong> por processo em reavaliação pela 
+                    Unidade de Orçamento e Finanças e movido para a aba "Arquivados".
+                  </p>
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                    <div className="flex items-start">
+                      <AlertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 mr-3 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-medium text-yellow-800 mb-1">
+                          Atenção
+                        </p>
+                        <p className="text-sm text-yellow-700">
+                          O processo será movido para a aba "Arquivados" e não poderá ser editado. 
+                          Esta ação pode ser revertida pelos administradores.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <p>Carregando informações do processo...</p>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setFluxoReprorModalOpen(false);
+                setStepForFluxoRepror(null);
+              }}
+            >
+              Não
+            </Button>
+            <Button
+              onClick={() => {
+                console.log("🔥 BOTÃO FLUXO REPROR - Clicado!");
+                handleFluxoReprorArchive();
               }}
               className="bg-red-600 hover:bg-red-700"
             >
