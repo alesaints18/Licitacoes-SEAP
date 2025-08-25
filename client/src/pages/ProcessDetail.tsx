@@ -526,6 +526,21 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               s.isVisible === true
           );
           
+          console.log("🔥 DEBUG - Buscando primeira etapa de correção:", {
+            found: !!firstCorrectionStep,
+            stepName: firstCorrectionStep?.stepName,
+            departmentId: firstCorrectionStep?.departmentId,
+            isVisible: firstCorrectionStep?.isVisible,
+            isCompleted: firstCorrectionStep?.isCompleted,
+            totalSteps: steps?.length,
+            correctionSteps: steps?.filter(s => s.stepName.includes("Devolver")).map(s => ({
+              name: s.stepName,
+              departmentId: s.departmentId,
+              isVisible: s.isVisible,
+              isCompleted: s.isCompleted
+            }))
+          });
+          
           // Se a primeira etapa existe e não está concluída, mostrar ela
           if (firstCorrectionStep && !firstCorrectionStep.isCompleted) {
             console.log(
@@ -551,6 +566,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               },
             ];
           }
+          
+          // Se não encontrou a primeira etapa, mostrar a segunda (fallback)
+          console.log(
+            "🔍 DIVISÃO LICITAÇÃO - Primeira etapa não encontrada, mostrando segunda como fallback",
+          );
+          return [
+            {
+              name: "Devolver para correção ou cancelar processo",
+              phase: "Correção",
+            },
+          ];
         }
 
         // Caso contrário, mostrar etapas normais da Divisão de Licitação
