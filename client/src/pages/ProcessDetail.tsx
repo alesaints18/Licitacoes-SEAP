@@ -896,6 +896,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 
                 if (updateResponse.ok) {
                   console.log("✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' tornada visível com sucesso no Secretário de Estado");
+                  
+                  // Recarregar dados para mostrar a etapa visível
+                  queryClient.invalidateQueries({
+                    queryKey: [`/api/processes/${parsedId}/steps`],
+                  });
+                  
                   // NÃO transferir automaticamente - usuário deve fazer tramitação manual
                 }
               } else {
@@ -916,6 +922,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 
                 if (createResponse.ok) {
                   console.log("✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' criada com sucesso no Secretário de Estado");
+                  
+                  // Recarregar dados para mostrar a nova etapa
+                  queryClient.invalidateQueries({
+                    queryKey: [`/api/processes/${parsedId}/steps`],
+                  });
+                  
                 } else {
                   console.error("❌ ProcessDetail - Erro ao criar etapa 'Devolver para correção ou arquivamento'");
                 }
@@ -2509,24 +2521,26 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                       );
                                     }
 
-                                    // 2. Tornar invisíveis todas as etapas condicionais
-                                    const conditionalSteps = steps.filter(
+                                    // 2. Tornar invisíveis apenas etapas condicionais que devem ser resetadas
+                                    // EXCLUIR "Devolver para correção ou arquivamento" para não interferir no fluxo de rejeição
+                                    const conditionalStepsToHide = steps.filter(
                                       (step) =>
                                         [
-                                          "Devolver para correção ou arquivamento",
                                           "Solicitar ajuste/aditivo do plano de trabalho",
                                           "Autorizar Emissão de R.O",
                                           "Solicitar disponibilização de orçamento",
                                         ].includes(step.stepName),
                                     );
 
-                                    for (const step of conditionalSteps) {
+                                    for (const step of conditionalStepsToHide) {
                                       await apiRequest(
                                         "PATCH",
                                         `/api/processes/${parsedId}/steps/${step.id}`,
                                         { isVisible: false },
                                       );
                                     }
+                                    
+                                    console.log("🔄 ProcessDetail - Etapas condicionais escondidas (exceto correção/arquivamento):", conditionalStepsToHide.map(s => s.stepName));
 
                                     queryClient.invalidateQueries({
                                       queryKey: [
