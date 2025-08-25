@@ -514,16 +514,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           },
         ];
 
-        // Verificar se existe a etapa "Devolver para correção ou arquivamento"
-        const intermediateStep = steps?.find(
-          (s) => s.stepName === "Devolver para correção ou arquivamento",
-        );
-        if (intermediateStep) {
-          baseSteps.push({
-            name: "Devolver para correção ou arquivamento",
-            phase: "Correção",
-          });
-        }
+        // REMOVIDO: A etapa "Devolver para correção ou arquivamento" é tratada apenas como etapa condicional
+        // para evitar duplicação na interface
 
         // Verificar se a autorização foi aprovada com "Disponibilidade Orçamentária"
         const authStep = steps?.find(
