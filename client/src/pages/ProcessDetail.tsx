@@ -573,17 +573,33 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       ],
 
       // Financeiro - Ordenador de Despesa
-      Financeiro: [
-        {
-          name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.",
-          phase: "Execução",
-          nextSector: "Administrativo",
-        },
-        {
-          name: "Fluxo Repror",
-          phase: "Fluxo Repror",
-        },
-      ],
+      Financeiro: (() => {
+        // Verificar se existe uma etapa "Fluxo Repror" já completada ou se deve ser criada
+        const fluxoReprorStep = steps?.find(
+          (s) => s.stepName === "Fluxo Repror" && s.departmentId === 4
+        );
+
+        // Se existe uma etapa Fluxo Repror visível, mostrar só ela (modo arquivamento)
+        if (fluxoReprorStep && fluxoReprorStep.isVisible) {
+          console.log("🔍 FINANCEIRO - Modo arquivamento: mostrando apenas Fluxo Repror");
+          return [
+            {
+              name: "Fluxo Repror",
+              phase: "Fluxo Repror",
+            }
+          ];
+        }
+
+        // Fluxo normal: mostrar apenas a etapa padrão
+        console.log("🔍 FINANCEIRO - Fluxo normal: etapa padrão");
+        return [
+          {
+            name: "Informar Disponibilidade Orçamentária p/ Emissão de R.O.",
+            phase: "Execução",
+            nextSector: "Administrativo",
+          }
+        ];
+      })(),
 
       // Administrativo - Secretário SEAP
       Administrativo: (() => {
