@@ -381,25 +381,36 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
       const divisaoLicitacao = departments?.find(d => d.id === 2);
       if (divisaoLicitacao) availableDepartments.push(divisaoLicitacao);
     } else {
-      // PRIORIDADE 2: Verificar outros fluxos de autorização
-      const authStep = processSteps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
-      if (authStep) {
-        // Baseado na decisão da autorização, liberar departamentos específicos
-        if (authStep.observations?.includes("INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL")) {
-          // Pode transferir para Unidade de Orçamento e Finanças (Fluxo Repror)
-          const orcamentoFinancas = departments?.find(d => d.id === 6);
-          if (orcamentoFinancas) availableDepartments.push(orcamentoFinancas);
-        } else if (authStep.observations?.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
-          // Permanece no mesmo setor (SEAP) para AUTORIZAR EMISSÃO DE R.O.
-          const seap = departments?.find(d => d.id === 5);
-          if (seap) availableDepartments.push(seap);
-        } else if (authStep.observations?.includes("Recurso de convênio insuficiente")) {
-          // Verificar se a etapa de ajuste foi concluída
-          const adjustmentStep = processSteps?.find(s => s.stepName === "Solicitar ajuste/aditivo do plano de trabalho" && s.isCompleted);
-          if (adjustmentStep) {
-            // Pode transferir para SUBCC para reavaliação do plano de trabalho
-            const subcc = departments?.find(d => d.id === 11);
-            if (subcc) availableDepartments.push(subcc);
+      // PRIORIDADE 2: Verificar se a etapa "Solicitar disponibilização de orçamento" foi concluída
+      const budgetRequestStep = processSteps?.find(s => 
+        s.stepName === "Solicitar disponibilização de orçamento" && s.isCompleted
+      );
+      
+      if (budgetRequestStep) {
+        // Se "Solicitar disponibilização de orçamento" foi concluída, permite tramitar para Unidade de Orçamento e Finanças (Fluxo Repror)
+        const orcamentoFinancas = departments?.find(d => d.id === 6);
+        if (orcamentoFinancas) availableDepartments.push(orcamentoFinancas);
+      } else {
+        // PRIORIDADE 3: Verificar outros fluxos de autorização
+        const authStep = processSteps?.find(s => s.stepName === "Autorização pelo Secretário SEAP" && s.isCompleted);
+        if (authStep) {
+          // Baseado na decisão da autorização, liberar departamentos específicos
+          if (authStep.observations?.includes("INDISPONIBILIDADE ORÇAMENTÁRIA TOTAL OU PARCIAL")) {
+            // Pode transferir para Unidade de Orçamento e Finanças (Fluxo Repror)
+            const orcamentoFinancas = departments?.find(d => d.id === 6);
+            if (orcamentoFinancas) availableDepartments.push(orcamentoFinancas);
+          } else if (authStep.observations?.includes("DISPONIBILIDADE ORÇAMENTÁRIA")) {
+            // Permanece no mesmo setor (SEAP) para AUTORIZAR EMISSÃO DE R.O.
+            const seap = departments?.find(d => d.id === 5);
+            if (seap) availableDepartments.push(seap);
+          } else if (authStep.observations?.includes("Recurso de convênio insuficiente")) {
+            // Verificar se a etapa de ajuste foi concluída
+            const adjustmentStep = processSteps?.find(s => s.stepName === "Solicitar ajuste/aditivo do plano de trabalho" && s.isCompleted);
+            if (adjustmentStep) {
+              // Pode transferir para SUBCC para reavaliação do plano de trabalho
+              const subcc = departments?.find(d => d.id === 11);
+              if (subcc) availableDepartments.push(subcc);
+            }
           }
         }
       }

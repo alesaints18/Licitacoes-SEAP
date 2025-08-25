@@ -1158,23 +1158,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Agora o SUBCC tem etapa interativa "Fluxo reavaliação do plano de trabalho" com modal de confirmação
       
       if (departmentId === 6) {
-        // Verificar se é para Fluxo Repror (indisponibilidade orçamentária)
+        // Verificar se vem de "Solicitar disponibilização de orçamento" concluída
         const processSteps = await storage.getProcessSteps(processId);
-        const hasReprorStep = processSteps.find(s => s.stepName === "Fluxo Repror");
+        const budgetRequestStep = processSteps.find(s => 
+          s.stepName === "Solicitar disponibilização de orçamento" && s.isCompleted
+        );
         
-        if (hasReprorStep) {
-          console.log(`Processo ${processId} transferido para Unidade de Orçamento e Finanças (Fluxo Repror) - arquivando automaticamente`);
-          await storage.deleteProcess(processId, userId, "Processo arquivado automaticamente - Fluxo Repror (Indisponibilidade Orçamentária)");
+        if (budgetRequestStep) {
+          console.log(`Processo ${processId} transferido para Unidade de Orçamento e Finanças após solicitação de disponibilização - criando Fluxo Repror`);
           
-          // Notificar arquivamento via WebSocket
-          broadcast({
-            type: 'process_deleted',
-            processId: processId,
-            message: `Processo ${process.pbdocNumber} arquivado automaticamente - Fluxo Repror`,
-            timestamp: new Date().toISOString()
-          });
+          // Criar etapa "Fluxo Repror" se não existir
+          const hasReprorStep = processSteps.find(s => s.stepName === "Fluxo Repror");
+          if (!hasReprorStep) {
+            await storage.createProcessStep({
+              processId: processId,
+              stepName: "Fluxo Repror",
+              departmentId: 6,
+              isCompleted: false,
+              isVisible: true,
+              observations: "Fluxo Repror criado automaticamente após transferência por solicitação de disponibilização de orçamento"
+            });
+            console.log(`Etapa "Fluxo Repror" criada para processo ${processId}`);
+          }
+        } else {
+          // Verificar se é para Fluxo Repror já existente (indisponibilidade orçamentária)
+          const hasReprorStep = processSteps.find(s => s.stepName === "Fluxo Repror");
           
-          console.log(`Processo ${processId} arquivado automaticamente - Fluxo Repror`);
+          if (hasReprorStep) {
+            console.log(`Processo ${processId} transferido para Unidade de Orçamento e Finanças (Fluxo Repror) - arquivando automaticamente`);
+            await storage.deleteProcess(processId, userId, "Processo arquivado automaticamente - Fluxo Repror (Indisponibilidade Orçamentária)");
+            
+            // Notificar arquivamento via WebSocket
+            broadcast({
+              type: 'process_deleted',
+              processId: processId,
+              message: `Processo ${process.pbdocNumber} arquivado automaticamente - Fluxo Repror`,
+              timestamp: new Date().toISOString()
+            });
+            
+            console.log(`Processo ${processId} arquivado automaticamente - Fluxo Repror`);
+          }
         }
       } else {
         // Verificar se processo foi transferido para Divisão de Licitação e tem primeira etapa de correção concluída
