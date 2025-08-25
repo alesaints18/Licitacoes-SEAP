@@ -786,7 +786,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             const stepsResponse = await fetch(`/api/processes/${parsedId}/steps?_t=${Date.now()}`);
             const allSteps = await stepsResponse.json();
             const existingIntermediateStep = allSteps.find(
-              (s: any) => s.stepName === "Devolver para correção ou arquivamento" && s.departmentId === stepForAuthorizationRejection.departmentId
+              (s: ProcessStep) => s.stepName === "Devolver para correção ou arquivamento" && s.departmentId === stepForAuthorizationRejection.departmentId
             );
             
             console.log("🔍 ProcessDetail - Etapas encontradas na verificação:", allSteps.map(s => s.stepName));
