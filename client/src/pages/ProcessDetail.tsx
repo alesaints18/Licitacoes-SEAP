@@ -946,9 +946,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           }
         }
 
-        // SEGUNDO: Transferir processo para Setor Demandante
+        // SEGUNDO: Transferir processo para Divisão de Licitação
         await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-          departmentId: 1 // Setor Demandante
+          departmentId: 2 // Divisão de Licitação
         });
 
         // TERCEIRO: Aguardar um pouco e resetar novamente (caso o servidor tenha criado etapas automaticamente)
@@ -970,18 +970,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               }
             }
 
-            // Criar apenas as etapas iniciais do Setor Demandante como visíveis
+            // Criar apenas as etapas iniciais da Divisão de Licitação como visíveis
             const initialSteps = [
-              "Documento de Formalização da Demanda - DFD",
-              "Estudo Técnico Preliminar - ETP", 
-              "Mapa de Risco - MR",
-              "Termo de Referência - TR"
+              "Criar Processo - Órgão",
+              "Fazer Pesquisa de Preço - Órgão",
+              "Solicitar Pesquisa de Preços"
             ];
 
             for (const stepName of initialSteps) {
               await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
                 stepName,
-                departmentId: 1,
+                departmentId: 2,
                 isVisible: true,
                 isCompleted: false
               });
@@ -1001,7 +1000,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         toast({
           title: "✅ Processo Reiniciado",
-          description: "Processo transferido para Setor Demandante e reiniciado no fluxo inicial.",
+          description: "Processo transferido para Divisão de Licitação e reiniciado no fluxo inicial.",
         });
 
       } else if (correctionDecision === "Arquivar processo") {
@@ -1022,9 +1021,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           }
         }
 
-        // SEGUNDO: Transferir processo para Setor Demandante
+        // SEGUNDO: Transferir processo para Divisão de Licitação
         await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-          departmentId: 1 // Setor Demandante
+          departmentId: 2 // Divisão de Licitação
         });
 
         // TERCEIRO: Aguardar um pouco e resetar novamente (caso o servidor tenha criado etapas automaticamente)
@@ -1049,7 +1048,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             // Criar apenas etapa de arquivamento
             await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
               stepName: "Arquivar processo",
-              departmentId: 1,
+              departmentId: 2,
               isVisible: true,
               isCompleted: false
             });
@@ -1068,7 +1067,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         toast({
           title: "✅ Processo para Arquivamento",
-          description: "Processo transferido para Setor Demandante para arquivamento.",
+          description: "Processo transferido para Divisão de Licitação para arquivamento.",
         });
       }
 
@@ -2560,7 +2559,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       Encaminhar ao documento de formalização da demanda novamente
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      O processo será transferido para o Setor Demandante e reiniciado no fluxo inicial
+                      O processo será transferido para a Divisão de Licitação e reiniciado no fluxo inicial
                     </div>
                   </div>
                 </label>
@@ -2583,7 +2582,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       Arquivar processo
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
-                      O processo será transferido para o Setor Demandante apenas para arquivamento
+                      O processo será transferido para a Divisão de Licitação apenas para arquivamento
                     </div>
                   </div>
                 </label>
