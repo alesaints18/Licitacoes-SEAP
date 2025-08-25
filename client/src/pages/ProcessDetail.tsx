@@ -99,6 +99,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
   const [stepForArchive, setStepForArchive] = useState<ProcessStep | null>(null);
 
+  // Estado para o modal de reavaliação SUBCC
+  const [subccRevaluationModalOpen, setSubccRevaluationModalOpen] = useState(false);
+  const [stepForSubccRevaluation, setStepForSubccRevaluation] = useState<ProcessStep | null>(null);
+
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
   const [isFlowchartExpanded, setIsFlowchartExpanded] = useState(false);
@@ -370,12 +374,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       "Procuradoria Geral do Estado - PGE": "Jurídico",
       "Secretário de Estado da Administração Penitenciária - SEAP":
         "Administrativo",
+      "Subgerência de Contratos e  Convênios - SUBCC": "SUBCC",
       Planejamento: "TI", // Mapeamento para o departamento atual do usuário admin
       TI: "TI",
       Licitações: "Licitações",
       Jurídico: "Jurídico",
       Financeiro: "Financeiro",
       Administrativo: "Administrativo",
+      SUBCC: "SUBCC",
     };
 
     const sector = departmentToSectorMap[userDepartment] || userDepartment;
@@ -650,6 +656,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         return baseSteps;
       })(),
+
+      // SUBCC - Subgerência de Contratos e Convênios
+      SUBCC: [
+        {
+          name: "Fluxo reavaliação do plano de trabalho",
+          phase: "Reavaliação",
+        },
+      ],
     };
 
     const result = stepsBySector[sector] || [];
@@ -1133,6 +1147,94 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       toast({
         title: "Erro",
         description: "Erro ao processar a decisão de correção",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Função para arquivar processo por reavaliação SUBCC
+  const handleSubccRevaluation = async () => {
+    console.log("🔥 MODAL SUBCC REAVALIAÇÃO - Função chamada!", {
+      stepForSubccRevaluation,
+    });
+
+    if (!stepForSubccRevaluation) {
+      console.log("🔥 MODAL SUBCC REAVALIAÇÃO - Validação falhou");
+      return;
+    }
+
+    try {
+      console.log(
+        "🔥🔥🔥 ProcessDetail - Arquivando processo por reavaliação SUBCC",
+      );
+
+      // Criar etapa se não existir
+      let stepId = stepForSubccRevaluation.id;
+      if (!stepId) {
+        console.log("🔥🔥🔥 ProcessDetail - Criando etapa de reavaliação SUBCC");
+        const createResponse = await apiRequest(
+          "POST",
+          `/api/processes/${parsedId}/steps`,
+          {
+            stepName: "Fluxo reavaliação do plano de trabalho",
+            departmentId: process?.currentDepartmentId || 11,
+            isVisible: true,
+            isCompleted: false,
+          },
+        );
+
+        if (createResponse.ok) {
+          const newStep = await createResponse.json();
+          stepId = newStep.id;
+          console.log("🔥🔥🔥 ProcessDetail - Etapa criada com ID:", stepId);
+        } else {
+          throw new Error("Erro ao criar etapa");
+        }
+      }
+
+      // Completar a etapa
+      await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepId}`,
+        {
+          isCompleted: true,
+          observations: "Processo arquivado por reavaliação - SUBCC",
+          userId: currentUser?.id,
+        },
+      );
+
+      // Arquivar o processo (soft delete para aba Arquivados)
+      await apiRequest("DELETE", `/api/processes/${parsedId}`, {
+        deletionReason: "Arquivado por processo em reavaliação pela Subgerência de Contratos e Convênios - SUBCC",
+      });
+
+      // Fechar modal e limpar estados
+      setSubccRevaluationModalOpen(false);
+      setStepForSubccRevaluation(null);
+
+      // Invalidar cache para garantir atualização
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}/steps`],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}`],
+      });
+
+      toast({
+        title: "✅ Processo Arquivado",
+        description: "Processo foi arquivado por reavaliação SUBCC e movido para a aba 'Arquivados'. Redirecionando...",
+      });
+
+      // Redirecionar para página de processos
+      setTimeout(() => {
+        window.location.href = "/processes";
+      }, 2000);
+
+    } catch (error) {
+      console.error("Erro ao arquivar processo por reavaliação SUBCC:", error);
+      toast({
+        title: "❌ Erro",
+        description: "Erro ao arquivar processo por reavaliação SUBCC",
         variant: "destructive",
       });
     }
@@ -2159,6 +2261,19 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               return; // NÃO CONTINUA - Etapa só será concluída após confirmação no modal
                                             }
 
+                                            // Verificar se é a etapa de Fluxo reavaliação do plano de trabalho - SUBCC (COM MODAL DE CONFIRMAÇÃO)
+                                            if (
+                                              sectorStep.name === "Fluxo reavaliação do plano de trabalho"
+                                            ) {
+                                              console.log(
+                                                "🔥 ProcessDetail - Etapa de reavaliação SUBCC detectada - abrindo modal de confirmação",
+                                              );
+                                              
+                                              setSubccRevaluationModalOpen(true);
+                                              setStepForSubccRevaluation(existingStep || null);
+                                              return; // NÃO CONTINUA - Etapa só será concluída após confirmação no modal
+                                            }
+
                                             // Verificar se é a etapa de Devolver para correção ou cancelar processo
                                             if (
                                               sectorStep.name ===
@@ -3096,6 +3211,61 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               onClick={() => {
                 console.log("🔥 BOTÃO ARQUIVAMENTO - Clicado!");
                 handleArchiveProcess();
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Sim
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmação de Reavaliação SUBCC */}
+      <Dialog open={subccRevaluationModalOpen} onOpenChange={setSubccRevaluationModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Archive className="h-5 w-5" />
+              Confirmar arquivamento do processo #{process?.pbdocNumber}?
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza de que deseja arquivar este processo?{" "}
+              <br />
+              O processo será movido para a aba "Arquivados" com o motivo: <strong className="text-blue-600">"Arquivado por processo em reavaliação pela Subgerência de Contratos e Convênios - SUBCC"</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+                <div>
+                  <div className="text-sm font-medium text-yellow-800">
+                    Atenção
+                  </div>
+                  <div className="text-sm text-yellow-700 mt-1">
+                    O processo será arquivado e movido para a aba "Arquivados" por reavaliação SUBCC. O processo poderá ser restaurado posteriormente se necessário.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSubccRevaluationModalOpen(false);
+                setStepForSubccRevaluation(null);
+              }}
+            >
+              Não
+            </Button>
+            <Button
+              onClick={() => {
+                console.log("🔥 BOTÃO REAVALIAÇÃO SUBCC - Clicado!");
+                handleSubccRevaluation();
               }}
               className="bg-red-600 hover:bg-red-700"
             >
