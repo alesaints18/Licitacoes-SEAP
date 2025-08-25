@@ -87,6 +87,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [stepToReject, setStepToReject] = useState<ProcessStep | null>(null);
   const [rejectionComment, setRejectionComment] = useState("");
+  
+  // Estados para modal de correção ou cancelamento
+  const [correctionModalOpen, setCorrectionModalOpen] = useState(false);
+  const [correctionDecision, setCorrectionDecision] = useState("");
+  const [stepForCorrection, setStepForCorrection] = useState<ProcessStep | null>(null);
 
   const [showTransferPanel, setShowTransferPanel] = useState(false);
   const [allowForcedReturn, setAllowForcedReturn] = useState(false);
@@ -904,6 +909,90 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
+  // Função para completar correção depois de escolher a opção
+  const handleCorrectionComplete = async () => {
+    if (!stepForCorrection || !correctionDecision) {
+      return;
+    }
+
+    try {
+      console.log(
+        "🔥🔥🔥 ProcessDetail - Completando correção com decisão:",
+        correctionDecision,
+      );
+
+      // Marcar a etapa de correção como concluída
+      await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${stepForCorrection.id}`, {
+        isCompleted: true,
+        observations: `Decisão: ${correctionDecision}`,
+        userId: currentUser?.id,
+      });
+
+      // Transferir processo para Setor Demandante
+      await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
+        departmentId: 1 // Setor Demandante
+      });
+
+      if (correctionDecision === "Encaminhar ao documento de formalização da demanda novamente") {
+        // Reiniciar processo - criar etapas iniciais do Setor Demandante
+        const initialSteps = [
+          "Documento de Formalização da Demanda - DFD",
+          "Estudo Técnico Preliminar - ETP", 
+          "Mapa de Risco - MR",
+          "Termo de Referência - TR"
+        ];
+
+        for (const stepName of initialSteps) {
+          await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
+            stepName,
+            departmentId: 1,
+            isVisible: true,
+            isCompleted: false
+          });
+        }
+
+        toast({
+          title: "✅ Processo Reiniciado",
+          description: "Processo transferido para Setor Demandante e reiniciado no fluxo inicial.",
+        });
+      } else if (correctionDecision === "Arquivar processo") {
+        // Criar apenas etapa de arquivamento
+        await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
+          stepName: "Arquivar processo",
+          departmentId: 1,
+          isVisible: true,
+          isCompleted: false
+        });
+
+        toast({
+          title: "✅ Processo para Arquivamento",
+          description: "Processo transferido para Setor Demandante para arquivamento.",
+        });
+      }
+
+      // Invalidar cache
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}/steps`],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}`],
+      });
+
+      // Fechar modal e limpar estados
+      setCorrectionModalOpen(false);
+      setCorrectionDecision("");
+      setStepForCorrection(null);
+
+    } catch (error) {
+      console.error("Erro ao completar correção:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao processar a decisão de correção",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Função para completar autorização depois de escolher a opção
   const handleAuthorizationComplete = async () => {
     if (!stepForAuthorization || !authorizationDecision) {
@@ -1669,6 +1758,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
                                             }
 
+                                            // Verificar se é a etapa de Devolver para correção ou cancelar processo
+                                            if (sectorStep.name === "Devolver para correção ou cancelar processo") {
+                                              console.log(
+                                                "🔥 ProcessDetail - Etapa de correção detectada - abrindo modal de correção",
+                                              );
+                                              setCorrectionModalOpen(true);
+                                              setStepForCorrection(existingStep || null);
+                                              setCorrectionDecision(""); // Limpar seleção anterior
+                                              return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
+                                            }
+
                                             if (existingStep) {
                                               // Verificar se é a etapa de solicitação de ajuste/aditivo 
                                               if (sectorStep.name === "Solicitar ajuste/aditivo do plano de trabalho") {
@@ -2320,6 +2420,96 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             >
               <XCircle className="h-4 w-4 mr-2" />
               Confirmar Rejeição
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Correção ou Cancelamento */}
+      <Dialog
+        open={correctionModalOpen}
+        onOpenChange={setCorrectionModalOpen}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-orange-600">
+              <AlertCircle className="h-5 w-5" />
+              Devolver para Correção ou Cancelar Processo
+            </DialogTitle>
+            <DialogDescription>
+              Selecione uma das opções para a etapa:{" "}
+              <strong>Devolver para correção ou cancelar processo</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="correction-decision"
+                    value="Encaminhar ao documento de formalização da demanda novamente"
+                    checked={
+                      correctionDecision === "Encaminhar ao documento de formalização da demanda novamente"
+                    }
+                    onChange={(e) => setCorrectionDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      Encaminhar ao documento de formalização da demanda novamente
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      O processo será transferido para o Setor Demandante e reiniciado no fluxo inicial
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <div>
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="correction-decision"
+                    value="Arquivar processo"
+                    checked={
+                      correctionDecision === "Arquivar processo"
+                    }
+                    onChange={(e) => setCorrectionDecision(e.target.value)}
+                    className="mt-1"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">
+                      Arquivar processo
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      O processo será transferido para o Setor Demandante apenas para arquivamento
+                    </div>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setCorrectionModalOpen(false);
+                setCorrectionDecision("");
+                setStepForCorrection(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleCorrectionComplete}
+              disabled={!correctionDecision}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              <ArrowRight className="h-4 w-4 mr-2" />
+              Confirmar Ação
             </Button>
           </div>
         </DialogContent>
