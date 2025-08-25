@@ -720,9 +720,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             const stepsResponse = await fetch(`/api/processes/${parsedId}/steps/all`);
             if (stepsResponse.ok) {
               const allSteps = await stepsResponse.json();
+              console.log("🔍 ProcessDetail - Todas as etapas encontradas:", allSteps.map(s => ({ id: s.id, name: s.stepName, isVisible: s.isVisible })));
+              
               const devolverStep = allSteps.find(
-                (s: any) => s.stepName === "Devolver para correção ou arquivamento",
+                (s: any) => s.stepName === "Devolver para correção ou arquivamento" && s.isVisible === false,
               );
+
+              console.log("🔍 ProcessDetail - Etapa 'Devolver para correção ou arquivamento' encontrada:", devolverStep);
 
               if (devolverStep) {
                 // Tornar a etapa visível
@@ -748,7 +752,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 }
               } else {
                 console.log(
-                  "⚠️ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' não encontrada",
+                  "⚠️ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' não encontrada nas etapas:",
+                  allSteps.filter(s => s.stepName.includes("Devolver") || s.stepName.includes("correção"))
                 );
               }
             }
@@ -772,7 +777,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             if (stepsResponse.ok) {
               const allSteps = await stepsResponse.json();
               const ajusteStep = allSteps.find(
-                (s: any) => s.stepName === "Solicitar ajuste/aditivo do plano de trabalho",
+                (s: any) => s.stepName === "Solicitar ajuste/aditivo do plano de trabalho" && s.isVisible === false,
               );
 
               if (ajusteStep) {
@@ -952,7 +957,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             if (stepsResponse.ok) {
               const allSteps = await stepsResponse.json();
               const authRoStep = allSteps.find(
-                (s: any) => s.stepName === "Autorizar Emissão de R.O",
+                (s: any) => s.stepName === "Autorizar Emissão de R.O" && s.isVisible === false,
               );
 
               if (authRoStep) {
@@ -1009,7 +1014,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               const allSteps = await stepsResponse.json();
               const solicitarOrcamentoStep = allSteps.find(
                 (s: any) =>
-                  s.stepName === "Solicitar disponibilização de orçamento",
+                  s.stepName === "Solicitar disponibilização de orçamento" && s.isVisible === false,
               );
 
               if (solicitarOrcamentoStep) {
