@@ -782,12 +782,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           );
           
           try {
-            // Verificar se a etapa já existe
-            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
+            // Verificar se a etapa já existe (forçar refresh do cache)
+            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps?_t=${Date.now()}`);
             const allSteps = await stepsResponse.json();
             const existingIntermediateStep = allSteps.find(
               (s: any) => s.stepName === "Devolver para correção ou arquivamento" && s.departmentId === stepForAuthorizationRejection.departmentId
             );
+            
+            console.log("🔍 ProcessDetail - Etapas encontradas na verificação:", allSteps.map(s => s.stepName));
+            console.log("🔍 ProcessDetail - Etapa intermediária existente encontrada:", existingIntermediateStep);
             
             if (existingIntermediateStep) {
               console.log(
