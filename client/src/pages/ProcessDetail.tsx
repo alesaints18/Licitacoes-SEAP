@@ -763,57 +763,76 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       if (response.ok) {
         console.log("🔍 ProcessDetail - Decisão de rejeição tomada:", authorizationRejectionDecision);
         
-        // Se a decisão for "Não autorizar a defesa", tornar visível a etapa "Devolver para correção ou arquivamento"
+        // Se a decisão for "Não autorizar a defesa", resetar processo e criar etapa específica
         if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
           console.log(
-            "🔥🔥🔥 ProcessDetail - Tornando visível etapa 'Devolver para correção ou arquivamento' para reformulação da demanda",
+            "🔥🔥🔥 ProcessDetail - Resetando processo e criando etapa 'Devolver para correção ou cancelar processo'",
           );
 
           try {
-            // Buscar todas as etapas (incluindo invisíveis) para encontrar a etapa condicional
-            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps/all`);
-            if (stepsResponse.ok) {
-              const allSteps = await stepsResponse.json();
-              console.log("🔍 ProcessDetail - Todas as etapas encontradas:", allSteps.map(s => ({ id: s.id, name: s.stepName, isVisible: s.isVisible })));
+            // PRIMEIRO: Resetar processo completo - tornar todas as etapas invisíveis
+            const allStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
+            if (allStepsResponse.ok) {
+              const allSteps = await allStepsResponse.json();
               
-              const devolverStep = allSteps.find(
-                (s: any) => s.stepName === "Devolver para correção ou arquivamento" && s.isVisible === false,
-              );
-
-              console.log("🔍 ProcessDetail - Etapa 'Devolver para correção ou arquivamento' encontrada:", devolverStep);
-
-              if (devolverStep) {
-                // Tornar a etapa visível
-                console.log(
-                  "🔥🔥🔥 ProcessDetail - Tornando etapa 'Devolver para correção ou arquivamento' visível",
-                );
-                const updateResponse = await apiRequest(
-                  "PATCH",
-                  `/api/processes/${parsedId}/steps/${devolverStep.id}`,
-                  {
-                    isVisible: true,
-                  },
-                );
-
-                if (updateResponse.ok) {
-                  console.log(
-                    "✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' tornada visível com sucesso",
-                  );
-                } else {
-                  console.error(
-                    "❌❌❌ ProcessDetail - Erro ao tornar etapa 'Devolver para correção ou arquivamento' visível",
-                  );
-                }
-              } else {
-                console.log(
-                  "⚠️ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' não encontrada nas etapas:",
-                  allSteps.filter(s => s.stepName.includes("Devolver") || s.stepName.includes("correção"))
-                );
+              // Resetar todas as etapas existentes
+              for (const step of allSteps) {
+                await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
+                  isCompleted: false,
+                  isVisible: false,
+                  observations: null,
+                  completedBy: null,
+                  completedAt: null
+                });
               }
             }
+
+            // SEGUNDO: Transferir processo para Divisão de Licitação
+            await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
+              departmentId: 2 // Divisão de Licitação
+            });
+
+            // TERCEIRO: Aguardar um pouco e resetar novamente (caso o servidor tenha criado etapas automaticamente)
+            setTimeout(async () => {
+              try {
+                const newStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
+                if (newStepsResponse.ok) {
+                  const newSteps = await newStepsResponse.json();
+                  
+                  // Resetar novamente todas as etapas que foram criadas automaticamente
+                  for (const step of newSteps) {
+                    await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
+                      isCompleted: false,
+                      isVisible: false,
+                      observations: null,
+                      completedBy: null,
+                      completedAt: null
+                    });
+                  }
+                }
+
+                // Criar apenas etapa específica "Devolver para correção ou cancelar processo"
+                await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
+                  stepName: "Devolver para correção ou cancelar processo",
+                  departmentId: 2,
+                  isVisible: true,
+                  isCompleted: false
+                });
+
+                // Invalidar cache após as mudanças
+                queryClient.invalidateQueries({
+                  queryKey: [`/api/processes/${parsedId}/steps`],
+                });
+                queryClient.invalidateQueries({
+                  queryKey: [`/api/processes/${parsedId}`],
+                });
+              } catch (error) {
+                console.error("Erro ao resetar etapas após transferência:", error);
+              }
+            }, 1000); // Aguardar 1 segundo para garantir que a transferência foi processada
           } catch (etapasError) {
             console.error(
-              "❌ ProcessDetail - Erro ao verificar/atualizar etapa:",
+              "❌ ProcessDetail - Erro ao resetar e transferir processo:",
               etapasError,
             );
           }
