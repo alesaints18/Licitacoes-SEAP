@@ -2370,41 +2370,29 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                 "Devolver para correção ou arquivamento"
                                               ) {
                                                 console.log(
-                                                  "🔥 ProcessDetail - Etapa 'Devolver para correção ou arquivamento' detectada - iniciando sequência de correção",
+                                                  "🔥 ProcessDetail - Etapa 'Devolver para correção ou arquivamento' detectada - apenas completando (tramitação manual necessária)",
                                                 );
 
                                                 try {
-                                                  // 1. Completar a etapa atual
+                                                  // Apenas completar a etapa atual - próxima etapa aparecerá após tramitação manual
                                                   await apiRequest(
                                                     "PATCH",
                                                     `/api/processes/${parsedId}/steps/${existingStep.id}`,
                                                     {
                                                       isCompleted: true,
-                                                      observations: "Correção iniciada - seguindo para próxima etapa da sequência",
+                                                      observations: "Correção primeira etapa concluída - Aguardando tramitação manual para próxima etapa",
                                                       userId: currentUser?.id,
                                                     },
                                                   );
 
-                                                  // 2. Criar a próxima etapa: "Devolver para correção ou cancelar processo" na Divisão de Licitação
-                                                  await apiRequest(
-                                                    "POST",
-                                                    `/api/processes/${parsedId}/steps`,
-                                                    {
-                                                      stepName: "Devolver para correção ou cancelar processo",
-                                                      departmentId: 2, // Divisão de Licitação
-                                                      isVisible: true,
-                                                      isCompleted: false,
-                                                    },
-                                                  );
-
-                                                  // 3. Refrescar dados
+                                                  // Refrescar dados
                                                   queryClient.invalidateQueries({
                                                     queryKey: [`/api/processes/${parsedId}/steps`],
                                                   });
 
                                                   toast({
                                                     title: "✅ Etapa Concluída",
-                                                    description: "Sequência de correção iniciada. Próxima etapa criada na Divisão de Licitação.",
+                                                    description: "Processo pronto para tramitação manual. Use o botão 'Tramitar Processo' para continuar o fluxo de correção.",
                                                   });
                                                 } catch (error) {
                                                   console.error("Erro ao processar etapa de correção:", error);

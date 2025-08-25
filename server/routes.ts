@@ -1188,6 +1188,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.log(`Processo ${processId} arquivado automaticamente - Fluxo Repror`);
         }
       } else {
+        // Verificar se processo foi transferido para Divisão de Licitação e tem primeira etapa de correção concluída
+        if (departmentId === 2) {
+          const processSteps = await storage.getProcessSteps(processId);
+          const firstCorrectionCompleted = processSteps?.find(s => 
+            s.stepName === "Devolver para correção ou arquivamento" && 
+            s.isCompleted === true
+          );
+          
+          if (firstCorrectionCompleted) {
+            console.log(`Processo ${processId} transferido para Divisão de Licitação com primeira correção concluída - tornando visível segunda etapa`);
+            
+            // Buscar etapa "Devolver para correção ou cancelar processo" invisível
+            const allSteps = await storage.getAllProcessSteps(processId);
+            const secondCorrectionStep = allSteps?.find(s => 
+              s.stepName === "Devolver para correção ou cancelar processo" && 
+              s.isVisible === false
+            );
+            
+            if (secondCorrectionStep) {
+              // Tornar visível a segunda etapa de correção
+              await storage.updateProcessStep(secondCorrectionStep.id, {
+                isVisible: true
+              });
+              console.log(`Etapa "Devolver para correção ou cancelar processo" tornada visível para processo ${processId}`);
+            } else {
+              console.log(`Etapa "Devolver para correção ou cancelar processo" não encontrada como invisível para processo ${processId}`);
+            }
+          }
+        }
+        
         // Notificar transferência normal via WebSocket
         broadcast({
           type: 'process_transferred',
