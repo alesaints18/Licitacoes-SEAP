@@ -1732,8 +1732,22 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                   return isConditionalStep && belongsToCurrentDept && step.isVisible;
                                 }) || [];
 
+                                // Remover duplicatas de etapas condicionais (usar apenas a mais recente)
+                                const uniqueConditionalSteps = conditionalSteps.reduce((unique: any[], current) => {
+                                  const existingIndex = unique.findIndex(step => step.stepName === current.stepName);
+                                  if (existingIndex >= 0) {
+                                    // Se já existe, manter apenas a mais recente (maior ID)
+                                    if (current.id > unique[existingIndex].id) {
+                                      unique[existingIndex] = current;
+                                    }
+                                  } else {
+                                    unique.push(current);
+                                  }
+                                  return unique;
+                                }, []);
+
                                 // Converter etapas condicionais para o formato de sectorStep
-                                const conditionalSectorSteps = conditionalSteps.map(step => ({
+                                const conditionalSectorSteps = uniqueConditionalSteps.map(step => ({
                                   name: step.stepName,
                                   phase: "Condicional"
                                 }));
