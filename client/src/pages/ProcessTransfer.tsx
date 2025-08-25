@@ -224,6 +224,31 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
         expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
       ) || [];
     }
+  } else if (process.currentDepartmentId === 5) {
+    // Secretário de Estado - verificar se existe etapa intermediária
+    const intermediateStep = processSteps?.find(s => 
+      s.stepName === "Devolver para correção ou arquivamento"
+    );
+    
+    if (intermediateStep) {
+      // Se existe etapa intermediária, validar apenas ela se não estiver completa
+      if (!intermediateStep.isCompleted) {
+        expectedSteps = [{ name: "Devolver para correção ou arquivamento" }];
+        currentDepartmentSteps = [intermediateStep];
+      } else {
+        // Se já está completa, usar lógica normal
+        expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
+        currentDepartmentSteps = processSteps?.filter(step => 
+          expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
+        ) || [];
+      }
+    } else {
+      // Contexto normal do Secretário de Estado
+      expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);
+      currentDepartmentSteps = processSteps?.filter(step => 
+        expectedSteps.some(expectedStep => expectedStep.name === step.stepName)
+      ) || [];
+    }
   } else {
     // Outros departamentos - lógica normal
     expectedSteps = getSectorSteps(currentDepartmentName, process.modalityId);

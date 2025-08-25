@@ -509,6 +509,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           },
         ];
 
+        // Verificar se existe a etapa "Devolver para correção ou arquivamento"
+        const intermediateStep = steps?.find(
+          (s) => s.stepName === "Devolver para correção ou arquivamento",
+        );
+        if (intermediateStep) {
+          baseSteps.push({
+            name: "Devolver para correção ou arquivamento", 
+            phase: "Correção",
+          });
+        }
+
         // Verificar se a autorização foi aprovada com "Disponibilidade Orçamentária"
         const authStep = steps?.find(
           (s) => s.stepName === "Autorização pelo Secretário SEAP",
@@ -764,11 +775,42 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       if (response.ok) {
         console.log("🔍 ProcessDetail - Decisão de rejeição tomada:", authorizationRejectionDecision);
         
-        // Se a decisão for "Não autorizar a defesa", permitir tramitação manual
+        // Se a decisão for "Não autorizar a defesa", criar etapa intermediária no mesmo setor
         if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
           console.log(
-            "🔥🔥🔥 ProcessDetail - Etapa rejeitada, usuário pode tramitar manualmente para Divisão de Licitação",
+            "🔥🔥🔥 ProcessDetail - Criando etapa intermediária 'Devolver para correção ou arquivamento' no mesmo setor",
           );
+          
+          try {
+            // Criar etapa "Devolver para correção ou arquivamento" no mesmo departamento
+            const createIntermediateStepResponse = await apiRequest(
+              "POST", 
+              `/api/processes/${parsedId}/steps`,
+              {
+                stepName: "Devolver para correção ou arquivamento",
+                departmentId: stepForAuthorizationRejection.departmentId, // Mesmo setor (Secretário de Estado)
+                isVisible: true,
+                isCompleted: false
+              }
+            );
+            
+            if (createIntermediateStepResponse.ok) {
+              const intermediateStep = await createIntermediateStepResponse.json();
+              console.log(
+                "✅✅✅ ProcessDetail - Etapa intermediária 'Devolver para correção ou arquivamento' criada com sucesso:",
+                intermediateStep
+              );
+            } else {
+              console.error(
+                "❌❌❌ ProcessDetail - Erro ao criar etapa intermediária"
+              );
+            }
+          } catch (intermediateStepError) {
+            console.error(
+              "❌ ProcessDetail - Erro ao criar etapa intermediária:",
+              intermediateStepError
+            );
+          }
         }
 
         // Se a decisão for sobre recurso de convênio, tornar visível a etapa "Solicitar ajuste/aditivo do plano de trabalho"
