@@ -99,6 +99,7 @@ export interface IStorage {
   getProcessSteps(processId: number): Promise<ProcessStep[]>;
   createProcessStep(step: InsertProcessStep): Promise<ProcessStep>;
   updateProcessStep(id: number, stepData: Partial<InsertProcessStep>): Promise<ProcessStep | undefined>;
+  deleteProcessStep(id: number): Promise<boolean>;
   
   // Dashboard analytics
   getProcessesStatistics(filters?: {
@@ -576,6 +577,10 @@ export class MemStorage implements IStorage {
 
     this.processSteps.set(id, updatedStep);
     return updatedStep;
+  }
+
+  async deleteProcessStep(id: number): Promise<boolean> {
+    return this.processSteps.delete(id);
   }
 
   // Dashboard analytics methods

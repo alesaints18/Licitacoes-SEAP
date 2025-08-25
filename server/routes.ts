@@ -1300,6 +1300,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Rota para deletar uma etapa específica
+  app.delete('/api/processes/:processId/steps/:stepId', isAuthenticated, async (req, res) => {
+    try {
+      const stepId = parseInt(req.params.stepId);
+      
+      if (isNaN(stepId)) {
+        return res.status(400).json({ message: "ID da etapa inválido" });
+      }
+      
+      console.log(`Deletando etapa ${stepId}`);
+      
+      // Buscar a etapa para verificar se existe
+      const step = await storage.getProcessStep(stepId);
+      if (!step) {
+        return res.status(404).json({ message: "Etapa não encontrada" });
+      }
+      
+      // Deletar a etapa
+      await storage.deleteProcessStep(stepId);
+      
+      console.log(`Etapa ${stepId} deletada com sucesso`);
+      res.status(200).json({ message: "Etapa deletada com sucesso" });
+    } catch (error) {
+      console.error("Erro ao deletar etapa:", error);
+      res.status(500).json({ message: "Erro ao deletar etapa", error });
+    }
+  });
+
   // Dashboard analytics routes
   app.get('/api/analytics/process-statistics', isAuthenticated, async (req, res) => {
     try {

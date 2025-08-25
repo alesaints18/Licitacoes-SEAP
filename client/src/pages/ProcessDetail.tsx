@@ -803,7 +803,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         },
       );
 
-      // 2. Remover todas as etapas condicionais marcando como removidas
+      // 2. Remover todas as etapas condicionais deletando do banco
       const existingStepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
       const existingSteps = await existingStepsResponse.json();
       
@@ -813,15 +813,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
          s.stepName === "Solicitar ajuste/aditivo do plano de trabalho")
       );
 
-      // Marcar etapas condicionais como removidas
+      // Deletar etapas condicionais
       for (const conditionalStep of conditionalSteps) {
         await apiRequest(
-          "PATCH",
+          "DELETE",
           `/api/processes/${parsedId}/steps/${conditionalStep.id}`,
-          {
-            observations: "ETAPA_REMOVIDA - Reset após correção",
-            isCompleted: true,
-          },
         );
       }
 
