@@ -2287,16 +2287,56 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                   });
                                                 }
                                               }
-                                              // Verificar se é etapa condicional de correção (apenas Devolver)
+                                              // Verificar se é etapa condicional de correção (Devolver para correção ou arquivamento)
                                               else if (
                                                 sectorStep.name ===
                                                 "Devolver para correção ou arquivamento"
                                               ) {
-                                                // Reset: remover todas as etapas condicionais e recriar apenas a autorização
-                                                await handleCorrectionStepComplete(
-                                                  existingStep,
-                                                  sectorStep.name,
+                                                console.log(
+                                                  "🔥 ProcessDetail - Etapa 'Devolver para correção ou arquivamento' detectada - iniciando sequência de correção",
                                                 );
+
+                                                try {
+                                                  // 1. Completar a etapa atual
+                                                  await apiRequest(
+                                                    "PATCH",
+                                                    `/api/processes/${parsedId}/steps/${existingStep.id}`,
+                                                    {
+                                                      isCompleted: true,
+                                                      observations: "Correção iniciada - seguindo para próxima etapa da sequência",
+                                                      userId: currentUser?.id,
+                                                    },
+                                                  );
+
+                                                  // 2. Criar a próxima etapa: "Devolver para correção ou cancelar processo" na Divisão de Licitação
+                                                  await apiRequest(
+                                                    "POST",
+                                                    `/api/processes/${parsedId}/steps`,
+                                                    {
+                                                      stepName: "Devolver para correção ou cancelar processo",
+                                                      departmentId: 2, // Divisão de Licitação
+                                                      isVisible: true,
+                                                      isCompleted: false,
+                                                    },
+                                                  );
+
+                                                  // 3. Refrescar dados
+                                                  queryClient.invalidateQueries({
+                                                    queryKey: [`/api/processes/${parsedId}/steps`],
+                                                  });
+
+                                                  toast({
+                                                    title: "✅ Etapa Concluída",
+                                                    description: "Sequência de correção iniciada. Próxima etapa criada na Divisão de Licitação.",
+                                                  });
+                                                } catch (error) {
+                                                  console.error("Erro ao processar etapa de correção:", error);
+                                                  toast({
+                                                    title: "Erro",
+                                                    description: "Erro ao processar etapa de correção",
+                                                    variant: "destructive",
+                                                  });
+                                                }
                                               } else {
                                                 // Etapa normal, apenas atualizar
                                                 handleStepToggle(
