@@ -2434,6 +2434,62 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                     variant: "destructive",
                                                   });
                                                 }
+                                              }
+                                              // Verificar se é a etapa "Solicitar disponibilização de orçamento"
+                                              else if (
+                                                sectorStep.name === "Solicitar disponibilização de orçamento"
+                                              ) {
+                                                console.log(
+                                                  "🔥 ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' detectada - criando Fluxo Repror",
+                                                );
+
+                                                try {
+                                                  // Completar a etapa atual primeiro
+                                                  await apiRequest(
+                                                    "PATCH",
+                                                    `/api/processes/${parsedId}/steps/${existingStep.id}`,
+                                                    {
+                                                      isCompleted: true,
+                                                      observations: "Solicitação de disponibilização de orçamento concluída - Criando Fluxo Repror automaticamente",
+                                                      userId: currentUser?.id,
+                                                    },
+                                                  );
+
+                                                  // Criar etapa "Fluxo Repror" na Unidade de Orçamento e Finanças (ID 6)
+                                                  const reprorResponse = await apiRequest(
+                                                    "POST",
+                                                    `/api/processes/${parsedId}/steps`,
+                                                    {
+                                                      stepName: "Fluxo Repror",
+                                                      departmentId: 6, // Unidade de Orçamento e Finanças
+                                                      isCompleted: false,
+                                                      isVisible: true,
+                                                      observations: "Fluxo Repror criado automaticamente após solicitação de disponibilização de orçamento",
+                                                    },
+                                                  );
+
+                                                  if (reprorResponse.ok) {
+                                                    // Atualizar dados na interface
+                                                    queryClient.invalidateQueries({
+                                                      queryKey: [`/api/processes/${parsedId}`],
+                                                    });
+                                                    queryClient.invalidateQueries({
+                                                      queryKey: [`/api/processes/${parsedId}/steps`],
+                                                    });
+
+                                                    toast({
+                                                      title: "✅ Etapa Concluída",
+                                                      description: "Fluxo Repror criado automaticamente na Unidade de Orçamento e Finanças. Processo pronto para tramitação.",
+                                                    });
+                                                  }
+                                                } catch (error) {
+                                                  console.error("Erro ao processar etapa de disponibilização:", error);
+                                                  toast({
+                                                    title: "Erro",
+                                                    description: "Erro ao processar etapa de disponibilização",
+                                                    variant: "destructive",
+                                                  });
+                                                }
                                               } else {
                                                 // Etapa normal, apenas atualizar
                                                 handleStepToggle(
@@ -2453,11 +2509,37 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                       departmentId:
                                                         process.currentDepartmentId,
                                                       isCompleted: true,
-                                                      observations: null,
+                                                      observations: sectorStep.name === "Solicitar disponibilização de orçamento" 
+                                                        ? "Solicitação de disponibilização de orçamento concluída - Criando Fluxo Repror automaticamente"
+                                                        : null,
                                                     },
                                                   );
 
                                                 if (response.ok) {
+                                                  // Se for "Solicitar disponibilização de orçamento", criar Fluxo Repror
+                                                  if (sectorStep.name === "Solicitar disponibilização de orçamento") {
+                                                    console.log("🔥 ProcessDetail - Criando Fluxo Repror após criação da etapa de disponibilização");
+                                                    
+                                                    const reprorResponse = await apiRequest(
+                                                      "POST",
+                                                      `/api/processes/${parsedId}/steps`,
+                                                      {
+                                                        stepName: "Fluxo Repror",
+                                                        departmentId: 6, // Unidade de Orçamento e Finanças
+                                                        isCompleted: false,
+                                                        isVisible: true,
+                                                        observations: "Fluxo Repror criado automaticamente após solicitação de disponibilização de orçamento",
+                                                      },
+                                                    );
+
+                                                    if (reprorResponse.ok) {
+                                                      toast({
+                                                        title: "✅ Etapa Criada",
+                                                        description: "Fluxo Repror criado automaticamente na Unidade de Orçamento e Finanças. Processo pronto para tramitação.",
+                                                      });
+                                                    }
+                                                  }
+
                                                   // Recarregar etapas
                                                   queryClient.invalidateQueries(
                                                     {
@@ -2467,11 +2549,13 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                     },
                                                   );
 
-                                                  toast({
-                                                    title:
-                                                      "Etapa criada e concluída",
-                                                    description: `Etapa "${sectorStep.name}" foi criada e marcada como concluída`,
-                                                  });
+                                                  if (sectorStep.name !== "Solicitar disponibilização de orçamento") {
+                                                    toast({
+                                                      title:
+                                                        "Etapa criada e concluída",
+                                                      description: `Etapa "${sectorStep.name}" foi criada e marcada como concluída`,
+                                                    });
+                                                  }
                                                 }
                                               } catch (error) {
                                                 toast({
