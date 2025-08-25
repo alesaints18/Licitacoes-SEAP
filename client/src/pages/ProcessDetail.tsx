@@ -509,17 +509,42 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           return [];
         }
 
-        // Se processo está na Divisão de Licitação E tem autorização rejeitada (mas correção ainda não concluída)
+        // Se processo está na Divisão de Licitação E tem autorização rejeitada
         if (process?.currentDepartmentId === 2 && authorizationStep) {
-          console.log(
-            "🔍 DIVISÃO LICITAÇÃO - Processo veio de rejeição específica, mostrando apenas etapa de correção",
+          
+          // Primeiro: verificar se existe "Devolver para correção ou arquivamento" visível
+          const firstCorrectionStep = steps?.find(
+            (s) =>
+              s.stepName === "Devolver para correção ou arquivamento" &&
+              s.departmentId === 2 &&
+              s.isVisible === true
           );
-          return [
-            {
-              name: "Devolver para correção ou cancelar processo",
-              phase: "Correção",
-            },
-          ];
+          
+          // Se a primeira etapa existe e não está concluída, mostrar ela
+          if (firstCorrectionStep && !firstCorrectionStep.isCompleted) {
+            console.log(
+              "🔍 DIVISÃO LICITAÇÃO - Mostrando primeira etapa: Devolver para correção ou arquivamento",
+            );
+            return [
+              {
+                name: "Devolver para correção ou arquivamento", 
+                phase: "Correção",
+              },
+            ];
+          }
+          
+          // Se a primeira etapa foi concluída, mostrar a segunda
+          if (firstCorrectionStep && firstCorrectionStep.isCompleted) {
+            console.log(
+              "🔍 DIVISÃO LICITAÇÃO - Primeira etapa concluída, mostrando segunda: Devolver para correção ou cancelar processo",
+            );
+            return [
+              {
+                name: "Devolver para correção ou cancelar processo",
+                phase: "Correção",
+              },
+            ];
+          }
         }
 
         // Caso contrário, mostrar etapas normais da Divisão de Licitação
