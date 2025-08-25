@@ -489,6 +489,34 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           ];
         }
 
+        // Verificar se existe etapa "Arquivar processo - Final" para a Divisão de Licitação
+        const archiveFinalStep = steps?.find(
+          (s) =>
+            s.stepName === "Arquivar processo - Final" &&
+            s.departmentId === 2,
+        );
+
+        // Se existe etapa "Arquivar processo - Final" concluída, não mostrar nenhuma etapa
+        if (process?.currentDepartmentId === 2 && archiveFinalStep && archiveFinalStep.isCompleted) {
+          console.log(
+            "🔍 DIVISÃO LICITAÇÃO - Etapa de arquivamento final concluída, não exibindo etapas (processo arquivado)",
+          );
+          return [];
+        }
+
+        // Se existe etapa "Arquivar processo - Final" não concluída, mostrar apenas ela
+        if (process?.currentDepartmentId === 2 && archiveFinalStep && !archiveFinalStep.isCompleted) {
+          console.log(
+            "🔍 DIVISÃO LICITAÇÃO - Processo com etapa de arquivamento final, mostrando apenas etapa final",
+          );
+          return [
+            {
+              name: "Arquivar processo - Final",
+              phase: "Arquivamento",
+            },
+          ];
+        }
+
         // Caso contrário, mostrar etapas normais da Divisão de Licitação
         return [
           {
@@ -1997,6 +2025,18 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                 }
                                               );
                                               
+                                              // Criar etapa "Arquivar processo - Final" na Divisão de Licitação
+                                              await apiRequest(
+                                                "POST",
+                                                `/api/processes/${parsedId}/steps`,
+                                                {
+                                                  stepName: "Arquivar processo - Final",
+                                                  departmentId: 2, // Divisão de Licitação
+                                                  isVisible: true,
+                                                  isCompleted: false,
+                                                },
+                                              );
+                                              
                                               // Refetch dos dados
                                               queryClient.invalidateQueries({
                                                 queryKey: [`/api/processes/${parsedId}`],
@@ -2015,7 +2055,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
                                             // Verificar se é a etapa de Arquivar processo na Divisão de Licitação
                                             if (
-                                              sectorStep.name === "Arquivar processo" &&
+                                              sectorStep.name === "Arquivar processo - Final" &&
                                               currentUser.department === "Divisão de Licitação"
                                             ) {
                                               console.log(
