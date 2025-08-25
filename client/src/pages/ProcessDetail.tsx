@@ -1946,7 +1946,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                             // Verificar se é a etapa de Arquivar processo no Setor Demandante
                                             if (
                                               sectorStep.name === "Arquivar processo" &&
-                                              process?.currentDepartmentId === 1
+                                              currentUser.department === "Setor Demandante"
                                             ) {
                                               console.log(
                                                 "🔥 ProcessDetail - Etapa de arquivamento no Setor Demandante - transferindo para Divisão de Licitação",
@@ -2016,7 +2016,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                             // Verificar se é a etapa de Arquivar processo na Divisão de Licitação
                                             if (
                                               sectorStep.name === "Arquivar processo" &&
-                                              process?.currentDepartmentId === 2
+                                              currentUser.department === "Divisão de Licitação"
                                             ) {
                                               console.log(
                                                 "🔥 ProcessDetail - Etapa de arquivamento na Divisão de Licitação - arquivando processo e redirecionando",
