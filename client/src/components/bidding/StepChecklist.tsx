@@ -25,6 +25,7 @@ interface StepChecklistProps {
   authorizationModalOpen?: boolean;
   setAuthorizationModalOpen?: (open: boolean) => void;
   onStepReject?: (step: ProcessStep) => void;
+  onAuthorizationStep?: (step: ProcessStep) => void;
 }
 
 const StepChecklist = ({ 
@@ -34,6 +35,7 @@ const StepChecklist = ({
   authorizationModalOpen: externalAuthModalOpen,
   setAuthorizationModalOpen: setExternalAuthModalOpen,
   onStepReject,
+  onAuthorizationStep,
 }: StepChecklistProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -380,12 +382,17 @@ const StepChecklist = ({
     
     try {
 
-      // Se é etapa de Autorização pelo Secretário SEAP, abrir modal de autorização
+      // Se é etapa de Autorização pelo Secretário SEAP, notificar parent (ProcessDetail.tsx)
       if (step.stepName.includes("Autorização pelo Secretário SEAP")) {
-        console.log("🔥 StepChecklist - Etapa de Autorização detectada - abrindo modal de autorização");
-        setAuthorizationModalOpen(true);
-        setActiveStep(step);
-        setAuthorizationDecision(""); // Limpar seleção anterior
+        console.log("🔥 StepChecklist - Etapa de Autorização detectada - notificando ProcessDetail");
+        if (onAuthorizationStep) {
+          onAuthorizationStep(step);
+        } else {
+          // Fallback: tentar abrir modal local se callback não existir
+          setAuthorizationModalOpen(true);
+          setActiveStep(step);
+          setAuthorizationDecision("");
+        }
         return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
       }
 
