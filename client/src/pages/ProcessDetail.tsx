@@ -928,13 +928,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         userId: currentUser?.id,
       });
 
-      // Transferir processo para Setor Demandante
-      await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
-        departmentId: 1 // Setor Demandante
-      });
-
       if (correctionDecision === "Encaminhar ao documento de formalização da demanda novamente") {
-        // Resetar processo completo - primeiro tornar todas as etapas invisíveis e não concluídas
+        // PRIMEIRO: Resetar processo completo - tornar todas as etapas invisíveis
         const allStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
         if (allStepsResponse.ok) {
           const allSteps = await allStepsResponse.json();
@@ -951,35 +946,125 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           }
         }
 
-        // Criar apenas as etapas iniciais do Setor Demandante como visíveis
-        const initialSteps = [
-          "Documento de Formalização da Demanda - DFD",
-          "Estudo Técnico Preliminar - ETP", 
-          "Mapa de Risco - MR",
-          "Termo de Referência - TR"
-        ];
+        // SEGUNDO: Transferir processo para Setor Demandante
+        await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
+          departmentId: 1 // Setor Demandante
+        });
 
-        for (const stepName of initialSteps) {
-          await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
-            stepName,
-            departmentId: 1,
-            isVisible: true,
-            isCompleted: false
-          });
-        }
+        // TERCEIRO: Aguardar um pouco e resetar novamente (caso o servidor tenha criado etapas automaticamente)
+        setTimeout(async () => {
+          try {
+            const newStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
+            if (newStepsResponse.ok) {
+              const newSteps = await newStepsResponse.json();
+              
+              // Resetar novamente todas as etapas que foram criadas automaticamente
+              for (const step of newSteps) {
+                await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
+                  isCompleted: false,
+                  isVisible: false,
+                  observations: null,
+                  completedBy: null,
+                  completedAt: null
+                });
+              }
+            }
+
+            // Criar apenas as etapas iniciais do Setor Demandante como visíveis
+            const initialSteps = [
+              "Documento de Formalização da Demanda - DFD",
+              "Estudo Técnico Preliminar - ETP", 
+              "Mapa de Risco - MR",
+              "Termo de Referência - TR"
+            ];
+
+            for (const stepName of initialSteps) {
+              await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
+                stepName,
+                departmentId: 1,
+                isVisible: true,
+                isCompleted: false
+              });
+            }
+
+            // Invalidar cache após as mudanças
+            queryClient.invalidateQueries({
+              queryKey: [`/api/processes/${parsedId}/steps`],
+            });
+            queryClient.invalidateQueries({
+              queryKey: [`/api/processes/${parsedId}`],
+            });
+          } catch (error) {
+            console.error("Erro ao resetar etapas após transferência:", error);
+          }
+        }, 1000); // Aguardar 1 segundo para garantir que a transferência foi processada
 
         toast({
           title: "✅ Processo Reiniciado",
           description: "Processo transferido para Setor Demandante e reiniciado no fluxo inicial.",
         });
+
       } else if (correctionDecision === "Arquivar processo") {
-        // Criar apenas etapa de arquivamento
-        await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
-          stepName: "Arquivar processo",
-          departmentId: 1,
-          isVisible: true,
-          isCompleted: false
+        // PRIMEIRO: Resetar processo completo - tornar todas as etapas invisíveis
+        const allStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
+        if (allStepsResponse.ok) {
+          const allSteps = await allStepsResponse.json();
+          
+          // Resetar todas as etapas existentes
+          for (const step of allSteps) {
+            await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
+              isCompleted: false,
+              isVisible: false,
+              observations: null,
+              completedBy: null,
+              completedAt: null
+            });
+          }
+        }
+
+        // SEGUNDO: Transferir processo para Setor Demandante
+        await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
+          departmentId: 1 // Setor Demandante
         });
+
+        // TERCEIRO: Aguardar um pouco e resetar novamente (caso o servidor tenha criado etapas automaticamente)
+        setTimeout(async () => {
+          try {
+            const newStepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
+            if (newStepsResponse.ok) {
+              const newSteps = await newStepsResponse.json();
+              
+              // Resetar novamente todas as etapas que foram criadas automaticamente
+              for (const step of newSteps) {
+                await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
+                  isCompleted: false,
+                  isVisible: false,
+                  observations: null,
+                  completedBy: null,
+                  completedAt: null
+                });
+              }
+            }
+
+            // Criar apenas etapa de arquivamento
+            await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
+              stepName: "Arquivar processo",
+              departmentId: 1,
+              isVisible: true,
+              isCompleted: false
+            });
+
+            // Invalidar cache após as mudanças
+            queryClient.invalidateQueries({
+              queryKey: [`/api/processes/${parsedId}/steps`],
+            });
+            queryClient.invalidateQueries({
+              queryKey: [`/api/processes/${parsedId}`],
+            });
+          } catch (error) {
+            console.error("Erro ao resetar etapas após transferência:", error);
+          }
+        }, 1000); // Aguardar 1 segundo para garantir que a transferência foi processada
 
         toast({
           title: "✅ Processo para Arquivamento",
@@ -987,18 +1072,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         });
       }
 
-      // Invalidar cache
-      queryClient.invalidateQueries({
-        queryKey: [`/api/processes/${parsedId}/steps`],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [`/api/processes/${parsedId}`],
-      });
-
       // Fechar modal e limpar estados
       setCorrectionModalOpen(false);
       setCorrectionDecision("");
       setStepForCorrection(null);
+
+      // Invalidar cache imediato apenas para a interface
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}`],
+      });
 
     } catch (error) {
       console.error("Erro ao completar correção:", error);
