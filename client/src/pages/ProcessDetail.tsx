@@ -851,75 +851,50 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
-  // Função para lidar com etapas de correção (reset do fluxo)
+  // Função para lidar com etapas de correção (transferência para Divisão de Licitação)
   const handleCorrectionStepComplete = async (step: any, stepName: string) => {
     try {
       console.log(
-        `🔄 ProcessDetail - Resetando fluxo ao concluir: ${stepName}`,
+        `🔄 ProcessDetail - Concluindo etapa de correção: ${stepName}`,
       );
 
       // 1. Marcar a etapa de correção como concluída
       await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
         isCompleted: true,
-        observations: `Correção finalizada: ${stepName}`,
+        observations: `Correção finalizada: ${stepName} - Transferindo para Divisão de Licitação`,
         userId: 1,
       });
 
-      // 2. Remover todas as etapas condicionais deletando do banco
-      const existingStepsResponse = await apiRequest(
-        "GET",
-        `/api/processes/${parsedId}/steps`,
-      );
-      const existingSteps = await existingStepsResponse.json();
+      // 2. Transferir processo para Divisão de Licitação (departamento ID 2)
+      await apiRequest("POST", `/api/processes/${parsedId}/transfer`, {
+        departmentId: 2
+      });
 
-      const conditionalSteps = existingSteps.filter(
-        (s: any) =>
-          s.departmentId === 5 && // Mesmo departamento (SEAP)
-          (s.stepName === "Devolver para correção ou arquivamento" ||
-            s.stepName === "Solicitar ajuste/aditivo do plano de trabalho"),
-      );
-
-      // Deletar etapas condicionais
-      for (const conditionalStep of conditionalSteps) {
-        await apiRequest(
-          "DELETE",
-          `/api/processes/${parsedId}/steps/${conditionalStep.id}`,
-        );
-      }
-
-      // 3. Reset da etapa de autorização para não concluída
-      const authStep = existingSteps.find(
-        (s: any) => s.stepName === "Autorização pelo Secretário SEAP",
-      );
-      if (authStep) {
-        await apiRequest(
-          "PATCH",
-          `/api/processes/${parsedId}/steps/${authStep.id}`,
-          {
-            isCompleted: false,
-            observations: "Reset para nova análise após correção",
-            rejectedAt: null,
-            rejectionStatus: null,
-            completedAt: null,
-            completedBy: null,
-          },
-        );
-      }
+      // 3. Criar etapa "Devolver para correção ou cancelar processo" na Divisão de Licitação
+      await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
+        stepName: "Devolver para correção ou cancelar processo",
+        departmentId: 2,
+        isVisible: true,
+        isCompleted: false
+      });
 
       // Invalidar cache
       queryClient.invalidateQueries({
         queryKey: [`/api/processes/${parsedId}/steps`],
       });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}`],
+      });
 
       toast({
-        title: "🔄 Fluxo Resetado",
-        description: `${stepName} concluída. Processo retornou para nova análise da autorização.`,
+        title: "✅ Processo Transferido",
+        description: `${stepName} concluída. Processo transferido para Divisão de Licitação.`,
       });
     } catch (error) {
-      console.error("Erro ao resetar fluxo:", error);
+      console.error("Erro ao transferir processo:", error);
       toast({
         title: "Erro",
-        description: "Erro ao resetar o fluxo",
+        description: "Erro ao transferir o processo para Divisão de Licitação",
         variant: "destructive",
       });
     }
