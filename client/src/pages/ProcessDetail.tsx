@@ -1691,42 +1691,19 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                             }
 
                                             if (existingStep) {
-                                              // Verificar se é a etapa de solicitação de ajuste/aditivo que leva ao SUBCC
+                                              // Verificar se é a etapa de solicitação de ajuste/aditivo 
                                               if (sectorStep.name === "Solicitar ajuste/aditivo do plano de trabalho") {
-                                                console.log("🔥 ProcessDetail - Etapa de ajuste detectada - transferindo para SUBCC");
+                                                console.log("🔥 ProcessDetail - Etapa de ajuste detectada - marcando como concluída");
                                                 
                                                 try {
-                                                  // 1. Marcar a etapa como concluída
+                                                  // Marcar a etapa como concluída - tramitação para SUBCC será feita manualmente
                                                   await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${existingStep.id}`, {
                                                     isCompleted: true,
-                                                    observations: "Solicitação de ajuste/aditivo concluída - Transferindo para SUBCC",
+                                                    observations: "Solicitação de ajuste/aditivo concluída - Pronto para tramitação ao SUBCC",
                                                     userId: currentUser?.id,
                                                   });
 
-                                                  // 2. Transferir processo para SUBCC (ID 11)
-                                                  await apiRequest("PATCH", `/api/processes/${parsedId}`, {
-                                                    currentDepartmentId: 11, // SUBCC
-                                                  });
-
-                                                  // 3. Criar etapas de reavaliação no SUBCC
-                                                  const subccSteps = [
-                                                    "Receber solicitação de ajuste/aditivo",
-                                                    "Analisar adequação do plano de trabalho",
-                                                    "Consultar disponibilidade orçamentária",
-                                                    "Elaborar termo aditivo",
-                                                    "Enviar para aprovação superior"
-                                                  ];
-
-                                                  for (const stepName of subccSteps) {
-                                                    await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
-                                                      stepName: stepName,
-                                                      departmentId: 11, // SUBCC
-                                                      isCompleted: false,
-                                                      observations: null,
-                                                    });
-                                                  }
-
-                                                  // 4. Atualizar dados na interface
+                                                  // Atualizar dados na interface
                                                   queryClient.invalidateQueries({
                                                     queryKey: [`/api/processes/${parsedId}`],
                                                   });
@@ -1735,15 +1712,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                   });
 
                                                   toast({
-                                                    title: "🔄 Processo Transferido",
-                                                    description: "Processo transferido para SUBCC - Reavaliação do plano de trabalho iniciada",
+                                                    title: "✅ Etapa Concluída",
+                                                    description: "Processo pronto para tramitação ao SUBCC para reavaliação do plano de trabalho",
                                                   });
 
                                                 } catch (error) {
-                                                  console.error("Erro ao transferir para SUBCC:", error);
+                                                  console.error("Erro ao concluir etapa:", error);
                                                   toast({
                                                     title: "Erro",
-                                                    description: "Erro ao transferir processo para SUBCC",
+                                                    description: "Erro ao concluir etapa",
                                                     variant: "destructive",
                                                   });
                                                 }
