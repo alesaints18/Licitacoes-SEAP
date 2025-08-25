@@ -778,36 +778,69 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         // Se a decisão for "Não autorizar a defesa", criar etapa intermediária no mesmo setor
         if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
           console.log(
-            "🔥🔥🔥 ProcessDetail - Criando etapa intermediária 'Devolver para correção ou arquivamento' no mesmo setor",
+            "🔥🔥🔥 ProcessDetail - Verificando se etapa intermediária já existe",
           );
           
           try {
-            // Criar etapa "Devolver para correção ou arquivamento" no mesmo departamento
-            const createIntermediateStepResponse = await apiRequest(
-              "POST", 
-              `/api/processes/${parsedId}/steps`,
-              {
-                stepName: "Devolver para correção ou arquivamento",
-                departmentId: stepForAuthorizationRejection.departmentId, // Mesmo setor (Secretário de Estado)
-                isVisible: true,
-                isCompleted: false
-              }
+            // Verificar se a etapa já existe
+            const stepsResponse = await fetch(`/api/processes/${parsedId}/steps`);
+            const allSteps = await stepsResponse.json();
+            const existingIntermediateStep = allSteps.find(
+              (s: any) => s.stepName === "Devolver para correção ou arquivamento" && s.departmentId === stepForAuthorizationRejection.departmentId
             );
             
-            if (createIntermediateStepResponse.ok) {
-              const intermediateStep = await createIntermediateStepResponse.json();
+            if (existingIntermediateStep) {
               console.log(
-                "✅✅✅ ProcessDetail - Etapa intermediária 'Devolver para correção ou arquivamento' criada com sucesso:",
-                intermediateStep
+                "⚠️ ProcessDetail - Etapa intermediária já existe, apenas tornando visível:",
+                existingIntermediateStep
               );
+              
+              // Tornar a etapa visível se não estiver
+              if (!existingIntermediateStep.isVisible) {
+                const updateResponse = await apiRequest(
+                  "PATCH",
+                  `/api/processes/${parsedId}/steps/${existingIntermediateStep.id}`,
+                  {
+                    isVisible: true,
+                  }
+                );
+                
+                if (updateResponse.ok) {
+                  console.log("✅ ProcessDetail - Etapa intermediária tornada visível");
+                }
+              }
             } else {
-              console.error(
-                "❌❌❌ ProcessDetail - Erro ao criar etapa intermediária"
+              console.log(
+                "🔥🔥🔥 ProcessDetail - Criando etapa intermediária 'Devolver para correção ou arquivamento' no mesmo setor",
               );
+              
+              // Criar etapa "Devolver para correção ou arquivamento" no mesmo departamento
+              const createIntermediateStepResponse = await apiRequest(
+                "POST", 
+                `/api/processes/${parsedId}/steps`,
+                {
+                  stepName: "Devolver para correção ou arquivamento",
+                  departmentId: stepForAuthorizationRejection.departmentId, // Mesmo setor (Secretário de Estado)
+                  isVisible: true,
+                  isCompleted: false
+                }
+              );
+              
+              if (createIntermediateStepResponse.ok) {
+                const intermediateStep = await createIntermediateStepResponse.json();
+                console.log(
+                  "✅✅✅ ProcessDetail - Etapa intermediária 'Devolver para correção ou arquivamento' criada com sucesso:",
+                  intermediateStep
+                );
+              } else {
+                console.error(
+                  "❌❌❌ ProcessDetail - Erro ao criar etapa intermediária"
+                );
+              }
             }
           } catch (intermediateStepError) {
             console.error(
-              "❌ ProcessDetail - Erro ao criar etapa intermediária:",
+              "❌ ProcessDetail - Erro ao verificar/criar etapa intermediária:",
               intermediateStepError
             );
           }
