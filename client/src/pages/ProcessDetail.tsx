@@ -392,24 +392,48 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       [key: string]: { name: string; phase: string; nextSector?: string }[];
     } = {
       // TI - Setor Demandante (Fase de Iniciação)
-      TI: [
-        {
-          name: "Documento de Formalização da Demanda - DFD",
-          phase: "Iniciação",
-        },
-        {
-          name: "Estudo Técnico Preliminar - ETP",
-          phase: "Iniciação",
-        },
-        {
-          name: "Mapa de Risco - MR",
-          phase: "Iniciação",
-        },
-        {
-          name: "Termo de Referência - TR",
-          phase: "Iniciação",
-        },
-      ],
+      TI: (() => {
+        // Verificar se o processo está no Setor Demandante e tem etapa de correção completada com "Arquivar processo"
+        const correctionStep = steps?.find(
+          (s) =>
+            s.stepName === "Devolver para correção ou cancelar processo" &&
+            s.observations?.includes("Decisão: Arquivar processo") &&
+            s.isCompleted === true,
+        );
+
+        // Se processo está no Setor Demandante E tem decisão de arquivamento
+        if (process?.currentDepartmentId === 1 && correctionStep) {
+          console.log(
+            "🔍 SETOR DEMANDANTE - Processo veio de decisão de arquivamento, mostrando apenas etapa de arquivamento",
+          );
+          return [
+            {
+              name: "Arquivar processo",
+              phase: "Arquivamento",
+            },
+          ];
+        }
+
+        // Caso contrário, mostrar etapas normais do Setor Demandante
+        return [
+          {
+            name: "Documento de Formalização da Demanda - DFD",
+            phase: "Iniciação",
+          },
+          {
+            name: "Estudo Técnico Preliminar - ETP",
+            phase: "Iniciação",
+          },
+          {
+            name: "Mapa de Risco - MR",
+            phase: "Iniciação",
+          },
+          {
+            name: "Termo de Referência - TR",
+            phase: "Iniciação",
+          },
+        ];
+      })(),
 
       // Licitações - Divisão de Licitação (com lógica condicional)
       Licitações: (() => {
@@ -421,6 +445,27 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               "Não autorizar a defesa ou solicitar reformulação da demanda" &&
             s.isCompleted === true,
         );
+
+        // Verificar se o processo está na Divisão de Licitação e tem decisão de arquivamento retornada
+        const archiveStep = steps?.find(
+          (s) =>
+            s.stepName === "Devolver para correção ou cancelar processo" &&
+            s.observations?.includes("Decisão: Arquivar processo") &&
+            s.isCompleted === true,
+        );
+
+        // Se processo está na Divisão de Licitação E tem decisão de arquivamento retornada
+        if (process?.currentDepartmentId === 2 && archiveStep) {
+          console.log(
+            "🔍 DIVISÃO LICITAÇÃO - Processo retornado com decisão de arquivamento, mostrando apenas etapa de arquivamento",
+          );
+          return [
+            {
+              name: "Arquivar processo",
+              phase: "Arquivamento",
+            },
+          ];
+        }
 
         // Se processo está na Divisão de Licitação E tem autorização rejeitada com motivo específico
         if (process?.currentDepartmentId === 2 && authorizationStep) {
