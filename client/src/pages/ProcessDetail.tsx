@@ -461,35 +461,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             s.isCompleted === true,
         );
 
-        // Verificar se a etapa "Devolver para correção ou cancelar processo" foi concluída
-        const correctionStepCompleted = steps?.find(
-          (s) =>
-            s.stepName === "Devolver para correção ou cancelar processo" &&
-            s.isCompleted === true,
-        );
-
-        // Se a etapa de correção foi concluída, não mostrar mais nenhuma etapa na Divisão de Licitação
-        if (process?.currentDepartmentId === 2 && correctionStepCompleted) {
-          console.log(
-            "🔍 DIVISÃO LICITAÇÃO - Etapa de correção concluída, não exibindo etapas (processo tratado)",
-          );
-          return [];
-        }
-
-        // Se processo está na Divisão de Licitação E tem autorização rejeitada (mas correção ainda não concluída)
-        if (process?.currentDepartmentId === 2 && authorizationStep) {
-          console.log(
-            "🔍 DIVISÃO LICITAÇÃO - Processo veio de rejeição específica, mostrando apenas etapa de correção",
-          );
-          return [
-            {
-              name: "Devolver para correção ou cancelar processo",
-              phase: "Correção",
-            },
-          ];
-        }
-
-        // Verificar se existe etapa "Arquivar processo - Final" para a Divisão de Licitação
+        // Verificar se existe etapa "Arquivar processo - Final" para a Divisão de Licitação (PRIORIDADE)
         const archiveFinalStep = steps?.find(
           (s) =>
             s.stepName === "Arquivar processo - Final" &&
@@ -513,6 +485,34 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             {
               name: "Arquivar processo - Final",
               phase: "Arquivamento",
+            },
+          ];
+        }
+
+        // Verificar se a etapa "Devolver para correção ou cancelar processo" foi concluída
+        const correctionStepCompleted = steps?.find(
+          (s) =>
+            s.stepName === "Devolver para correção ou cancelar processo" &&
+            s.isCompleted === true,
+        );
+
+        // Se a etapa de correção foi concluída E não há etapa de arquivamento final, não mostrar mais nenhuma etapa na Divisão de Licitação
+        if (process?.currentDepartmentId === 2 && correctionStepCompleted && !archiveFinalStep) {
+          console.log(
+            "🔍 DIVISÃO LICITAÇÃO - Etapa de correção concluída, não exibindo etapas (processo tratado)",
+          );
+          return [];
+        }
+
+        // Se processo está na Divisão de Licitação E tem autorização rejeitada (mas correção ainda não concluída)
+        if (process?.currentDepartmentId === 2 && authorizationStep) {
+          console.log(
+            "🔍 DIVISÃO LICITAÇÃO - Processo veio de rejeição específica, mostrando apenas etapa de correção",
+          );
+          return [
+            {
+              name: "Devolver para correção ou cancelar processo",
+              phase: "Correção",
             },
           ];
         }
