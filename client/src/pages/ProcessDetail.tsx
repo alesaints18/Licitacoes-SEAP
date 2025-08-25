@@ -903,6 +903,26 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                 
                 if (updateResponse.ok) {
                   console.log("✅✅✅ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' tornada visível com sucesso");
+                  
+                  // Transferir automaticamente o processo para a Divisão de Licitação (departmentId: 2)
+                  console.log("🔥🔥🔥 ProcessDetail - Transferindo processo automaticamente para Divisão de Licitação");
+                  try {
+                    const transferResponse = await apiRequest(
+                      "POST",
+                      `/api/processes/${parsedId}/transfer`,
+                      {
+                        departmentId: 2, // Divisão de Licitação
+                      }
+                    );
+
+                    if (transferResponse.ok) {
+                      console.log("✅✅✅ ProcessDetail - Processo transferido automaticamente para Divisão de Licitação");
+                    } else {
+                      console.error("❌ ProcessDetail - Erro ao transferir processo automaticamente");
+                    }
+                  } catch (transferError) {
+                    console.error("❌ ProcessDetail - Erro na transferência automática:", transferError);
+                  }
                 }
               } else {
                 console.error("❌ ProcessDetail - Etapa 'Devolver para correção ou arquivamento' não encontrada no banco de dados");
