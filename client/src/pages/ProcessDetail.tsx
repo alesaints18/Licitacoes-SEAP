@@ -78,8 +78,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [authorizationDecision, setAuthorizationDecision] = useState("");
   const [stepForAuthorization, setStepForAuthorization] =
     useState<ProcessStep | null>(null);
-  const [authorizationRejectionModalOpen, setAuthorizationRejectionModalOpen] = useState(false);
-  const [authorizationRejectionDecision, setAuthorizationRejectionDecision] = useState("");
+  const [authorizationRejectionModalOpen, setAuthorizationRejectionModalOpen] =
+    useState(false);
+  const [authorizationRejectionDecision, setAuthorizationRejectionDecision] =
+    useState("");
   const [stepForAuthorizationRejection, setStepForAuthorizationRejection] =
     useState<ProcessStep | null>(null);
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
@@ -482,19 +484,35 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         ];
 
         // Verificar se a autorização foi aprovada com "Disponibilidade Orçamentária"
-        const authStep = steps?.find(s => s.stepName === "Autorização pelo Secretário SEAP");
-        const isAuthorizedWithBudget = authStep?.isCompleted && 
+        const authStep = steps?.find(
+          (s) => s.stepName === "Autorização pelo Secretário SEAP",
+        );
+        const isAuthorizedWithBudget =
+          authStep?.isCompleted &&
           authStep?.observations?.includes("Disponibilidade Orçamentária");
 
         // Verificar se a autorização foi CONFIRMADA com indisponibilidade orçamentária
-        const isAuthorizedWithoutBudget = authStep?.isCompleted && authStep?.observations && 
-          (authStep.observations.includes("Indisponibilidade Orçamentária Total") || 
-           authStep.observations.includes("Indisponibilidade Orçamentária Parcial") ||
-           authStep.observations.includes("Indisponibilidade Orçamentária total ou parcial") ||
-           authStep.observations.includes("Autorização: Indisponibilidade Orçamentária Total") ||
-           authStep.observations.includes("Autorização: Indisponibilidade Orçamentária Parcial") ||
-           authStep.observations.includes("Autorização: Indisponibilidade Orçamentária total ou parcial"));
-
+        const isAuthorizedWithoutBudget =
+          authStep?.isCompleted &&
+          authStep?.observations &&
+          (authStep.observations.includes(
+            "Indisponibilidade Orçamentária Total",
+          ) ||
+            authStep.observations.includes(
+              "Indisponibilidade Orçamentária Parcial",
+            ) ||
+            authStep.observations.includes(
+              "Indisponibilidade Orçamentária total ou parcial",
+            ) ||
+            authStep.observations.includes(
+              "Autorização: Indisponibilidade Orçamentária Total",
+            ) ||
+            authStep.observations.includes(
+              "Autorização: Indisponibilidade Orçamentária Parcial",
+            ) ||
+            authStep.observations.includes(
+              "Autorização: Indisponibilidade Orçamentária total ou parcial",
+            ));
 
         // Só adicionar a etapa "Autorizar Emissão de R.O" se a autorização foi aprovada com disponibilidade orçamentária
         if (isAuthorizedWithBudget) {
@@ -593,8 +611,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     setLocation(`/processes/${id}/edit`);
   };
 
-
-
   // Handle step toggle
   const handleStepToggle = async (stepId: number, isCompleted: boolean) => {
     try {
@@ -632,11 +648,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         // Se a etapa "Autorizar Emissão de R.O" foi completada, apenas mostrar mensagem
         if (isCompleted && step.stepName === "Autorizar Emissão de R.O") {
-          console.log("🔥 ProcessDetail - Etapa 'Autorizar Emissão de R.O' completada");
-          
+          console.log(
+            "🔥 ProcessDetail - Etapa 'Autorizar Emissão de R.O' completada",
+          );
+
           toast({
             title: "✅ Etapa Concluída",
-            description: "Etapa 'Autorizar Emissão de R.O' foi concluída com sucesso",
+            description:
+              "Etapa 'Autorizar Emissão de R.O' foi concluída com sucesso",
           });
         } else {
           toast({
@@ -667,7 +686,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
   // Função para rejeitar autorização
   const handleAuthorizationRejection = async () => {
-    if (!stepForAuthorizationRejection || !authorizationRejectionDecision) return;
+    if (!stepForAuthorizationRejection || !authorizationRejectionDecision)
+      return;
 
     try {
       let stepId = stepForAuthorizationRejection.id;
@@ -706,25 +726,40 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
       // Criar etapa condicional baseada na decisão de rejeição (seguindo padrão do modal de aprovação)
       let conditionalStepName = "";
-      
-      if (authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda") {
+
+      if (
+        authorizationRejectionDecision ===
+        "Não autorizar a defesa ou solicitar reformulação da demanda"
+      ) {
         conditionalStepName = "Devolver para correção ou arquivamento";
-      } else if (authorizationRejectionDecision === "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado") {
+      } else if (
+        authorizationRejectionDecision ===
+        "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
+      ) {
         conditionalStepName = "Solicitar ajuste/aditivo do plano de trabalho";
       }
 
       if (conditionalStepName) {
-        console.log(`🔥🔥🔥 ProcessDetail - Criando etapa condicional: ${conditionalStepName}`);
-        
+        console.log(
+          `🔥🔥🔥 ProcessDetail - Criando etapa condicional: ${conditionalStepName}`,
+        );
+
         try {
           // Verificar se a etapa já existe
-          const stepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
+          const stepsResponse = await apiRequest(
+            "GET",
+            `/api/processes/${parsedId}/steps`,
+          );
           const currentSteps = await stepsResponse.json();
-          const stepExists = currentSteps.find((s: any) => s.stepName === conditionalStepName);
-          
+          const stepExists = currentSteps.find(
+            (s: any) => s.stepName === conditionalStepName,
+          );
+
           if (!stepExists) {
             // Criar etapa condicional no setor SEAP (ID 5)
-            console.log(`🔥🔥🔥 ProcessDetail - Criando etapa ${conditionalStepName} no departamento SEAP (ID: 5)`);
+            console.log(
+              `🔥🔥🔥 ProcessDetail - Criando etapa ${conditionalStepName} no departamento SEAP (ID: 5)`,
+            );
             const conditionalStepResponse = await apiRequest(
               "POST",
               `/api/processes/${parsedId}/steps`,
@@ -737,19 +772,31 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             );
 
             if (conditionalStepResponse.ok) {
-              console.log(`✅✅✅ ProcessDetail - Etapa ${conditionalStepName} criada com sucesso`);
+              console.log(
+                `✅✅✅ ProcessDetail - Etapa ${conditionalStepName} criada com sucesso`,
+              );
               const createdStep = await conditionalStepResponse.json();
-              console.log("🔥 ProcessDetail - Dados da etapa criada:", createdStep);
+              console.log(
+                "🔥 ProcessDetail - Dados da etapa criada:",
+                createdStep,
+              );
             } else {
-              console.error(`❌❌❌ ProcessDetail - Erro ao criar etapa ${conditionalStepName}`);
+              console.error(
+                `❌❌❌ ProcessDetail - Erro ao criar etapa ${conditionalStepName}`,
+              );
               const errorData = await conditionalStepResponse.text();
               console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
             }
           } else {
-            console.log(`✅ ProcessDetail - Etapa ${conditionalStepName} já existe`);
+            console.log(
+              `✅ ProcessDetail - Etapa ${conditionalStepName} já existe`,
+            );
           }
         } catch (etapasError) {
-          console.error("❌ ProcessDetail - Erro ao verificar/criar etapa:", etapasError);
+          console.error(
+            "❌ ProcessDetail - Erro ao verificar/criar etapa:",
+            etapasError,
+          );
         }
       }
 
@@ -780,27 +827,29 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   // Função para lidar com etapas de correção (reset do fluxo)
   const handleCorrectionStepComplete = async (step: any, stepName: string) => {
     try {
-      console.log(`🔄 ProcessDetail - Resetando fluxo ao concluir: ${stepName}`);
-      
-      // 1. Marcar a etapa de correção como concluída
-      await apiRequest(
-        "PATCH",
-        `/api/processes/${parsedId}/steps/${step.id}`,
-        {
-          isCompleted: true,
-          observations: `Correção finalizada: ${stepName}`,
-          userId: 1,
-        },
+      console.log(
+        `🔄 ProcessDetail - Resetando fluxo ao concluir: ${stepName}`,
       );
 
+      // 1. Marcar a etapa de correção como concluída
+      await apiRequest("PATCH", `/api/processes/${parsedId}/steps/${step.id}`, {
+        isCompleted: true,
+        observations: `Correção finalizada: ${stepName}`,
+        userId: 1,
+      });
+
       // 2. Remover todas as etapas condicionais deletando do banco
-      const existingStepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
+      const existingStepsResponse = await apiRequest(
+        "GET",
+        `/api/processes/${parsedId}/steps`,
+      );
       const existingSteps = await existingStepsResponse.json();
-      
-      const conditionalSteps = existingSteps.filter((s: any) => 
-        s.departmentId === 5 && // Mesmo departamento (SEAP)
-        (s.stepName === "Devolver para correção ou arquivamento" || 
-         s.stepName === "Solicitar ajuste/aditivo do plano de trabalho")
+
+      const conditionalSteps = existingSteps.filter(
+        (s: any) =>
+          s.departmentId === 5 && // Mesmo departamento (SEAP)
+          (s.stepName === "Devolver para correção ou arquivamento" ||
+            s.stepName === "Solicitar ajuste/aditivo do plano de trabalho"),
       );
 
       // Deletar etapas condicionais
@@ -812,7 +861,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       }
 
       // 3. Reset da etapa de autorização para não concluída
-      const authStep = existingSteps.find((s: any) => s.stepName === "Autorização pelo Secretário SEAP");
+      const authStep = existingSteps.find(
+        (s: any) => s.stepName === "Autorização pelo Secretário SEAP",
+      );
       if (authStep) {
         await apiRequest(
           "PATCH",
@@ -837,7 +888,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         title: "🔄 Fluxo Resetado",
         description: `${stepName} concluída. Processo retornou para nova análise da autorização.`,
       });
-
     } catch (error) {
       console.error("Erro ao resetar fluxo:", error);
       toast({
@@ -847,7 +897,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       });
     }
   };
-
 
   // Função para completar autorização depois de escolher a opção
   const handleAuthorizationComplete = async () => {
@@ -874,17 +923,26 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       if (response.ok) {
         // Se a decisão for "Disponibilidade Orçamentária", criar a etapa "Autorizar Emissão de R.O"
         if (authorizationDecision === "Disponibilidade Orçamentária") {
-          console.log("🔥🔥🔥 ProcessDetail - Criando etapa 'Autorizar Emissão de R.O' para disponibilidade orçamentária");
-          
+          console.log(
+            "🔥🔥🔥 ProcessDetail - Criando etapa 'Autorizar Emissão de R.O' para disponibilidade orçamentária",
+          );
+
           try {
             // Verificar se a etapa já existe
-            const stepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
+            const stepsResponse = await apiRequest(
+              "GET",
+              `/api/processes/${parsedId}/steps`,
+            );
             const currentSteps = await stepsResponse.json();
-            const authRoStepExists = currentSteps.find((s: any) => s.stepName === "Autorizar Emissão de R.O");
-            
+            const authRoStepExists = currentSteps.find(
+              (s: any) => s.stepName === "Autorizar Emissão de R.O",
+            );
+
             if (!authRoStepExists) {
               // Criar etapa "Autorizar Emissão de R.O" no setor SEAP (ID 5)
-              console.log("🔥🔥🔥 ProcessDetail - Criando etapa no departamento SEAP (ID: 5)");
+              console.log(
+                "🔥🔥🔥 ProcessDetail - Criando etapa no departamento SEAP (ID: 5)",
+              );
               const authRoResponse = await apiRequest(
                 "POST",
                 `/api/processes/${parsedId}/steps`,
@@ -897,35 +955,62 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               );
 
               if (authRoResponse.ok) {
-                console.log("✅✅✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' criada com sucesso");
+                console.log(
+                  "✅✅✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' criada com sucesso",
+                );
                 const createdStep = await authRoResponse.json();
-                console.log("🔥 ProcessDetail - Dados da etapa criada:", createdStep);
+                console.log(
+                  "🔥 ProcessDetail - Dados da etapa criada:",
+                  createdStep,
+                );
               } else {
-                console.error("❌❌❌ ProcessDetail - Erro ao criar etapa 'Autorizar Emissão de R.O'");
+                console.error(
+                  "❌❌❌ ProcessDetail - Erro ao criar etapa 'Autorizar Emissão de R.O'",
+                );
                 const errorData = await authRoResponse.text();
                 console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
               }
             } else {
-              console.log("✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' já existe");
+              console.log(
+                "✅ ProcessDetail - Etapa 'Autorizar Emissão de R.O' já existe",
+              );
             }
           } catch (etapasError) {
-            console.error("❌ ProcessDetail - Erro ao verificar/criar etapa:", etapasError);
+            console.error(
+              "❌ ProcessDetail - Erro ao verificar/criar etapa:",
+              etapasError,
+            );
           }
         }
 
         // Se a decisão for indisponibilidade orçamentária, criar a etapa "Solicitar disponibilização de orçamento"
-        if (authorizationDecision === "Indisponibilidade Orçamentária Total" || authorizationDecision === "Indisponibilidade Orçamentária Parcial" || authorizationDecision === "Indisponibilidade Orçamentária total ou parcial") {
-          console.log("🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar disponibilização de orçamento' para indisponibilidade orçamentária");
-          
+        if (
+          authorizationDecision === "Indisponibilidade Orçamentária Total" ||
+          authorizationDecision === "Indisponibilidade Orçamentária Parcial" ||
+          authorizationDecision ===
+            "Indisponibilidade Orçamentária total ou parcial"
+        ) {
+          console.log(
+            "🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar disponibilização de orçamento' para indisponibilidade orçamentária",
+          );
+
           try {
             // Verificar se a etapa já existe
-            const stepsResponse = await apiRequest("GET", `/api/processes/${parsedId}/steps`);
+            const stepsResponse = await apiRequest(
+              "GET",
+              `/api/processes/${parsedId}/steps`,
+            );
             const currentSteps = await stepsResponse.json();
-            const solicitarOrcamentoStepExists = currentSteps.find((s: any) => s.stepName === "Solicitar disponibilização de orçamento");
-            
+            const solicitarOrcamentoStepExists = currentSteps.find(
+              (s: any) =>
+                s.stepName === "Solicitar disponibilização de orçamento",
+            );
+
             if (!solicitarOrcamentoStepExists) {
               // Criar etapa "Solicitar disponibilização de orçamento" no setor SEAP (ID 5)
-              console.log("🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar disponibilização de orçamento' no departamento SEAP (ID: 5)");
+              console.log(
+                "🔥🔥🔥 ProcessDetail - Criando etapa 'Solicitar disponibilização de orçamento' no departamento SEAP (ID: 5)",
+              );
               const solicitarOrcamentoResponse = await apiRequest(
                 "POST",
                 `/api/processes/${parsedId}/steps`,
@@ -938,19 +1023,31 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               );
 
               if (solicitarOrcamentoResponse.ok) {
-                console.log("✅✅✅ ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' criada com sucesso");
+                console.log(
+                  "✅✅✅ ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' criada com sucesso",
+                );
                 const createdStep = await solicitarOrcamentoResponse.json();
-                console.log("🔥 ProcessDetail - Dados da etapa criada:", createdStep);
+                console.log(
+                  "🔥 ProcessDetail - Dados da etapa criada:",
+                  createdStep,
+                );
               } else {
-                console.error("❌❌❌ ProcessDetail - Erro ao criar etapa 'Solicitar disponibilização de orçamento'");
+                console.error(
+                  "❌❌❌ ProcessDetail - Erro ao criar etapa 'Solicitar disponibilização de orçamento'",
+                );
                 const errorData = await solicitarOrcamentoResponse.text();
                 console.error("🔥 ProcessDetail - Erro detalhes:", errorData);
               }
             } else {
-              console.log("✅ ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' já existe");
+              console.log(
+                "✅ ProcessDetail - Etapa 'Solicitar disponibilização de orçamento' já existe",
+              );
             }
           } catch (etapasError) {
-            console.error("❌ ProcessDetail - Erro ao verificar/criar etapa de orçamento:", etapasError);
+            console.error(
+              "❌ ProcessDetail - Erro ao verificar/criar etapa de orçamento:",
+              etapasError,
+            );
           }
         }
 
@@ -963,11 +1060,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
         toast({
           title: "✅ Etapa Aprovada",
-          description: authorizationDecision === "Disponibilidade Orçamentária" 
-            ? `Autorização concluída: ${authorizationDecision}. Próximas etapas criadas automaticamente.`
-            : authorizationDecision === "Indisponibilidade Orçamentária Total" || authorizationDecision === "Indisponibilidade Orçamentária Parcial"
-            ? `Autorização concluída: ${authorizationDecision}. Próximas etapas criadas automaticamente.`
-            : `Autorização concluída: ${authorizationDecision}`,
+          description:
+            authorizationDecision === "Disponibilidade Orçamentária"
+              ? `Autorização concluída: ${authorizationDecision}. Próximas etapas criadas automaticamente.`
+              : authorizationDecision ===
+                    "Indisponibilidade Orçamentária Total" ||
+                  authorizationDecision ===
+                    "Indisponibilidade Orçamentária Parcial"
+                ? `Autorização concluída: ${authorizationDecision}. Próximas etapas criadas automaticamente.`
+                : `Autorização concluída: ${authorizationDecision}`,
         });
 
         // Fechar modal e limpar estados
@@ -984,7 +1085,6 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
-
   // Função para rejeitar uma etapa
   const handleStepReject = (step: ProcessStep) => {
     setStepToReject(step);
@@ -997,7 +1097,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     if (!stepToReject || rejectionComment.trim().length < 10) {
       toast({
         title: "Motivo obrigatório",
-        description: "Por favor, informe o motivo da rejeição (mínimo 10 caracteres)",
+        description:
+          "Por favor, informe o motivo da rejeição (mínimo 10 caracteres)",
         variant: "destructive",
       });
       return;
@@ -1196,479 +1297,510 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             <div className="lg:col-span-2">
               <div className="space-y-6">
                 <Card>
-                <CardHeader>
-                  <CardTitle>Informações Básicas</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <dl className="divide-y divide-gray-200">
-                    <div className="py-3 grid grid-cols-3">
-                      <dt className="text-sm font-medium text-gray-500">
-                        PBDOC
-                      </dt>
-                      <dd className="text-sm text-gray-900 col-span-2">
-                        {process.pbdocNumber}
-                      </dd>
-                    </div>
-
-                    <div className="py-3 grid grid-cols-3">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Descrição
-                      </dt>
-                      <dd className="text-sm text-gray-900 col-span-2">
-                        {process.description}
-                      </dd>
-                    </div>
-
-                    <div className="py-3 grid grid-cols-3">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Modalidade
-                      </dt>
-                      <dd className="text-sm text-gray-900 col-span-2">
-                        {modality?.name || `Modalidade ${process.modalityId}`}
-                      </dd>
-                    </div>
-
-                    <div className="py-3 grid grid-cols-3">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Fonte
-                      </dt>
-                      <dd className="text-sm text-gray-900 col-span-2">
-                        {source
-                          ? `Fonte ${source.code} - ${source.description}`
-                          : `Fonte ${process.sourceId}`}
-                      </dd>
-                    </div>
-
-                    <div className="py-3 grid grid-cols-3">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Histórico de Responsabilidades
-                      </dt>
-                      <dd className="text-sm text-gray-900 col-span-2">
-                        {historyLoading ? (
-                          <div className="text-xs text-gray-500">
-                            Carregando histórico...
-                          </div>
-                        ) : responsibilityHistory &&
-                          responsibilityHistory.length > 0 ? (
-                          <div className="space-y-2">
-                            {responsibilityHistory.map((history, index) => (
-                              <div
-                                key={history.id}
-                                className="flex items-start space-x-2"
-                              >
-                                <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div>
-                                <div className="flex-1">
-                                  <div className="text-xs text-gray-900">
-                                    <span className="font-medium">
-                                      {history.fullName || history.username}
-                                    </span>
-                                    {history.departmentName && (
-                                      <span className="text-gray-500">
-                                        {" "}
-                                        ({history.departmentName})
-                                      </span>
-                                    )}
-                                  </div>
-                                  <div className="text-xs text-gray-500">
-                                    {history.action === "created"
-                                      ? "Criou o processo"
-                                      : history.action === "updated"
-                                        ? "Modificou o processo"
-                                        : history.action === "transferred"
-                                          ? "Transferiu o processo"
-                                          : history.action === "returned"
-                                            ? "Retornou o processo"
-                                            : history.description ||
-                                              history.action}
-                                  </div>
-                                  <div className="text-xs text-gray-400">
-                                    {format(
-                                      new Date(history.timestamp),
-                                      "dd/MM/yyyy HH:mm",
-                                      { locale: ptBR },
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-xs text-gray-500">
-                            Responsável atual:{" "}
-                            {responsible?.fullName ||
-                              `Usuário ${process.responsibleId}`}
-                            {process.responsibleSince && (
-                              <div className="mt-1 text-xs text-blue-600 flex items-center">
-                                <Clock className="h-3 w-3 mr-1" />
-                                Responsável desde{" "}
-                                {format(
-                                  new Date(process.responsibleSince),
-                                  "dd/MM/yyyy",
-                                  { locale: ptBR },
-                                )}
-                                (
-                                {Math.ceil(
-                                  (new Date().getTime() -
-                                    new Date(
-                                      process.responsibleSince,
-                                    ).getTime()) /
-                                    (1000 * 60 * 60 * 24),
-                                )}{" "}
-                                dias)
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </dd>
-                    </div>
-                  </dl>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Status e Prioridade</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <dl className="divide-y divide-gray-200">
-                    <div className="py-3 grid grid-cols-3">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Status
-                      </dt>
-                      <dd className="text-sm text-gray-900 col-span-2">
-                        <span
-                          className={`status-badge status-badge-${process.status}`}
-                        >
-                          {getProcessStatusLabel(process.status)}
-                        </span>
-                      </dd>
-                    </div>
-
-                    <div className="py-3 grid grid-cols-3">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Prioridade
-                      </dt>
-                      <dd className="text-sm text-gray-900 col-span-2">
-                        <span
-                          className={`priority-badge priority-badge-${process.priority}`}
-                        >
-                          {getProcessPriorityLabel(process.priority)}
-                        </span>
-                      </dd>
-                    </div>
-
-                    <div className="py-3 grid grid-cols-3">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Data de Criação
-                      </dt>
-                      <dd className="text-sm text-gray-900 col-span-2">
-                        {format(
-                          new Date(process.createdAt),
-                          "dd 'de' MMMM 'de' yyyy",
-                          { locale: ptBR },
-                        )}
-                      </dd>
-                    </div>
-
-                    <div className="py-3 grid grid-cols-3">
-                      <dt className="text-sm font-medium text-gray-500">
-                        Última Atualização
-                      </dt>
-                      <dd className="text-sm text-gray-900 col-span-2">
-                        {format(
-                          new Date(process.updatedAt),
-                          "dd 'de' MMMM 'de' yyyy",
-                          { locale: ptBR },
-                        )}
-                      </dd>
-                    </div>
-
-                    {process.deadline && (
-                      <div className="py-3 grid grid-cols-3">
-                        <dt className="text-sm font-medium text-gray-500">
-                          Prazo de Entrega
-                        </dt>
-                        <dd className="text-sm text-gray-900 col-span-2 flex items-center">
-                          {format(
-                            new Date(process.deadline),
-                            "dd 'de' MMMM 'de' yyyy",
-                            { locale: ptBR },
-                          )}
-                          {new Date(process.deadline) < new Date() ? (
-                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">
-                              Atrasado
-                            </span>
-                          ) : (
-                            <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                              {Math.ceil(
-                                (new Date(process.deadline).getTime() -
-                                  new Date().getTime()) /
-                                  (1000 * 60 * 60 * 24),
-                              )}{" "}
-                              dias restantes
-                            </span>
-                          )}
-                        </dd>
-                      </div>
-                    )}
-                  </dl>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Right Sidebar with Checklist */}
-            <div className="space-y-6">
-              {/* Next Step Card */}
-              {nextStep && (
-                <Card>
                   <CardHeader>
-                    <CardTitle className="flex items-center text-lg">
-                      <Clock className="h-5 w-5 mr-2 text-blue-600" />
-                      Próxima Etapa
-                    </CardTitle>
+                    <CardTitle>Informações Básicas</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      <div>
-                        <h4 className="font-medium text-gray-900 text-sm">
-                          {nextStep.stepName}
-                        </h4>
-                        <p className="text-xs text-gray-500 mt-1">
-                          Setor Responsável:{" "}
-                          {currentDepartment?.name ||
-                            "Departamento não definido"}
-                        </p>
+                    <dl className="divide-y divide-gray-200">
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          PBDOC
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2">
+                          {process.pbdocNumber}
+                        </dd>
                       </div>
 
-                      {nextStep.dueDate && (
-                        <div className="flex items-center text-xs text-orange-600">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {format(new Date(nextStep.dueDate), "dd/MM/yyyy")}
-                        </div>
-                      )}
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">
-                          Progresso:{" "}
-                          {steps?.filter((s) => s.isCompleted).length || 0} de{" "}
-                          {steps?.length || 0}
-                        </span>
-                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                          <div
-                            className="bg-blue-600 h-1.5 rounded-full"
-                            style={{
-                              width: `${((steps?.filter((s) => s.isCompleted).length || 0) / (steps?.length || 1)) * 100}%`,
-                            }}
-                          />
-                        </div>
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Descrição
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2">
+                          {process.description}
+                        </dd>
                       </div>
 
-                      {/* Sector-Specific Checklist */}
-                      {currentUser && (
-                        <div className="mt-4 pt-4 border-t border-gray-200">
-                          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                            <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                            Checklist do Setor{" "}
-                            {currentDepartment?.name || "Atual"}
-                          </h4>
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Modalidade
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2">
+                          {modality?.name || `Modalidade ${process.modalityId}`}
+                        </dd>
+                      </div>
 
-                          {/* Sector Steps */}
-                          <div className="space-y-2">
-                            {(() => {
-                              const sectorSteps = getSectorSteps(
-                                currentDepartment?.name ||
-                                  currentUser.department,
-                                process?.modalityId || 1,
-                              );
-                              console.log("Sector steps:", sectorSteps);
-                              console.log(
-                                "Current department:",
-                                currentDepartment?.name,
-                              );
-                              console.log(
-                                "Current user department:",
-                                currentUser.department,
-                              );
-                              console.log(
-                                "Process current department ID:",
-                                process?.currentDepartmentId,
-                              );
-                              return sectorSteps;
-                            })()
-                              .filter((sectorStep) => {
-                                // Mostrar apenas etapas pendentes (não concluídas)
-                                const existingStep = steps?.find(
-                                  (s) => s.stepName === sectorStep.name,
-                                );
-                                return !existingStep?.isCompleted;
-                              })
-                              .map((sectorStep, index) => {
-                                const existingStep = steps?.find(
-                                  (s) => s.stepName === sectorStep.name,
-                                );
-                                const isCompleted =
-                                  existingStep?.isCompleted || false;
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Fonte
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2">
+                          {source
+                            ? `Fonte ${source.code} - ${source.description}`
+                            : `Fonte ${process.sourceId}`}
+                        </dd>
+                      </div>
 
-                                // Só mostrar se o usuário atual pertence ao departamento do processo
-                                const userCanEdit =
-                                  currentUser.department ===
-                                    currentDepartment?.name ||
-                                  currentUser.role === "admin";
-
-                                console.log(
-                                  `Step ${sectorStep.name}: userCanEdit=${userCanEdit}, existingStep=${!!existingStep}, isCompleted=${isCompleted}`,
-                                );
-
-                                return (
-                                  <div
-                                    key={index}
-                                    className="flex items-center space-x-3 p-3 bg-white rounded border border-gray-200"
-                                  >
-                                    <div className="flex items-center space-x-2">
-                                      {/* Botão de Aprovar */}
-                                      <button
-                                        className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                                          isCompleted
-                                            ? "bg-green-600 border-green-600 hover:bg-green-700"
-                                            : userCanEdit
-                                              ? "border-green-400 hover:border-green-600 bg-white hover:bg-green-50"
-                                              : "border-gray-300 bg-gray-100"
-                                        }`}
-                                        onClick={async () => {
-                                          if (!userCanEdit) return;
-
-                                          // Verificar se é a etapa especial de Autorização pelo Secretário SEAP
-                                          if (sectorStep.name.includes("Autorização pelo Secretário SEAP")) {
-                                            console.log("🔥 ProcessDetail - Etapa de Autorização detectada - abrindo modal de autorização");
-                                            setAuthorizationModalOpen(true);
-                                            setStepForAuthorization(existingStep || null);
-                                            setAuthorizationDecision(""); // Limpar seleção anterior
-                                            return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
-                                          }
-
-                                          if (existingStep) {
-                                            // Verificar se é uma etapa condicional de correção
-                                            if (sectorStep.name === "Devolver para correção ou arquivamento" || sectorStep.name === "Solicitar ajuste/aditivo do plano de trabalho") {
-                                              // Reset: remover todas as etapas condicionais e recriar apenas a autorização
-                                              await handleCorrectionStepComplete(existingStep, sectorStep.name);
-                                            } else {
-                                              // Etapa normal, apenas atualizar
-                                              handleStepToggle(
-                                                existingStep.id,
-                                                !isCompleted,
-                                              );
-                                            }
-                                          } else {
-                                            // Etapa não existe, criar primeiro
-                                            try {
-                                              const response = await apiRequest(
-                                                "POST",
-                                                `/api/processes/${process.id}/steps`,
-                                                {
-                                                  stepName: sectorStep.name,
-                                                  departmentId:
-                                                    process.currentDepartmentId,
-                                                  isCompleted: true,
-                                                  observations: null,
-                                                },
-                                              );
-
-                                              if (response.ok) {
-                                                // Recarregar etapas
-                                                queryClient.invalidateQueries({
-                                                  queryKey: [
-                                                    `/api/processes/${process.id}/steps`,
-                                                  ],
-                                                });
-
-                                                toast({
-                                                  title:
-                                                    "Etapa criada e concluída",
-                                                  description: `Etapa "${sectorStep.name}" foi criada e marcada como concluída`,
-                                                });
-                                              }
-                                            } catch (error) {
-                                              toast({
-                                                title: "Erro",
-                                                description:
-                                                  "Não foi possível criar a etapa",
-                                                variant: "destructive",
-                                              });
-                                            }
-                                          }
-                                        }}
-                                        disabled={!userCanEdit}
-                                        title="Aprovar etapa"
-                                      >
-                                        {isCompleted ? (
-                                          <Check className="h-4 w-4 text-white" />
-                                        ) : (
-                                          <Check className="h-4 w-4 text-green-600" />
-                                        )}
-                                      </button>
-
-                                      {/* Botão de Rejeitar */}
-                                      <button
-                                        className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
-                                          userCanEdit
-                                            ? "border-red-400 hover:border-red-600 bg-white hover:bg-red-50"
-                                            : "border-gray-300 bg-gray-100"
-                                        }`}
-                                        onClick={() => {
-                                          if (!userCanEdit) return;
-
-                                          // Verificar se é a etapa especial de Autorização pelo Secretário SEAP
-                                          if (sectorStep.name.includes("Autorização pelo Secretário SEAP")) {
-                                            console.log("🔥 ProcessDetail - Etapa de Autorização detectada - abrindo modal de rejeição especial");
-                                            setAuthorizationRejectionModalOpen(true);
-                                            setStepForAuthorizationRejection(existingStep || null);
-                                            setAuthorizationRejectionDecision(""); // Limpar seleção anterior
-                                            return; // NÃO CONTINUA - Etapa só será rejeitada após escolher opção no modal
-                                          }
-
-                                          if (existingStep) {
-                                            handleStepReject(existingStep);
-                                          } else {
-                                            toast({
-                                              title: "Erro",
-                                              description: "Esta etapa ainda não foi criada",
-                                              variant: "destructive",
-                                            });
-                                          }
-                                        }}
-                                        disabled={!userCanEdit}
-                                        title="Rejeitar etapa"
-                                      >
-                                        <XCircle className="h-4 w-4 text-red-600" />
-                                      </button>
-
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Histórico de Responsabilidades
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2">
+                          {historyLoading ? (
+                            <div className="text-xs text-gray-500">
+                              Carregando histórico...
+                            </div>
+                          ) : responsibilityHistory &&
+                            responsibilityHistory.length > 0 ? (
+                            <div className="space-y-2">
+                              {responsibilityHistory.map((history, index) => (
+                                <div
+                                  key={history.id}
+                                  className="flex items-start space-x-2"
+                                >
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0"></div>
+                                  <div className="flex-1">
+                                    <div className="text-xs text-gray-900">
+                                      <span className="font-medium">
+                                        {history.fullName || history.username}
+                                      </span>
+                                      {history.departmentName && (
+                                        <span className="text-gray-500">
+                                          {" "}
+                                          ({history.departmentName})
+                                        </span>
+                                      )}
                                     </div>
-
-                                    <div className="flex-1">
-                                      <p
-                                        className={`text-sm font-medium ${isCompleted ? "line-through text-gray-500" : "text-gray-900"}`}
-                                      >
-                                        {sectorStep.name}
-                                      </p>
-                                      <p className="text-xs text-gray-500">
-                                        Fase: {sectorStep.phase}
-                                      </p>
-                                      {existingStep?.observations && (
-                                        <p className="text-xs text-red-600 mt-1 bg-red-50 p-2 rounded">
-                                          <strong>Motivo da rejeição:</strong>{" "}
-                                          {existingStep.observations}
-                                        </p>
+                                    <div className="text-xs text-gray-500">
+                                      {history.action === "created"
+                                        ? "Criou o processo"
+                                        : history.action === "updated"
+                                          ? "Modificou o processo"
+                                          : history.action === "transferred"
+                                            ? "Transferiu o processo"
+                                            : history.action === "returned"
+                                              ? "Retornou o processo"
+                                              : history.description ||
+                                                history.action}
+                                    </div>
+                                    <div className="text-xs text-gray-400">
+                                      {format(
+                                        new Date(history.timestamp),
+                                        "dd/MM/yyyy HH:mm",
+                                        { locale: ptBR },
                                       )}
                                     </div>
                                   </div>
-                                );
-                              })}
-                          </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-xs text-gray-500">
+                              Responsável atual:{" "}
+                              {responsible?.fullName ||
+                                `Usuário ${process.responsibleId}`}
+                              {process.responsibleSince && (
+                                <div className="mt-1 text-xs text-blue-600 flex items-center">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  Responsável desde{" "}
+                                  {format(
+                                    new Date(process.responsibleSince),
+                                    "dd/MM/yyyy",
+                                    { locale: ptBR },
+                                  )}
+                                  (
+                                  {Math.ceil(
+                                    (new Date().getTime() -
+                                      new Date(
+                                        process.responsibleSince,
+                                      ).getTime()) /
+                                      (1000 * 60 * 60 * 24),
+                                  )}{" "}
+                                  dias)
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Status e Prioridade</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <dl className="divide-y divide-gray-200">
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Status
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2">
+                          <span
+                            className={`status-badge status-badge-${process.status}`}
+                          >
+                            {getProcessStatusLabel(process.status)}
+                          </span>
+                        </dd>
+                      </div>
+
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Prioridade
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2">
+                          <span
+                            className={`priority-badge priority-badge-${process.priority}`}
+                          >
+                            {getProcessPriorityLabel(process.priority)}
+                          </span>
+                        </dd>
+                      </div>
+
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Data de Criação
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2">
+                          {format(
+                            new Date(process.createdAt),
+                            "dd 'de' MMMM 'de' yyyy",
+                            { locale: ptBR },
+                          )}
+                        </dd>
+                      </div>
+
+                      <div className="py-3 grid grid-cols-3">
+                        <dt className="text-sm font-medium text-gray-500">
+                          Última Atualização
+                        </dt>
+                        <dd className="text-sm text-gray-900 col-span-2">
+                          {format(
+                            new Date(process.updatedAt),
+                            "dd 'de' MMMM 'de' yyyy",
+                            { locale: ptBR },
+                          )}
+                        </dd>
+                      </div>
+
+                      {process.deadline && (
+                        <div className="py-3 grid grid-cols-3">
+                          <dt className="text-sm font-medium text-gray-500">
+                            Prazo de Entrega
+                          </dt>
+                          <dd className="text-sm text-gray-900 col-span-2 flex items-center">
+                            {format(
+                              new Date(process.deadline),
+                              "dd 'de' MMMM 'de' yyyy",
+                              { locale: ptBR },
+                            )}
+                            {new Date(process.deadline) < new Date() ? (
+                              <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800 rounded-full">
+                                Atrasado
+                              </span>
+                            ) : (
+                              <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                {Math.ceil(
+                                  (new Date(process.deadline).getTime() -
+                                    new Date().getTime()) /
+                                    (1000 * 60 * 60 * 24),
+                                )}{" "}
+                                dias restantes
+                              </span>
+                            )}
+                          </dd>
                         </div>
                       )}
+                    </dl>
+                  </CardContent>
+                </Card>
+              </div>
 
-                      {/* Current Step Action */}
-                      {/* {nextStep && (
+              {/* Right Sidebar with Checklist */}
+              <div className="space-y-6">
+                {/* Next Step Card */}
+                {nextStep && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center text-lg">
+                        <Clock className="h-5 w-5 mr-2 text-blue-600" />
+                        Próxima Etapa
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-medium text-gray-900 text-sm">
+                            {nextStep.stepName}
+                          </h4>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Setor Responsável:{" "}
+                            {currentDepartment?.name ||
+                              "Departamento não definido"}
+                          </p>
+                        </div>
+
+                        {nextStep.dueDate && (
+                          <div className="flex items-center text-xs text-orange-600">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {format(new Date(nextStep.dueDate), "dd/MM/yyyy")}
+                          </div>
+                        )}
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-gray-500">
+                            Progresso:{" "}
+                            {steps?.filter((s) => s.isCompleted).length || 0} de{" "}
+                            {steps?.length || 0}
+                          </span>
+                          <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                            <div
+                              className="bg-blue-600 h-1.5 rounded-full"
+                              style={{
+                                width: `${((steps?.filter((s) => s.isCompleted).length || 0) / (steps?.length || 1)) * 100}%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Sector-Specific Checklist */}
+                        {currentUser && (
+                          <div className="mt-4 pt-4 border-t border-gray-200">
+                            <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                              <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                              Checklist do Setor{" "}
+                              {currentDepartment?.name || "Atual"}
+                            </h4>
+
+                            {/* Sector Steps */}
+                            <div className="space-y-2">
+                              {(() => {
+                                const sectorSteps = getSectorSteps(
+                                  currentDepartment?.name ||
+                                    currentUser.department,
+                                  process?.modalityId || 1,
+                                );
+                                console.log("Sector steps:", sectorSteps);
+                                console.log(
+                                  "Current department:",
+                                  currentDepartment?.name,
+                                );
+                                console.log(
+                                  "Current user department:",
+                                  currentUser.department,
+                                );
+                                console.log(
+                                  "Process current department ID:",
+                                  process?.currentDepartmentId,
+                                );
+                                return sectorSteps;
+                              })()
+                                .filter((sectorStep) => {
+                                  // Mostrar apenas etapas pendentes (não concluídas)
+                                  const existingStep = steps?.find(
+                                    (s) => s.stepName === sectorStep.name,
+                                  );
+                                  return !existingStep?.isCompleted;
+                                })
+                                .map((sectorStep, index) => {
+                                  const existingStep = steps?.find(
+                                    (s) => s.stepName === sectorStep.name,
+                                  );
+                                  const isCompleted =
+                                    existingStep?.isCompleted || false;
+
+                                  // Só mostrar se o usuário atual pertence ao departamento do processo
+                                  const userCanEdit =
+                                    currentUser.department ===
+                                      currentDepartment?.name ||
+                                    currentUser.role === "admin";
+
+                                  console.log(
+                                    `Step ${sectorStep.name}: userCanEdit=${userCanEdit}, existingStep=${!!existingStep}, isCompleted=${isCompleted}`,
+                                  );
+
+                                  return (
+                                    <div
+                                      key={index}
+                                      className="flex items-center space-x-3 p-3 bg-white rounded border border-gray-200"
+                                    >
+                                      <div className="flex items-center space-x-2">
+                                        {/* Botão de Aprovar */}
+                                        <button
+                                          className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                            isCompleted
+                                              ? "bg-green-600 border-green-600 hover:bg-green-700"
+                                              : userCanEdit
+                                                ? "border-green-400 hover:border-green-600 bg-white hover:bg-green-50"
+                                                : "border-gray-300 bg-gray-100"
+                                          }`}
+                                          onClick={async () => {
+                                            if (!userCanEdit) return;
+
+                                            // Verificar se é a etapa especial de Autorização pelo Secretário SEAP
+                                            if (
+                                              sectorStep.name.includes(
+                                                "Autorização pelo Secretário SEAP",
+                                              )
+                                            ) {
+                                              console.log(
+                                                "🔥 ProcessDetail - Etapa de Autorização detectada - abrindo modal de autorização",
+                                              );
+                                              setAuthorizationModalOpen(true);
+                                              setStepForAuthorization(
+                                                existingStep || null,
+                                              );
+                                              setAuthorizationDecision(""); // Limpar seleção anterior
+                                              return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
+                                            }
+
+                                            if (existingStep) {
+                                              // Verificar se é uma etapa condicional de correção
+                                              if (
+                                                sectorStep.name ===
+                                                  "Devolver para correção ou arquivamento" ||
+                                                sectorStep.name ===
+                                                  "Solicitar ajuste/aditivo do plano de trabalho"
+                                              ) {
+                                                // Reset: remover todas as etapas condicionais e recriar apenas a autorização
+                                                await handleCorrectionStepComplete(
+                                                  existingStep,
+                                                  sectorStep.name,
+                                                );
+                                              } else {
+                                                // Etapa normal, apenas atualizar
+                                                handleStepToggle(
+                                                  existingStep.id,
+                                                  !isCompleted,
+                                                );
+                                              }
+                                            } else {
+                                              // Etapa não existe, criar primeiro
+                                              try {
+                                                const response =
+                                                  await apiRequest(
+                                                    "POST",
+                                                    `/api/processes/${process.id}/steps`,
+                                                    {
+                                                      stepName: sectorStep.name,
+                                                      departmentId:
+                                                        process.currentDepartmentId,
+                                                      isCompleted: true,
+                                                      observations: null,
+                                                    },
+                                                  );
+
+                                                if (response.ok) {
+                                                  // Recarregar etapas
+                                                  queryClient.invalidateQueries(
+                                                    {
+                                                      queryKey: [
+                                                        `/api/processes/${process.id}/steps`,
+                                                      ],
+                                                    },
+                                                  );
+
+                                                  toast({
+                                                    title:
+                                                      "Etapa criada e concluída",
+                                                    description: `Etapa "${sectorStep.name}" foi criada e marcada como concluída`,
+                                                  });
+                                                }
+                                              } catch (error) {
+                                                toast({
+                                                  title: "Erro",
+                                                  description:
+                                                    "Não foi possível criar a etapa",
+                                                  variant: "destructive",
+                                                });
+                                              }
+                                            }
+                                          }}
+                                          disabled={!userCanEdit}
+                                          title="Aprovar etapa"
+                                        >
+                                          {isCompleted ? (
+                                            <Check className="h-4 w-4 text-white" />
+                                          ) : (
+                                            <Check className="h-4 w-4 text-green-600" />
+                                          )}
+                                        </button>
+
+                                        {/* Botão de Rejeitar */}
+                                        <button
+                                          className={`h-8 w-8 rounded-full border-2 flex items-center justify-center transition-all ${
+                                            userCanEdit
+                                              ? "border-red-400 hover:border-red-600 bg-white hover:bg-red-50"
+                                              : "border-gray-300 bg-gray-100"
+                                          }`}
+                                          onClick={() => {
+                                            if (!userCanEdit) return;
+
+                                            // Verificar se é a etapa especial de Autorização pelo Secretário SEAP
+                                            if (
+                                              sectorStep.name.includes(
+                                                "Autorização pelo Secretário SEAP",
+                                              )
+                                            ) {
+                                              console.log(
+                                                "🔥 ProcessDetail - Etapa de Autorização detectada - abrindo modal de rejeição especial",
+                                              );
+                                              setAuthorizationRejectionModalOpen(
+                                                true,
+                                              );
+                                              setStepForAuthorizationRejection(
+                                                existingStep || null,
+                                              );
+                                              setAuthorizationRejectionDecision(
+                                                "",
+                                              ); // Limpar seleção anterior
+                                              return; // NÃO CONTINUA - Etapa só será rejeitada após escolher opção no modal
+                                            }
+
+                                            if (existingStep) {
+                                              handleStepReject(existingStep);
+                                            } else {
+                                              toast({
+                                                title: "Erro",
+                                                description:
+                                                  "Esta etapa ainda não foi criada",
+                                                variant: "destructive",
+                                              });
+                                            }
+                                          }}
+                                          disabled={!userCanEdit}
+                                          title="Rejeitar etapa"
+                                        >
+                                          <XCircle className="h-4 w-4 text-red-600" />
+                                        </button>
+                                      </div>
+
+                                      <div className="flex-1">
+                                        <p
+                                          className={`text-sm font-medium ${isCompleted ? "line-through text-gray-500" : "text-gray-900"}`}
+                                        >
+                                          {sectorStep.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                          Fase: {sectorStep.phase}
+                                        </p>
+                                        {existingStep?.observations && (
+                                          <p className="text-xs text-red-600 mt-1 bg-red-50 p-2 rounded">
+                                            <strong>Motivo da rejeição:</strong>{" "}
+                                            {existingStep.observations}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Current Step Action */}
+                        {/* {nextStep && (
                         <div className="mt-4 pt-4 border-t border-gray-200">
                           <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
                             <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
@@ -1702,190 +1834,191 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                       )}
        /*}
        {/* Botão de Correção do Checklist */}
-                      <div className="mt-6 pt-4 border-t border-gray-200">
-                        <center>
-                          <Button
-                            variant="secondary"
-                            onClick={async () => {
-                              try {
-                                // Corrigir apenas etapas do setor atual
-                                if (steps && currentDepartment) {
-                                  const sectorSteps = getSectorSteps(
-                                    currentDepartment.name,
-                                    process?.modalityId || 1,
-                                  );
-
-                                  // Filtrar apenas etapas do setor atual que estão concluídas
-                                  const currentSectorSteps = steps.filter(
-                                    (step) =>
-                                      sectorSteps.some(
-                                        (sectorStep) =>
-                                          sectorStep.name === step.stepName,
-                                      ) && step.isCompleted,
-                                  );
-
-                                  for (const step of currentSectorSteps) {
-                                    await apiRequest(
-                                      "PATCH",
-                                      `/api/processes/${parsedId}/steps/${step.id}`,
-                                      { isCompleted: false },
+                        <div className="mt-6 pt-4 border-t border-gray-200">
+                          <center>
+                            <Button
+                              variant="secondary"
+                              onClick={async () => {
+                                try {
+                                  // Corrigir apenas etapas do setor atual
+                                  if (steps && currentDepartment) {
+                                    const sectorSteps = getSectorSteps(
+                                      currentDepartment.name,
+                                      process?.modalityId || 1,
                                     );
+
+                                    // Filtrar apenas etapas do setor atual que estão concluídas
+                                    const currentSectorSteps = steps.filter(
+                                      (step) =>
+                                        sectorSteps.some(
+                                          (sectorStep) =>
+                                            sectorStep.name === step.stepName,
+                                        ) && step.isCompleted,
+                                    );
+
+                                    for (const step of currentSectorSteps) {
+                                      await apiRequest(
+                                        "PATCH",
+                                        `/api/processes/${parsedId}/steps/${step.id}`,
+                                        { isCompleted: false },
+                                      );
+                                    }
+
+                                    queryClient.invalidateQueries({
+                                      queryKey: [
+                                        `/api/processes/${parsedId}/steps`,
+                                      ],
+                                    });
+
+                                    toast({
+                                      title: "Checklist corrigido",
+                                      description: `Etapas do setor ${currentDepartment.name} foram desmarcadas.`,
+                                    });
                                   }
-
-                                  queryClient.invalidateQueries({
-                                    queryKey: [
-                                      `/api/processes/${parsedId}/steps`,
-                                    ],
-                                  });
-
+                                } catch (error) {
                                   toast({
-                                    title: "Checklist corrigido",
-                                    description: `Etapas do setor ${currentDepartment.name} foram desmarcadas.`,
+                                    title: "Erro",
+                                    description:
+                                      "Não foi possível corrigir o checklist.",
+                                    variant: "destructive",
                                   });
                                 }
-                              } catch (error) {
-                                toast({
-                                  title: "Erro",
-                                  description:
-                                    "Não foi possível corrigir o checklist.",
-                                  variant: "destructive",
-                                });
-                              }
-                            }}
-                          >
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Corrigir
-                          </Button>
-                          <p className="text-sm text-gray-600 mt-2">
-                            Remove apenas as marcações do setor atual feitas
-                            incorretamente
-                          </p>
-                        </center>
-                      </div>
-                      {/* Prazo de Finalização por Fase */}
-                      {currentUser && process && (
-                        <div className="mt-6 pt-4 border-t border-gray-200">
-                          <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
-                            <Calendar className="h-4 w-4 mr-2 text-orange-600" />
-                            Prazos de Finalização - Fluxograma Oficial
-                          </h4>
-
-                          {(() => {
-                            const currentPhase = getCurrentPhase(
-                              currentUser.department,
-                            );
-                            const phaseDeadlines = getPhaseDeadlines(
-                              new Date(process.createdAt),
-                            );
-                            const currentPhaseInfo =
-                              phaseDeadlines[
-                                currentPhase as keyof typeof phaseDeadlines
-                              ];
-
-                            if (!currentPhaseInfo) return null;
-
-                            const daysRemaining = Math.ceil(
-                              (currentPhaseInfo.deadline.getTime() -
-                                new Date().getTime()) /
-                                (1000 * 60 * 60 * 24),
-                            );
-                            const isOverdue = daysRemaining < 0;
-                            const isUrgent =
-                              daysRemaining <= 3 && daysRemaining >= 0;
-
-                            return (
-                              <div
-                                className={`p-3 rounded-lg border-2 ${
-                                  isOverdue
-                                    ? "bg-red-50 border-red-200"
-                                    : isUrgent
-                                      ? "bg-yellow-50 border-yellow-200"
-                                      : "bg-green-50 border-green-200"
-                                }`}
-                              >
-                                <div className="flex items-center justify-between mb-2">
-                                  <h5
-                                    className={`font-medium text-sm ${
-                                      isOverdue
-                                        ? "text-red-800"
-                                        : isUrgent
-                                          ? "text-yellow-800"
-                                          : "text-green-800"
-                                    }`}
-                                  >
-                                    {currentPhaseInfo.name}
-                                  </h5>
-                                  <span
-                                    className={`text-xs px-2 py-1 rounded-full font-medium ${
-                                      isOverdue
-                                        ? "bg-red-200 text-red-800"
-                                        : isUrgent
-                                          ? "bg-yellow-200 text-yellow-800"
-                                          : "bg-green-200 text-green-800"
-                                    }`}
-                                  >
-                                    {isOverdue
-                                      ? `${Math.abs(daysRemaining)} dias em atraso`
-                                      : daysRemaining === 0
-                                        ? "Vence hoje"
-                                        : `${daysRemaining} dias restantes`}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gray-600 mb-2">
-                                  {currentPhaseInfo.description}
-                                </p>
-                                <div className="flex items-center text-xs text-gray-500">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  Prazo final:{" "}
-                                  {format(
-                                    currentPhaseInfo.deadline,
-                                    "dd/MM/yyyy",
-                                    { locale: ptBR },
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })()}
-
-                          {/* Resumo de todas as fases */}
-                          <div className="mt-3 grid grid-cols-2 gap-2">
-                            {process &&
-                              Object.entries(
-                                getPhaseDeadlines(new Date(process.createdAt)),
-                              ).map(([phase, info]) => {
-                                const daysFromStart = Math.ceil(
-                                  (info.deadline.getTime() -
-                                    new Date(process.createdAt).getTime()) /
-                                    (1000 * 60 * 60 * 24),
-                                );
-                                const isPast = new Date() > info.deadline;
-
-                                return (
-                                  <div
-                                    key={phase}
-                                    className={`p-2 rounded text-xs border ${
-                                      isPast
-                                        ? "bg-gray-100 border-gray-300 text-gray-500"
-                                        : "bg-white border-gray-200"
-                                    }`}
-                                  >
-                                    <div className="font-medium">
-                                      {info.name}
-                                    </div>
-                                    <div className="text-gray-500">
-                                      {daysFromStart} dias
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                          </div>
+                              }}
+                            >
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Corrigir
+                            </Button>
+                            <p className="text-sm text-gray-600 mt-2">
+                              Remove apenas as marcações do setor atual feitas
+                              incorretamente
+                            </p>
+                          </center>
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                        {/* Prazo de Finalização por Fase */}
+                        {currentUser && process && (
+                          <div className="mt-6 pt-4 border-t border-gray-200">
+                            <h4 className="text-sm font-medium text-gray-900 mb-3 flex items-center">
+                              <Calendar className="h-4 w-4 mr-2 text-orange-600" />
+                              Prazos de Finalização - Fluxograma Oficial
+                            </h4>
 
+                            {(() => {
+                              const currentPhase = getCurrentPhase(
+                                currentUser.department,
+                              );
+                              const phaseDeadlines = getPhaseDeadlines(
+                                new Date(process.createdAt),
+                              );
+                              const currentPhaseInfo =
+                                phaseDeadlines[
+                                  currentPhase as keyof typeof phaseDeadlines
+                                ];
+
+                              if (!currentPhaseInfo) return null;
+
+                              const daysRemaining = Math.ceil(
+                                (currentPhaseInfo.deadline.getTime() -
+                                  new Date().getTime()) /
+                                  (1000 * 60 * 60 * 24),
+                              );
+                              const isOverdue = daysRemaining < 0;
+                              const isUrgent =
+                                daysRemaining <= 3 && daysRemaining >= 0;
+
+                              return (
+                                <div
+                                  className={`p-3 rounded-lg border-2 ${
+                                    isOverdue
+                                      ? "bg-red-50 border-red-200"
+                                      : isUrgent
+                                        ? "bg-yellow-50 border-yellow-200"
+                                        : "bg-green-50 border-green-200"
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h5
+                                      className={`font-medium text-sm ${
+                                        isOverdue
+                                          ? "text-red-800"
+                                          : isUrgent
+                                            ? "text-yellow-800"
+                                            : "text-green-800"
+                                      }`}
+                                    >
+                                      {currentPhaseInfo.name}
+                                    </h5>
+                                    <span
+                                      className={`text-xs px-2 py-1 rounded-full font-medium ${
+                                        isOverdue
+                                          ? "bg-red-200 text-red-800"
+                                          : isUrgent
+                                            ? "bg-yellow-200 text-yellow-800"
+                                            : "bg-green-200 text-green-800"
+                                      }`}
+                                    >
+                                      {isOverdue
+                                        ? `${Math.abs(daysRemaining)} dias em atraso`
+                                        : daysRemaining === 0
+                                          ? "Vence hoje"
+                                          : `${daysRemaining} dias restantes`}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-600 mb-2">
+                                    {currentPhaseInfo.description}
+                                  </p>
+                                  <div className="flex items-center text-xs text-gray-500">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    Prazo final:{" "}
+                                    {format(
+                                      currentPhaseInfo.deadline,
+                                      "dd/MM/yyyy",
+                                      { locale: ptBR },
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })()}
+
+                            {/* Resumo de todas as fases */}
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              {process &&
+                                Object.entries(
+                                  getPhaseDeadlines(
+                                    new Date(process.createdAt),
+                                  ),
+                                ).map(([phase, info]) => {
+                                  const daysFromStart = Math.ceil(
+                                    (info.deadline.getTime() -
+                                      new Date(process.createdAt).getTime()) /
+                                      (1000 * 60 * 60 * 24),
+                                  );
+                                  const isPast = new Date() > info.deadline;
+
+                                  return (
+                                    <div
+                                      key={phase}
+                                      className={`p-2 rounded text-xs border ${
+                                        isPast
+                                          ? "bg-gray-100 border-gray-300 text-gray-500"
+                                          : "bg-white border-gray-200"
+                                      }`}
+                                    >
+                                      <div className="font-medium">
+                                        {info.name}
+                                      </div>
+                                      <div className="text-gray-500">
+                                        {daysFromStart} dias
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           </div>
@@ -1962,7 +2095,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       </Dialog>
 
       {/* Modal de Autorização do Secretário SEAP */}
-      <Dialog open={authorizationModalOpen} onOpenChange={setAuthorizationModalOpen}>
+      <Dialog
+        open={authorizationModalOpen}
+        onOpenChange={setAuthorizationModalOpen}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-green-600">
@@ -1970,10 +2106,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               Aprovar Etapa de Autorização
             </DialogTitle>
             <DialogDescription>
-              Selecione uma das opções de autorização para a etapa: <strong>Autorização pelo Secretário SEAP</strong>
+              Selecione uma das opções de autorização para a etapa:{" "}
+              <strong>Autorização pelo Secretário SEAP</strong>
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-3">
               <div>
@@ -1982,7 +2119,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     type="radio"
                     name="authorization-decision"
                     value="Disponibilidade Orçamentária"
-                    checked={authorizationDecision === "Disponibilidade Orçamentária"}
+                    checked={
+                      authorizationDecision === "Disponibilidade Orçamentária"
+                    }
                     onChange={(e) => setAuthorizationDecision(e.target.value)}
                     className="mt-1"
                   />
@@ -1993,14 +2132,17 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                   </div>
                 </label>
               </div>
-              
+
               <div>
                 <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                   <input
                     type="radio"
                     name="authorization-decision"
                     value="Indisponibilidade Orçamentária total ou parcial"
-                    checked={authorizationDecision === "Indisponibilidade Orçamentária total ou parcial"}
+                    checked={
+                      authorizationDecision ===
+                      "Indisponibilidade Orçamentária total ou parcial"
+                    }
                     onChange={(e) => setAuthorizationDecision(e.target.value)}
                     className="mt-1"
                   />
@@ -2013,7 +2155,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               </div>
             </div>
           </div>
-          
+
           <div className="flex justify-end space-x-3 pt-4">
             <Button
               variant="outline"
@@ -2038,7 +2180,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       </Dialog>
 
       {/* Modal de Rejeição da Autorização do Secretário SEAP */}
-      <Dialog open={authorizationRejectionModalOpen} onOpenChange={setAuthorizationRejectionModalOpen}>
+      <Dialog
+        open={authorizationRejectionModalOpen}
+        onOpenChange={setAuthorizationRejectionModalOpen}
+      >
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-red-600">
@@ -2046,10 +2191,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               Rejeitar Etapa de Autorização
             </DialogTitle>
             <DialogDescription>
-              Selecione o motivo da rejeição para a etapa: <strong>Autorização pelo Secretário SEAP</strong>
+              Selecione o motivo da rejeição para a etapa:{" "}
+              <strong>Autorização pelo Secretário SEAP</strong>
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-3">
               <div>
@@ -2058,38 +2204,50 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     type="radio"
                     name="authorization-rejection-decision"
                     value="Não autorizar a defesa ou solicitar reformulação da demanda"
-                    checked={authorizationRejectionDecision === "Não autorizar a defesa ou solicitar reformulação da demanda"}
-                    onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
+                    checked={
+                      authorizationRejectionDecision ===
+                      "Não autorizar a defesa ou solicitar reformulação da demanda"
+                    }
+                    onChange={(e) =>
+                      setAuthorizationRejectionDecision(e.target.value)
+                    }
                     className="mt-1"
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">
-                      Não autorizar a defesa ou solicitar reformulação da demanda
+                      Não autorizar a defesa ou solicitar reformulação da
+                      demanda
                     </div>
                   </div>
                 </label>
               </div>
-              
+
               <div>
                 <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
                   <input
                     type="radio"
                     name="authorization-rejection-decision"
                     value="Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
-                    checked={authorizationRejectionDecision === "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"}
-                    onChange={(e) => setAuthorizationRejectionDecision(e.target.value)}
+                    checked={
+                      authorizationRejectionDecision ===
+                      "Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado"
+                    }
+                    onChange={(e) =>
+                      setAuthorizationRejectionDecision(e.target.value)
+                    }
                     className="mt-1"
                   />
                   <div>
                     <div className="text-sm font-medium text-gray-900">
-                      Recurso de convênio insuficiente - Valor estimado na pesquisa maior que o valor conveniado
+                      Recurso de convênio insuficiente - Valor estimado na
+                      pesquisa maior que o valor conveniado
                     </div>
                   </div>
                 </label>
               </div>
             </div>
           </div>
-          
+
           <div className="flex justify-end space-x-3 pt-4">
             <Button
               variant="outline"
@@ -2114,9 +2272,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       </Dialog>
 
       {/* Modais existentes */}
-
     </div>
   );
-}
+};
 
 export default ProcessDetail;
