@@ -674,6 +674,15 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             name: "Autorizar Emissão de R.O",
             phase: "Execução",
           });
+          
+          // Verificar se existe etapa "Autorizar via sistema" criada e incluir na lista
+          const authorizeSystemStep = steps?.find(s => s.stepName === "Autorizar via sistema");
+          if (authorizeSystemStep) {
+            baseSteps.push({
+              name: "Autorizar via sistema",
+              phase: "Execução",
+            });
+          }
         }
 
         // Só adicionar a etapa "Solicitar disponibilização de orçamento" se a autorização foi negada com indisponibilidade orçamentária
