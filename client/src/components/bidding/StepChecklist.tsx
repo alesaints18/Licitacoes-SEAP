@@ -998,9 +998,58 @@ const StepChecklist = ({
                             <Button
                               size="sm"
                               variant={step.isCompleted ? "secondary" : "default"}
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                handleToggleStep(step);
+                                
+                                // Especial para "Autorizar via sistema" - arquivar automaticamente
+                                if (step.stepName === "Autorizar via sistema" && !step.isCompleted) {
+                                  try {
+                                    console.log("🔥 Arquivando processo ao aprovar 'Autorizar via sistema'");
+                                    
+                                    // Concluir etapa primeiro
+                                    const updateResponse = await apiRequest("PATCH", `/api/processes/${processId}/steps/${step.id}`, {
+                                      isCompleted: true,
+                                      observations: "Autorizado via sistema - Processo arquivado automaticamente"
+                                    });
+                                    
+                                    if (updateResponse.ok) {
+                                      // Arquivar processo automaticamente
+                                      const archiveResponse = await apiRequest("DELETE", `/api/processes/${processId}`, {
+                                        deletionReason: "Autorizado via sistema - Secretário de Estado da Administração Penitenciária - SEAP"
+                                      });
+                                      
+                                      if (archiveResponse.ok) {
+                                        queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+                                        toast({
+                                          title: "Processo Autorizado e Arquivado",
+                                          description: "Autorização via sistema concluída. Processo arquivado automaticamente.",
+                                          variant: "default"
+                                        });
+                                        
+                                        // Redirecionar para lista de processos
+                                        setTimeout(() => {
+                                          window.location.href = "/processes";
+                                        }, 2000);
+                                      } else {
+                                        const errorText = await archiveResponse.text();
+                                        toast({
+                                          title: "Erro no arquivamento",
+                                          description: "Etapa aprovada mas processo não foi arquivado. Erro: " + errorText,
+                                          variant: "destructive"
+                                        });
+                                      }
+                                    }
+                                  } catch (error) {
+                                    toast({
+                                      title: "Erro",
+                                      description: "Erro ao processar autorização via sistema",
+                                      variant: "destructive"
+                                    });
+                                  }
+                                } else {
+                                  // Comportamento padrão para outras etapas
+                                  handleToggleStep(step);
+                                }
                               }}
                               className="h-8 w-8 p-0"
                               title="Aprovar etapa"
