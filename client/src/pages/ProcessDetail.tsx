@@ -2526,9 +2526,20 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                                 "🔥 ProcessDetail - Etapa Autorizar Emissão de R.O detectada - abrindo modal de autorização",
                                               );
                                               setAuthorizeRoModalOpen(true);
-                                              setStepForAuthorizeRo(
-                                                existingStep || null,
-                                              );
+                                              // Se a etapa não existe, criar um objeto temporário com as informações necessárias
+                                              if (existingStep) {
+                                                setStepForAuthorizeRo(existingStep);
+                                              } else {
+                                                // Criar objeto temporário para o modal funcionar
+                                                setStepForAuthorizeRo({
+                                                  id: null,
+                                                  stepName: "Autorizar Emissão de R.O",
+                                                  departmentId: process?.currentDepartmentId || 5,
+                                                  processId: parsedId,
+                                                  isCompleted: false,
+                                                  isVisible: true,
+                                                } as any);
+                                              }
                                               setAuthorizeRoDecision(""); // Limpar seleção anterior
                                               return; // NÃO CONTINUA - Etapa só será concluída após escolher opção no modal
                                             }
