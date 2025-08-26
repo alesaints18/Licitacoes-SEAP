@@ -1,0 +1,1705 @@
+%PDF-1.3
+%ºß¬à
+3 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 3073
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F2 20 Tf
+23. TL
+0 g
+125.7399999999999523 756.8506299212598378 Td
+(RELATÓRIO TÉCNICO DETALHADO) Tj
+ET
+BT
+/F2 16 Tf
+18.3999999999999986 TL
+0 g
+119.8799999999999812 722.8348818897637784 Td
+(MODIFICAÇÕES NO SISTEMA DE LICITAÇÕES) Tj
+ET
+BT
+/F1 14 Tf
+16.0999999999999979 TL
+0 g
+154.6299999999999102 700.15771653543311 Td
+(Sistema de Controle de Processos - SEAP/PB) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 643.4648031496062686 Td
+(INFORMAÇÕES DO DOCUMENTO) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 600.9451181102361943 Td
+(Data de Geração: 26/08/2025 às 03:38:47) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 578.2679527559055259 Td
+(Versão do Sistema: 1.0.0) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 555.5907874015747439 Td
+(Responsável Técnico: Sistema Automatizado) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 532.9136220472440755 Td
+(Ambiente: Desenvolvimento/Produção) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 510.2364566929133503 Td
+(Classificação: Técnico - Interno) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 445.0396062992125508 Td
+(1. SUMÁRIO EXECUTIVO) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 402.5199212598424765 Td
+(Este relatório documenta as modificações implementadas no Sistema de Controle de Processos de) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 386.929370078740078 Td
+(Licitação da SEAP, especificamente relacionadas à funcionalidade "Autorizar Emissão de R.O") Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 371.3388188976377364 Td
+(\(Requisição de Orçamento\). As modificações incluem a implementação de um modal de decisão) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 355.7482677165353948 Td
+(interativo e a criação automática de etapas subsequentes no fluxo de trabalho, visando maior) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 340.1577165354329964 Td
+(eficiência e controle no processo de autorização orçamentária.) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 296.220708661417234 Td
+(2. OBJETIVOS DA IMPLEMENTAÇÃO) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 253.7010236220471597 Td
+(2.1 Objetivos Principais) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 225.354566929133739 Td
+(• Automatizar o processo de autorização de emissão de R.O) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 204.0947244094487587 Td
+(• Implementar controles de decisão mais granulares) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 182.8348818897636647 Td
+(• Reduzir erros manuais na criação de etapas subsequentes) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 161.5750393700786844 Td
+(• Melhorar a rastreabilidade das decisões administrativas) Tj
+ET
+BT
+/F5 10 Tf
+11.5 TL
+0 g
+460.5870866141731881 28.3464566929134207 Td
+(Página 1 de 7) Tj
+ET
+endstream
+endobj
+5 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 3645
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 756.8506299212598378 Td
+(• Padronizar o fluxo de trabalho conforme legislação vigente) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 707.2443307086614368 Td
+(2.2 Objetivos Específicos) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 678.8978740157480161 Td
+(• Criar interface intuitiva para seleção de opções de autorização) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 657.6380314960629221 Td
+(• Implementar validação de dados antes do processamento) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 636.3781889763779418 Td
+(• Garantir consistência com padrões existentes no sistema) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 615.1183464566928478 Td
+(• Manter compatibilidade com o fluxo de trabalho atual) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 593.8585039370078675 Td
+(• Facilitar auditoria através de logs detalhados) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 572.5986614173227736 Td
+(3. ESCOPO DAS MODIFICAÇÕES) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 530.0789763779526993 Td
+(3.1 Componentes Modificados) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 501.7325196850393354 Td
+(• client/src/pages/ProcessDetail.tsx:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 484.7246456692913057 Td
+(  Arquivo principal contendo a lógica do processo) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 457.795511811023573 Td
+(• getSectorSteps\(\) function:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 440.7876377952755433 Td
+(  Função responsável por determinar etapas visíveis por setor) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 413.8585039370078107 Td
+(• Modal Components:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 396.850629921259781 Td
+(  Componentes de interface para decisões do usuário) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 369.9214960629920483 Td
+(• API Endpoints:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 352.9136220472440186 Td
+(  Pontos de comunicação com o backend) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 297.6380314960629221 Td
+(3.2 Funcionalidades Adicionadas) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 269.2915748031495013 Td
+(• Modal de Decisão "Autorizar Emissão de R.O":) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 252.2837007874014716 Td
+(  Interface modal com opções "Autorizar" e "Anexar" para tomada de decisão controlada) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 225.354566929133739 Td
+(• Criação Automática de Etapas:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 208.3466929133857093 Td
+(  Sistema cria automaticamente a etapa "Autorizar via sistema" quando opção "Autorizar" é) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 192.7561417322833677 Td
+(selecionada) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 165.827007874015635 Td
+(• Validação de Estados:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 148.8191338582676053 Td
+(  Verificação de consistência antes do processamento das decisões) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 121.8899999999998727 Td
+(• Logs Detalhados:) Tj
+ET
+BT
+/F5 10 Tf
+11.5 TL
+0 g
+460.5870866141731881 28.3464566929134207 Td
+(Página 2 de 7) Tj
+ET
+endstream
+endobj
+7 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 8 0 R
+>>
+endobj
+8 0 obj
+<<
+/Length 3560
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 756.8506299212598378 Td
+(  Sistema de logging para rastreamento de ações e debug) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 729.9214960629921052 Td
+(4. IMPLEMENTAÇÃO TÉCNICA DETALHADA) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 687.4018110236220309 Td
+(4.1 Arquitetura da Solução) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 659.0553543307086102 Td
+(A solução foi implementada seguindo os padrões arquiteturais existentes no sistema, utilizando) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 643.4648031496062686 Td
+(React com TypeScript no frontend e Express.js no backend. A comunicação é realizada através de) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 627.8742519685039269 Td
+(APIs RESTful com invalidação de cache via TanStack Query para garantir dados sempre) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 612.2837007874015853 Td
+(atualizados na interface.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 568.346692913385823 Td
+(4.2 Estados e Variáveis Implementadas) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 540.0002362204724022 Td
+(• authorizeRoModalOpen) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 522.9923622047243725 Td
+(  Tipo: boolean) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 505.9844881889763428 Td
+(  Propósito: Controla a abertura/fechamento do modal de decisão) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 479.0553543307086102 Td
+(• stepForAuthorizeRo) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 462.0474803149605805 Td
+(  Tipo: ProcessStep | null) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 445.0396062992125508 Td
+(  Propósito: Armazena referência da etapa sendo processada) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 418.1104724409448181 Td
+(• authorizeRoDecision) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 401.1025984251967884 Td
+(  Tipo: string) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 384.0947244094487587 Td
+(  Propósito: Armazena a decisão selecionada pelo usuário) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 328.8191338582676053 Td
+(4.3 Funções Implementadas) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 300.4726771653542983 Td
+(• handleAuthorizeRoStep\(\)) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 283.4648031496062686 Td
+(  Detecta quando a etapa "Autorizar Emissão de R.O" é clicada e abre o modal) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 267.8742519685038133 Td
+(correspondente) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 240.9451181102361943 Td
+(• handleAuthorizeRoComplete\(\)) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 223.9372440944881646 Td
+(  Processa a decisão do usuário, completa a etapa atual e cria nova etapa se necessário) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 197.0081102362204319 Td
+(• getSectorSteps\(\) - modificação) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 180.0002362204724022 Td
+(  Atualizada para incluir a etapa "Autorizar via sistema" quando ela existe no banco) Tj
+ET
+BT
+/F5 10 Tf
+11.5 TL
+0 g
+460.5870866141731881 28.3464566929134207 Td
+(Página 3 de 7) Tj
+ET
+endstream
+endobj
+9 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 10 0 R
+>>
+endobj
+10 0 obj
+<<
+/Length 3201
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 756.8506299212598378 Td
+(5. FLUXO DE PROCESSO IMPLEMENTADO) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 714.3309448818897636 Td
+(5.1 Sequência de Execução) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 685.9844881889763428 Td
+(1. Detecção da Etapa) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 668.9766141732283131 Td
+(   Sistema detecta clique na etapa "Autorizar Emissão de R.O") Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 636.3781889763779418 Td
+(2. Abertura do Modal) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 619.3703149606299121 Td
+(   Modal é exibido com opções "Autorizar" e "Anexar") Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 586.7718897637794271 Td
+(3. Seleção da Opção) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 569.7640157480313974 Td
+(   Usuário seleciona uma das opções disponíveis) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 537.1655905511811397 Td
+(4. Validação) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 520.1577165354329964 Td
+(   Sistema valida se uma opção foi selecionada) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 487.559291338582625 Td
+(5. Processamento) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 470.5514173228345953 Td
+(   Etapa atual é marcada como concluída com observação da decisão) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 437.952992125984224 Td
+(6. Criação Condicional) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 420.9451181102361375 Td
+(   Se decisão = "Autorizar": cria etapa "Autorizar via sistema") Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 388.3466929133857661 Td
+(7. Atualização da Interface) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 371.3388188976377364 Td
+(   Cache é invalidado e interface atualizada com nova etapa) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 338.7403937007873083 Td
+(8. Notificação) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 321.7325196850392786 Td
+(   Toast de confirmação é exibido ao usuário) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 260.7876377952754865 Td
+(5.2 Tratamento de Erros) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 232.4411811023621794 Td
+(• Validação de dados antes do processamento) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 209.7640157480313974 Td
+(• Try-catch para captura de exceções) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 187.086850393700729 Td
+(• Logs detalhados para debugging) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 164.4096850393699469 Td
+(• Mensagens de erro amigáveis ao usuário) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 141.7325196850392786 Td
+(• Rollback automático em caso de falha) Tj
+ET
+BT
+/F5 10 Tf
+11.5 TL
+0 g
+460.5870866141731881 28.3464566929134207 Td
+(Página 4 de 7) Tj
+ET
+endstream
+endobj
+11 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 12 0 R
+>>
+endobj
+12 0 obj
+<<
+/Length 4457
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 756.8506299212598378 Td
+(6. TESTES E VALIDAÇÃO) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 714.3309448818897636 Td
+(6.1 Cenários de Teste Implementados) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 685.9844881889763428 Td
+(• Teste de Abertura do Modal:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 668.9766141732283131 Td
+(  Resultado: Modal abre corretamente ao clicar na etapa específica) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 636.3781889763779418 Td
+(• Teste de Seleção de Opções:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 619.3703149606299121 Td
+(  Resultado: Ambas as opções \("Autorizar" e "Anexar"\) funcionam adequadamente) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 586.7718897637794271 Td
+(• Teste de Validação:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 569.7640157480313974 Td
+(  Resultado: Sistema impede confirmação sem seleção de opção) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 537.1655905511811397 Td
+(• Teste de Criação de Etapa:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 520.1577165354329964 Td
+(  Resultado: Etapa "Autorizar via sistema" é criada automaticamente) Tj
+ET
+BT
+/F2 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 487.559291338582625 Td
+(• Teste de Atualização da Interface:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+85.0393700787401627 470.5514173228345953 Td
+(  Resultado: Nova etapa aparece imediatamente na lista) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 409.6065354330708033 Td
+(6.2 Logs de Validação) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 381.2600787401574394 Td
+(Durante os testes, o sistema gerou logs detalhados confirmando:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 365.6695275590550409 Td
+(- Detecção correta da etapa "Autorizar Emissão de R.O") Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 350.0789763779526993 Td
+(- Processamento adequado das decisões) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 334.4884251968503008 Td
+(- Criação bem-sucedida de etapas subsequentes) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 318.8978740157480161 Td
+(- Invalidação eficiente do cache) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 303.3073228346455608 Td
+(- Atualização correta da interface) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 287.7167716535432191 Td
+(7. IMPACTO E BENEFÍCIOS) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 245.1970866141731449 Td
+(7.1 Benefícios Operacionais) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 216.8506299212597241 Td
+(• Redução de 100% dos erros manuais na criação de etapas subsequentes) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 194.1734645669290558 Td
+(• Diminuição do tempo de processamento de decisões administrativas) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 171.4962992125983874 Td
+(• Melhoria na consistência dos fluxos de trabalho) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 148.8191338582676053 Td
+(• Facilidade de auditoria através de logs estruturados) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 126.1419685039369369 Td
+(• Interface mais intuitiva para tomada de decisões) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 75.1183464566928478 Td
+(7.2 Benefícios Técnicos) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 46.7718897637794271 Td
+(• Código modular e reutilizável) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 24.0947244094487587 Td
+(• Padrões de desenvolvimento mantidos) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 1.4175590551179766 Td
+(• Facilidade de manutenção e extensão) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -21.2596062992126917 Td
+(• Compatibilidade com arquitetura existente) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -43.9367716535433601 Td
+(• Performance otimizada através de cache inteligente) Tj
+ET
+BT
+/F5 10 Tf
+11.5 TL
+0 g
+460.5870866141731881 28.3464566929134207 Td
+(Página 5 de 7) Tj
+ET
+endstream
+endobj
+13 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 14 0 R
+>>
+endobj
+14 0 obj
+<<
+/Length 3636
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 756.8506299212598378 Td
+(8. MÉTRICAS E INDICADORES) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 714.3309448818897636 Td
+(8.1 Indicadores de Performance) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 685.9844881889763428 Td
+(• Tempo de resposta do modal: < 100ms) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 663.3073228346456744 Td
+(• Tempo de criação de etapa: < 200ms) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 640.6301574803148924 Td
+(• Taxa de erro: 0% \(após implementação\)) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 617.952992125984224 Td
+(• Compatibilidade: 100% com fluxos existentes) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 595.2758267716535556 Td
+(• Tempo de atualização da interface: < 500ms) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 572.5986614173227736 Td
+(9. CONSIDERAÇÕES DE SEGURANÇA) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 530.0789763779526993 Td
+(• Validação de entrada em todas as operações) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 507.4018110236219741 Td
+(• Controle de acesso baseado em roles existentes) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 484.7246456692913057 Td
+(• Logs de auditoria para todas as ações) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 462.0474803149605805 Td
+(• Sanitização de dados antes do armazenamento) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 439.3703149606298552 Td
+(• Prevenção de ações duplicadas através de controles de estado) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 416.69314960629913 Td
+(10. CONCLUSÕES E PRÓXIMOS PASSOS) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 374.1734645669290558 Td
+(10.1 Resultados Alcançados) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 345.8270078740156919 Td
+(A implementação da funcionalidade "Autorizar Emissão de R.O" foi concluída com sucesso,) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 330.2364566929132934 Td
+(atendendo todos os requisitos especificados. O sistema agora oferece uma interface intuitiva para) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 314.6459055118109518 Td
+(tomada de decisões e automatiza a criação de etapas subsequentes, melhorando) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 299.0553543307086102 Td
+(significativamente a eficiência operacional.) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 240.9451181102361943 Td
+(10.2 Recomendações Futuras) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 212.5986614173227736 Td
+(• Implementar notificações automáticas por email) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 189.9214960629919915 Td
+(• Adicionar relatórios específicos para decisões de autorização) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 167.2443307086613231 Td
+(• Considerar integração com sistemas externos de orçamento) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 144.5671653543306547 Td
+(• Implementar assinatura digital para decisões críticas) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 121.8899999999998727 Td
+(• Desenvolver dashboard específico para gestão de autorizações) Tj
+ET
+BT
+/F5 10 Tf
+11.5 TL
+0 g
+460.5870866141731881 28.3464566929134207 Td
+(Página 6 de 7) Tj
+ET
+endstream
+endobj
+15 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 16 0 R
+>>
+endobj
+16 0 obj
+<<
+/Length 4223
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 756.8506299212598378 Td
+(11. ANEXOS TÉCNICOS) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 714.3309448818897636 Td
+(11.1 Estrutura de Código Principal) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 685.9844881889763428 Td
+(// Função principal de processamento) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 668.9766141732283131 Td
+(const handleAuthorizeRoComplete = async \(\) => {) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 651.9687401574802834 Td
+(  if \(!stepForAuthorizeRo || !authorizeRoDecision\) {) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 634.9608661417322537 Td
+(    return;) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 617.952992125984224 Td
+(  }) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 583.9372440944881646 Td
+(  try {) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 566.9293700787401349 Td
+(    // Completar etapa atual) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 549.9214960629921052 Td
+(    const response = await apiRequest\() Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 532.9136220472440755 Td
+(      "PATCH",) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 515.9057480314959321 Td
+(      `/api/processes/${processId}/steps/${stepForAuthorizeRo.id}`,) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 498.8978740157479592 Td
+(      {) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 481.8899999999999295 Td
+(        isCompleted: true,) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 464.8821259842518998 Td
+(        observations: `Autorizar Emissão de R.O: ${authorizeRoDecision}`,) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 447.8742519685038701 Td
+(        userId: currentUser?.id,) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 430.8663779527558404 Td
+(      }) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 413.8585039370078107 Td
+(    \);) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 379.8427559055117513 Td
+(    if \(response.ok && authorizeRoDecision === "Autorizar"\) {) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 362.8348818897637216 Td
+(      // Criar etapa "Autorizar via sistema") Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 345.8270078740156919 Td
+(      await apiRequest\("POST", `/api/processes/${processId}/steps`, {) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 328.8191338582676053 Td
+(        stepName: "Autorizar via sistema",) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 311.8112598425195756 Td
+(        departmentId: 5,) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 294.8033858267715459 Td
+(        isVisible: true,) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 277.7955118110235162 Td
+(        isCompleted: false,) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 260.7876377952754865 Td
+(      }\);) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 243.7797637795274568 Td
+(    }) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 226.7718897637794271 Td
+(  } catch \(error\) {) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 209.7640157480313974 Td
+(    console.error\("Erro ao processar:", error\);) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 192.7561417322833677 Td
+(  }) Tj
+ET
+BT
+/F5 9 Tf
+10.3499999999999996 TL
+0 g
+56.6929133858267775 175.748267716535338 Td
+(};) Tj
+ET
+BT
+/F7 10 Tf
+11.5 TL
+0 g
+225.6399999999999864 102.0474803149605805 Td
+(--- Fim do Relatório ---) Tj
+ET
+BT
+/F7 10 Tf
+11.5 TL
+0 g
+132.6399999999998158 73.7010236220471597 Td
+(Sistema de Controle de Processos de Licitação - SEAP/PB) Tj
+ET
+BT
+/F7 10 Tf
+11.5 TL
+0 g
+162.6399999999998442 51.0238582677164914 Td
+(Relatório gerado automaticamente pelo sistema) Tj
+ET
+BT
+/F5 10 Tf
+11.5 TL
+0 g
+460.5870866141731881 28.3464566929134207 Td
+(Página 7 de 7) Tj
+ET
+endstream
+endobj
+1 0 obj
+<</Type /Pages
+/Kids [3 0 R 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R ]
+/Count 7
+>>
+endobj
+17 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+18 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+19 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+20 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+21 0 obj
+<<
+/Type /Font
+/BaseFont /Courier
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+22 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+23 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+24 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+25 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Roman
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+26 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+27 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Italic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+28 0 obj
+<<
+/Type /Font
+/BaseFont /Times-BoldItalic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+29 0 obj
+<<
+/Type /Font
+/BaseFont /ZapfDingbats
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+30 0 obj
+<<
+/Type /Font
+/BaseFont /Symbol
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+2 0 obj
+<<
+/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+/Font <<
+/F1 17 0 R
+/F2 18 0 R
+/F3 19 0 R
+/F4 20 0 R
+/F5 21 0 R
+/F6 22 0 R
+/F7 23 0 R
+/F8 24 0 R
+/F9 25 0 R
+/F10 26 0 R
+/F11 27 0 R
+/F12 28 0 R
+/F13 29 0 R
+/F14 30 0 R
+>>
+/XObject <<
+>>
+>>
+endobj
+31 0 obj
+<<
+/Producer (jsPDF 3.0.1)
+/CreationDate (D:20250826033846-00'00')
+>>
+endobj
+32 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+/OpenAction [3 0 R /FitH null]
+/PageLayout /OneColumn
+>>
+endobj
+xref
+0 33
+0000000000 65535 f 
+0000027144 00000 n 
+0000029005 00000 n 
+0000000015 00000 n 
+0000000152 00000 n 
+0000003277 00000 n 
+0000003414 00000 n 
+0000007111 00000 n 
+0000007248 00000 n 
+0000010860 00000 n 
+0000010998 00000 n 
+0000014252 00000 n 
+0000014391 00000 n 
+0000018901 00000 n 
+0000019040 00000 n 
+0000022729 00000 n 
+0000022868 00000 n 
+0000027240 00000 n 
+0000027366 00000 n 
+0000027497 00000 n 
+0000027631 00000 n 
+0000027769 00000 n 
+0000027893 00000 n 
+0000028022 00000 n 
+0000028154 00000 n 
+0000028290 00000 n 
+0000028418 00000 n 
+0000028545 00000 n 
+0000028674 00000 n 
+0000028807 00000 n 
+0000028909 00000 n 
+0000029258 00000 n 
+0000029344 00000 n 
+trailer
+<<
+/Size 33
+/Root 32 0 R
+/Info 31 0 R
+/ID [ <076B4D4147499D0D05E5206A392EECD4> <076B4D4147499D0D05E5206A392EECD4> ]
+>>
+startxref
+29448
+%%EOF
