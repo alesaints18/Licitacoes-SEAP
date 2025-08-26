@@ -1752,9 +1752,31 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         authorizeRoDecision,
       );
 
+      let stepId = stepForAuthorizeRo.id;
+      
+      // Se a etapa não existe (id é null), criar primeiro
+      if (!stepId) {
+        console.log("🔥 MODAL AUTORIZAR R.O - Criando etapa inexistente");
+        const createResponse = await apiRequest("POST", `/api/processes/${parsedId}/steps`, {
+          stepName: "Autorizar Emissão de R.O",
+          departmentId: process?.currentDepartmentId || 5,
+          processId: parsedId,
+          isCompleted: false,
+          isVisible: true,
+        });
+        
+        if (createResponse.ok) {
+          const newStep = await createResponse.json();
+          stepId = newStep.id;
+          console.log("✅ MODAL AUTORIZAR R.O - Etapa criada com ID:", stepId);
+        } else {
+          throw new Error("Falha ao criar etapa");
+        }
+      }
+
       const response = await apiRequest(
         "PATCH",
-        `/api/processes/${parsedId}/steps/${stepForAuthorizeRo.id}`,
+        `/api/processes/${parsedId}/steps/${stepId}`,
         {
           isCompleted: true,
           observations: `Autorizar Emissão de R.O: ${authorizeRoDecision}`,
