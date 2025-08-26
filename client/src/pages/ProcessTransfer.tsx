@@ -365,9 +365,20 @@ const ProcessTransfer = ({ id }: ProcessTransferProps) => {
     const nextDepartment = departments?.find(d => d.id === 2);
     if (nextDepartment) availableDepartments.push(nextDepartment);
   } else if (process.currentDepartmentId === 4) {
-    // Unidade de Orçamento e Finanças → Secretário SEAP
-    const nextDepartment = departments?.find(d => d.id === 5);
-    if (nextDepartment) availableDepartments.push(nextDepartment);
+    // Unidade de Orçamento e Finanças
+    // Verificar se existe etapa "Anexar R.O" criada
+    const anexarRoStep = processSteps?.find(s => s.stepName === "Anexar R.O" && s.departmentId === 4);
+    
+    if (anexarRoStep && !anexarRoStep.isCompleted) {
+      // Se etapa "Anexar R.O" existe e não está concluída, o processo pode permanecer no mesmo departamento
+      console.log("🔍 TRANSFER - Etapa 'Anexar R.O' encontrada, permitindo transferência para próprio departamento");
+      const orcamentoFinancas = departments?.find(d => d.id === 4);
+      if (orcamentoFinancas) availableDepartments.push(orcamentoFinancas);
+    } else {
+      // Fluxo normal: Unidade de Orçamento e Finanças → Secretário SEAP
+      const nextDepartment = departments?.find(d => d.id === 5);
+      if (nextDepartment) availableDepartments.push(nextDepartment);
+    }
   } else if (process.currentDepartmentId === 5) {
     // Secretário SEAP - depois da autorização, pode ir para diferentes fluxos
     
