@@ -1,0 +1,567 @@
+%PDF-1.3
+%ºß¬à
+3 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 4 0 R
+>>
+endobj
+4 0 obj
+<<
+/Length 5288
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F2 18 Tf
+20.6999999999999993 TL
+0 g
+99.0999999999999659 756.8506299212598378 Td
+(RELATÓRIO DE MODIFICAÇÕES DO SISTEMA) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+115.7099999999999511 728.5041732283464171 Td
+(Sistema de Controle de Processos de Licitação - SEAP) Tj
+ET
+BT
+/F1 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 671.8112598425196893 Td
+(Data: 26/08/2025) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 615.1183464566928478 Td
+(1. RESUMO DAS MODIFICAÇÕES IMPLEMENTADAS) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 572.5986614173227736 Td
+(• Implementação de modal de decisão "Autorizar Emissão de R.O") Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 549.9214960629921052 Td
+(• Criação automática da etapa "Autorizar via sistema") Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 527.2443307086614368 Td
+(• Correção de duplicação de etapas no fluxo de trabalho) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 504.5671653543306547 Td
+(• Melhoria na detecção e processamento de modais de decisão) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 453.5435433070865656 Td
+(2. DETALHAMENTO TÉCNICO) Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 411.0238582677164914 Td
+(2.1 Modal "Autorizar Emissão de R.O") Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 382.6774015748030706 Td
+(Funcionalidade: Modal de decisão com duas opções \("Autorizar" e "Anexar"\)) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 360.0002362204724022 Td
+(Localização: ProcessDetail.tsx) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 337.323070866141677 Td
+(Trigger: Etapa "Autorizar Emissão de R.O" no departamento SEAP) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 314.6459055118109518 Td
+(Comportamento: Abre automaticamente ao clicar em "Aprovar Etapa") Tj
+ET
+BT
+/F2 12 Tf
+13.7999999999999989 TL
+0 g
+56.6929133858267775 263.6222834645668627 Td
+(2.2 Criação Automática de Etapa) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 235.2758267716534419 Td
+(Condição: Quando usuário seleciona "Autorizar" no modal) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 212.5986614173227736 Td
+(Ação: Cria automaticamente etapa "Autorizar via sistema") Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 189.9214960629919915 Td
+(Departamento: Mesmo setor \(Secretário de Estado da Administração Penitenciária - SEAP\)) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 167.2443307086613231 Td
+(Status: Etapa criada como pendente \(não concluída\)) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 102.0474803149605805 Td
+(3. FLUXO DE TRABALHO IMPLEMENTADO) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 59.5277952755905062 Td
+(1. Usuário acessa processo no departamento SEAP) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 36.8506299212597241 Td
+(2. Clica na etapa "Autorizar Emissão de R.O") Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 14.1734645669290558 Td
+(3. Sistema detecta a etapa e abre modal de decisão) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -8.5037007874017263 Td
+(4. Usuário seleciona uma das opções: "Autorizar" ou "Anexar") Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -31.1808661417323947 Td
+(5. Clica em "Confirmar" para processar a decisão) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -53.8580314960630631 Td
+(6. Sistema completa a etapa atual com observação da decisão) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -76.5351968503938451 Td
+(7. Se decisão for "Autorizar": cria automaticamente "Autorizar via sistema") Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -99.2123622047245135 Td
+(8. Interface é atualizada com a nova etapa disponível) Tj
+ET
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 -164.4092125984253698 Td
+(4. ARQUIVOS MODIFICADOS) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -206.9288976377953304 Td
+(client/src/pages/ProcessDetail.tsx:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -229.6060629921261125 Td
+(  • Adicionada função handleAuthorizeRoComplete\(\)) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -252.2832283464568945 Td
+(  • Implementado modal de decisão com estados authorizeRoModalOpen) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -274.9603937007874492 Td
+(  • Criada lógica de criação automática de etapa) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -320.3147244094490134 Td
+(Estados adicionados:) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -342.9918897637795681 Td
+(  • authorizeRoModalOpen: controle de abertura do modal) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -365.6690551181103501 Td
+(  • stepForAuthorizeRo: referência da etapa atual) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 -388.3462204724411322 Td
+(  • authorizeRoDecision: decisão selecionada pelo usuário) Tj
+ET
+endstream
+endobj
+5 0 obj
+<</Type /Page
+/Parent 1 0 R
+/Resources 2 0 R
+/MediaBox [0 0 595.2799999999999727 841.8899999999999864]
+/Contents 6 0 R
+>>
+endobj
+6 0 obj
+<<
+/Length 1116
+>>
+stream
+0.5670000000000001 w
+0 G
+BT
+/F2 14 Tf
+16.0999999999999979 TL
+0 g
+56.6929133858267775 756.8506299212598378 Td
+(5. BENEFÍCIOS DA IMPLEMENTAÇÃO) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 714.3309448818897636 Td
+(• Automatização do fluxo de autorização de R.O) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 691.6537795275589815 Td
+(• Redução de erros manuais na criação de etapas) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 668.9766141732283131 Td
+(• Consistência no processo de tomada de decisão) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 646.2994488188976447 Td
+(• Melhoria na rastreabilidade das decisões administrativas) Tj
+ET
+BT
+/F1 11 Tf
+12.6499999999999986 TL
+0 g
+56.6929133858267775 623.6222834645668627 Td
+(• Interface intuitiva e padronizada com outros modais do sistema) Tj
+ET
+BT
+/F3 10 Tf
+11.5 TL
+0 g
+167.5899999999999181 558.42543307086612 Td
+(Sistema de Controle de Processos de Licitação - SEAP/PB) Tj
+ET
+BT
+/F3 10 Tf
+11.5 TL
+0 g
+221.4899999999999523 535.748267716535338 Td
+(Relatório gerado automaticamente) Tj
+ET
+endstream
+endobj
+1 0 obj
+<</Type /Pages
+/Kids [3 0 R 5 0 R ]
+/Count 2
+>>
+endobj
+7 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+8 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+9 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+10 0 obj
+<<
+/Type /Font
+/BaseFont /Helvetica-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+11 0 obj
+<<
+/Type /Font
+/BaseFont /Courier
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+12 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+13 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-Oblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+14 0 obj
+<<
+/Type /Font
+/BaseFont /Courier-BoldOblique
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+15 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Roman
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+16 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Bold
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+17 0 obj
+<<
+/Type /Font
+/BaseFont /Times-Italic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+18 0 obj
+<<
+/Type /Font
+/BaseFont /Times-BoldItalic
+/Subtype /Type1
+/Encoding /WinAnsiEncoding
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+19 0 obj
+<<
+/Type /Font
+/BaseFont /ZapfDingbats
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+20 0 obj
+<<
+/Type /Font
+/BaseFont /Symbol
+/Subtype /Type1
+/FirstChar 32
+/LastChar 255
+>>
+endobj
+2 0 obj
+<<
+/ProcSet [/PDF /Text /ImageB /ImageC /ImageI]
+/Font <<
+/F1 7 0 R
+/F2 8 0 R
+/F3 9 0 R
+/F4 10 0 R
+/F5 11 0 R
+/F6 12 0 R
+/F7 13 0 R
+/F8 14 0 R
+/F9 15 0 R
+/F10 16 0 R
+/F11 17 0 R
+/F12 18 0 R
+/F13 19 0 R
+/F14 20 0 R
+>>
+/XObject <<
+>>
+>>
+endobj
+21 0 obj
+<<
+/Producer (jsPDF 3.0.1)
+/CreationDate (D:20250826025652-00'00')
+>>
+endobj
+22 0 obj
+<<
+/Type /Catalog
+/Pages 1 0 R
+/OpenAction [3 0 R /FitH null]
+/PageLayout /OneColumn
+>>
+endobj
+xref
+0 23
+0000000000 65535 f 
+0000006797 00000 n 
+0000008622 00000 n 
+0000000015 00000 n 
+0000000152 00000 n 
+0000005492 00000 n 
+0000005629 00000 n 
+0000006860 00000 n 
+0000006985 00000 n 
+0000007115 00000 n 
+0000007248 00000 n 
+0000007386 00000 n 
+0000007510 00000 n 
+0000007639 00000 n 
+0000007771 00000 n 
+0000007907 00000 n 
+0000008035 00000 n 
+0000008162 00000 n 
+0000008291 00000 n 
+0000008424 00000 n 
+0000008526 00000 n 
+0000008872 00000 n 
+0000008958 00000 n 
+trailer
+<<
+/Size 23
+/Root 22 0 R
+/Info 21 0 R
+/ID [ <310E4EC2ABDDFAAAE9993AE7E3499FE5> <310E4EC2ABDDFAAAE9993AE7E3499FE5> ]
+>>
+startxref
+9062
+%%EOF
