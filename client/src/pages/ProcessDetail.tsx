@@ -675,9 +675,12 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             phase: "Execução",
           });
           
-          // Verificar se existe etapa "Autorizar via sistema" criada e incluir na lista
+          // Verificar se existe etapa "Autorizar via sistema" criada E se a etapa "Autorizar Emissão de R.O" foi concluída com "Autorizar"
           const authorizeSystemStep = steps?.find(s => s.stepName === "Autorizar via sistema");
-          if (authorizeSystemStep) {
+          const authorizeRoStep = steps?.find(s => s.stepName === "Autorizar Emissão de R.O");
+          
+          if (authorizeSystemStep && authorizeRoStep?.isCompleted && 
+              authorizeRoStep.observations?.includes("Autorizar Emissão de R.O: Autorizar")) {
             baseSteps.push({
               name: "Autorizar via sistema",
               phase: "Execução",
