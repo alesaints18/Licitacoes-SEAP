@@ -1305,13 +1305,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
           toast({
             title: "✅ Processo Autorizado",
-            description: "Processo autorizado via sistema e encaminhado para 'Anexar R.O' na Unidade de Orçamento e Finanças.",
+            description: "Processo autorizado via sistema e preparado para tramitação manual para a Unidade de Orçamento e Finanças.",
           });
-          
-          // Forçar recarregamento da página para garantir que os dados estejam atualizados
-          setTimeout(() => {
-            window.location.reload();
-          }, 1000);
         } else {
           throw new Error("Falha ao transferir processo");
         }
