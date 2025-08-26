@@ -1211,7 +1211,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
 
     try {
       console.log(
-        "🔥🔥🔥 ProcessDetail - Arquivando processo por Autorizar via sistema",
+        "🔥🔥🔥 ProcessDetail - Autorizando via sistema e criando etapa Anexar R.O",
       );
 
       // Criar etapa se não existir
@@ -1244,37 +1244,64 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         `/api/processes/${parsedId}/steps/${stepId}`,
         {
           isCompleted: true,
-          observations: "Autorizado via sistema - Processo arquivado automaticamente",
+          observations: "Autorizado via sistema - Secretário de Estado da Administração Penitenciária - SEAP",
           userId: currentUser?.id,
         },
       );
 
-      // Arquivar o processo (soft delete para aba Arquivados)
-      await apiRequest("DELETE", `/api/processes/${parsedId}`, {
-        deletionReason: "Autorizado via sistema - Secretário de Estado da Administração Penitenciária - SEAP",
-      });
+      console.log("✅ Etapa 'Autorizar via sistema' concluída, criando etapa 'Anexar R.O'");
+      
+      // Criar etapa "Anexar R.O" na Unidade de Orçamento e Finanças (departmentId: 4)
+      const createAnexarRoResponse = await apiRequest(
+        "POST",
+        `/api/processes/${parsedId}/steps`,
+        {
+          stepName: "Anexar R.O",
+          departmentId: 4, // Unidade de Orçamento e Finanças
+          isVisible: true,
+          isCompleted: false,
+        },
+      );
 
-      // Fechar modal e limpar estados
-      setAutorizarViaSistemaModalOpen(false);
-      setStepForAutorizarViaSistema(null);
+      if (createAnexarRoResponse.ok) {
+        console.log("✅ Etapa 'Anexar R.O' criada com sucesso!");
+        
+        // Transferir processo para Unidade de Orçamento e Finanças
+        const transferResponse = await apiRequest(
+          "PATCH",
+          `/api/processes/${parsedId}/transfer`,
+          {
+            targetDepartmentId: 4, // Unidade de Orçamento e Finanças
+            comments: "Processo transferido após autorização via sistema para anexar R.O",
+          },
+        );
 
-      // Invalidar cache para garantir atualização
-      queryClient.invalidateQueries({
-        queryKey: [`/api/processes/${parsedId}/steps`],
-      });
-      queryClient.invalidateQueries({
-        queryKey: [`/api/processes/${parsedId}`],
-      });
+        if (transferResponse.ok) {
+          console.log("✅ Processo transferido para Unidade de Orçamento e Finanças!");
+          
+          // Fechar modal e limpar estados
+          setAutorizarViaSistemaModalOpen(false);
+          setStepForAutorizarViaSistema(null);
 
-      toast({
-        title: "✅ Processo Autorizado e Arquivado",
-        description: "Processo foi autorizado via sistema e movido para a aba 'Arquivados'. Redirecionando...",
-      });
+          // Invalidar cache para garantir atualização
+          queryClient.invalidateQueries({
+            queryKey: [`/api/processes/${parsedId}/steps`],
+          });
+          queryClient.invalidateQueries({
+            queryKey: [`/api/processes/${parsedId}`],
+          });
+          queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
 
-      // Redirecionar para página de processos
-      setTimeout(() => {
-        window.location.href = "/processes";
-      }, 2000);
+          toast({
+            title: "✅ Processo Autorizado",
+            description: "Processo autorizado via sistema e encaminhado para 'Anexar R.O' na Unidade de Orçamento e Finanças.",
+          });
+        } else {
+          throw new Error("Falha ao transferir processo");
+        }
+      } else {
+        throw new Error("Falha ao criar etapa 'Anexar R.O'");
+      }
 
     } catch (error) {
       console.error("Erro ao arquivar processo por autorização via sistema:", error);
@@ -3787,14 +3814,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       <Dialog open={autorizarViaSistemaModalOpen} onOpenChange={setAutorizarViaSistemaModalOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <Archive className="h-5 w-5" />
-              Confirmar autorização e arquivamento do processo #{process?.pbdocNumber}?
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="h-5 w-5" />
+              Confirmar autorização via sistema do processo #{process?.pbdocNumber}?
             </DialogTitle>
             <DialogDescription>
               Tem certeza de que deseja autorizar este processo via sistema?{" "}
               <br />
-              O processo será movido para a aba "Arquivados" com o motivo: <strong className="text-blue-600">"Autorizado via sistema - Secretário de Estado da Administração Penitenciária - SEAP"</strong>
+              O processo será autorizado e encaminhado para a próxima etapa: <strong className="text-blue-600">"Anexar R.O" na Unidade de Orçamento e Finanças</strong>
             </DialogDescription>
           </DialogHeader>
 
@@ -3807,7 +3834,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                     Autorização via Sistema
                   </div>
                   <div className="text-sm text-green-700 mt-1">
-                    O processo será autorizado pelo sistema e arquivado automaticamente. O processo poderá ser restaurado posteriormente se necessário.
+                    O processo será autorizado pelo sistema e encaminhado para a etapa "Anexar R.O" na Unidade de Orçamento e Finanças.
                   </div>
                 </div>
               </div>
@@ -3831,8 +3858,8 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
               }}
               className="bg-green-600 hover:bg-green-700"
             >
-              <Archive className="h-4 w-4 mr-2" />
-              Autorizar e Arquivar
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Autorizar e Prosseguir
             </Button>
           </div>
         </DialogContent>
