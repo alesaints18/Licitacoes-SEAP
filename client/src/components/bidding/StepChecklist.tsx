@@ -435,6 +435,76 @@ const StepChecklist = ({
         }
       }
 
+      // Se é etapa "Autorizar via sistema", verificar se está sendo aprovada ou reprovada
+      if (step.stepName === "Autorizar via sistema" && !step.isCompleted) {
+        // Para esta etapa, vamos usar um modal de confirmação para aprovar/reprovar
+        const userDecision = window.confirm(
+          "Escolha a ação para 'Autorizar via sistema':\n\n" +
+          "OK = APROVAR (Arquivar processo automaticamente)\n" +
+          "Cancelar = REPROVAR (Voltar para 'Autorizar Emissão de R.O')"
+        );
+
+        if (userDecision) {
+          // APROVAR: Concluir etapa e arquivar processo
+          const updateResponse = await apiRequest("PATCH", `/api/processes/${processId}/steps/${step.id}`, {
+            isCompleted: true,
+            observations: "Aprovado - Processo arquivado automaticamente"
+          });
+          
+          if (updateResponse.ok) {
+            // Arquivar o processo automaticamente
+            const archiveResponse = await apiRequest("DELETE", `/api/processes/${processId}`, {
+              reason: "Autorizado via sistema - Secretário de Estado da Administração Penitenciária - SEAP"
+            });
+            
+            if (archiveResponse.ok) {
+              queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+              toast({
+                title: "Processo Autorizado e Arquivado",
+                description: "Autorização via sistema concluída. Processo arquivado automaticamente.",
+                variant: "default"
+              });
+              
+              // Redirecionar para lista de processos
+              setTimeout(() => {
+                window.location.href = "/processes";
+              }, 2000);
+            }
+          }
+        } else {
+          // REPROVAR: Voltar para etapa anterior e tornar "Autorizar Emissão de R.O" visível novamente
+          // 1. Marcar "Autorizar via sistema" como invisível/incompleta
+          const hideSystemStep = await apiRequest("PATCH", `/api/processes/${processId}/steps/${step.id}`, {
+            isVisible: false,
+            isCompleted: false,
+            observations: "Reprovado - Retornando para etapa anterior"
+          });
+          
+          if (hideSystemStep.ok) {
+            // 2. Buscar e marcar "Autorizar Emissão de R.O" como incompleta e visível
+            const stepsResponse = await apiRequest("GET", `/api/processes/${processId}/steps`);
+            const currentSteps = await stepsResponse.json();
+            const authorizeRoStep = currentSteps.find((s: any) => s.stepName === "Autorizar Emissão de R.O");
+            
+            if (authorizeRoStep) {
+              await apiRequest("PATCH", `/api/processes/${processId}/steps/${authorizeRoStep.id}`, {
+                isCompleted: false,
+                isVisible: true,
+                observations: "Retornado da etapa 'Autorizar via sistema' - requer nova autorização"
+              });
+            }
+            
+            queryClient.invalidateQueries({ queryKey: [`/api/processes/${processId}/steps`] });
+            toast({
+              title: "Autorização Reprovada",
+              description: "Processo retornado para a etapa 'Autorizar Emissão de R.O'",
+              variant: "default"
+            });
+          }
+        }
+        return;
+      }
+
       // Se é etapa "Fluxo Repror", arquivar automaticamente quando concluída
       if (step.stepName === "Fluxo Repror" && !step.isCompleted) {
         // Concluir a etapa
