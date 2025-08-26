@@ -33,6 +33,8 @@ const Layout = ({ children }: LayoutProps) => {
         return "Configurações";
       case "rejected-steps":
         return "Etapas Rejeitadas";
+      case "downloads":
+        return "Downloads de Relatórios";
       default:
         return "Sistema de Controle de Processos de Licitação";
     }

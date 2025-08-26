@@ -25,6 +25,7 @@ import FRP from "@/pages/FRP";
 import ReportExport from "@/pages/ReportExport";
 import Trash from "@/pages/Trash";
 import RejectedSteps from "@/pages/RejectedSteps";
+import ReportDownloads from "@/pages/ReportDownloads";
 import { useEffect, useState } from "react";
 import { apiRequest } from "./lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -331,6 +332,12 @@ function Router() {
       <Route path="/relatorio">
         <Layout>
           <ReportExport />
+        </Layout>
+      </Route>
+      
+      <Route path="/downloads">
+        <Layout>
+          <ReportDownloads />
         </Layout>
       </Route>
       

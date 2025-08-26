@@ -13,6 +13,7 @@ import {
   ChevronRight,
   ArchiveIcon,
   AlertTriangle,
+  Download,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -72,6 +73,11 @@ const Sidebar = () => {
         icon: <AlertTriangle className="h-5 w-5 mr-3" />,
         label: "Etapas Rejeitadas",
         adminOnly: true,
+      },
+      {
+        path: "/downloads",
+        icon: <Download className="h-5 w-5 mr-3" />,
+        label: "Downloads",
       },
       {
         path: "/users",
