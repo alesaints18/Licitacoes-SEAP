@@ -599,6 +599,14 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
           ];
         }
 
+        // Verificar se existe etapa "Anexar R.O" para este processo
+        const anexarRoStep = steps?.find(step => step.stepName === "Anexar R.O");
+        
+        if (anexarRoStep) {
+          console.log("🔍 FINANCEIRO - Etapa 'Anexar R.O' encontrada - mostrando apenas ela");
+          return [{ name: "Anexar R.O", phase: "Execução" }];
+        }
+        
         // Fluxo normal: mostrar apenas a etapa padrão
         console.log("🔍 FINANCEIRO - Fluxo normal: etapa padrão");
         return [
@@ -1279,6 +1287,9 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
         if (transferResponse.ok) {
           console.log("✅ Processo transferido para Unidade de Orçamento e Finanças!");
           
+          // Atualizar o processo no estado local para refletir a transferência
+          const updatedProcess = { ...process, currentDepartmentId: 4 };
+          
           // Fechar modal e limpar estados
           setAutorizarViaSistemaModalOpen(false);
           setStepForAutorizarViaSistema(null);
@@ -1296,6 +1307,11 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             title: "✅ Processo Autorizado",
             description: "Processo autorizado via sistema e encaminhado para 'Anexar R.O' na Unidade de Orçamento e Finanças.",
           });
+          
+          // Forçar recarregamento da página para garantir que os dados estejam atualizados
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
         } else {
           throw new Error("Falha ao transferir processo");
         }
