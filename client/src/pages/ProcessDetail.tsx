@@ -108,6 +108,10 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
   const [fluxoReprorModalOpen, setFluxoReprorModalOpen] = useState(false);
   const [stepForFluxoRepror, setStepForFluxoRepror] = useState<ProcessStep | null>(null);
 
+  // Estado para o modal de Autorizar via sistema
+  const [autorizarViaSistemaModalOpen, setAutorizarViaSistemaModalOpen] = useState(false);
+  const [stepForAutorizarViaSistema, setStepForAutorizarViaSistema] = useState<ProcessStep | null>(null);
+
   // Estados para modal de Autorizar Emissão de R.O
   const [authorizeRoModalOpen, setAuthorizeRoModalOpen] = useState(false);
   const [authorizeRoDecision, setAuthorizeRoDecision] = useState("");
@@ -1194,6 +1198,94 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
     }
   };
 
+  // Função para arquivar processo por autorização via sistema
+  const handleAutorizarViaSistema = async () => {
+    console.log("🔥 MODAL AUTORIZAR VIA SISTEMA - Função chamada!", {
+      stepForAutorizarViaSistema,
+    });
+
+    if (!stepForAutorizarViaSistema) {
+      console.log("🔥 MODAL AUTORIZAR VIA SISTEMA - Validação falhou");
+      return;
+    }
+
+    try {
+      console.log(
+        "🔥🔥🔥 ProcessDetail - Arquivando processo por Autorizar via sistema",
+      );
+
+      // Criar etapa se não existir
+      let stepId = stepForAutorizarViaSistema.id;
+      if (!stepId) {
+        console.log("🔥🔥🔥 ProcessDetail - Criando etapa Autorizar via sistema");
+        const createResponse = await apiRequest(
+          "POST",
+          `/api/processes/${parsedId}/steps`,
+          {
+            stepName: "Autorizar via sistema",
+            departmentId: process?.currentDepartmentId || 5,
+            isVisible: true,
+            isCompleted: false,
+          },
+        );
+
+        if (createResponse.ok) {
+          const newStep = await createResponse.json();
+          stepId = newStep.id;
+          console.log("🔥🔥🔥 ProcessDetail - Etapa criada com ID:", stepId);
+        } else {
+          throw new Error("Erro ao criar etapa");
+        }
+      }
+
+      // Completar a etapa
+       await apiRequest(
+        "PATCH",
+        `/api/processes/${parsedId}/steps/${stepId}`,
+        {
+          isCompleted: true,
+          observations: "Autorizado via sistema - Processo arquivado automaticamente",
+          userId: currentUser?.id,
+        },
+      );
+
+      // Arquivar o processo (soft delete para aba Arquivados)
+      await apiRequest("DELETE", `/api/processes/${parsedId}`, {
+        deletionReason: "Autorizado via sistema - Secretário de Estado da Administração Penitenciária - SEAP",
+      });
+
+      // Fechar modal e limpar estados
+      setAutorizarViaSistemaModalOpen(false);
+      setStepForAutorizarViaSistema(null);
+
+      // Invalidar cache para garantir atualização
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}/steps`],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [`/api/processes/${parsedId}`],
+      });
+
+      toast({
+        title: "✅ Processo Autorizado e Arquivado",
+        description: "Processo foi autorizado via sistema e movido para a aba 'Arquivados'. Redirecionando...",
+      });
+
+      // Redirecionar para página de processos
+      setTimeout(() => {
+        window.location.href = "/processes";
+      }, 2000);
+
+    } catch (error) {
+      console.error("Erro ao arquivar processo por autorização via sistema:", error);
+      toast({
+        title: "❌ Erro",
+        description: "Erro ao arquivar processo por autorização via sistema",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Função para arquivar processo por reavaliação SUBCC
   const handleSubccRevaluation = async () => {
     console.log("🔥 MODAL SUBCC REAVALIAÇÃO - Função chamada!", {
@@ -1235,7 +1327,7 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
       }
 
       // Completar a etapa
-      await apiRequest(
+       await apiRequest(
         "PATCH",
         `/api/processes/${parsedId}/steps/${stepId}`,
         {
@@ -2527,6 +2619,32 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
                                               return; // NÃO CONTINUA - Etapa só será concluída após confirmação no modal
                                             }
 
+                                            // Verificar se é a etapa de Autorizar via sistema - SEAP (COM MODAL DE CONFIRMAÇÃO)
+                                            if (
+                                              sectorStep.name === "Autorizar via sistema"
+                                            ) {
+                                              console.log(
+                                                "🔥 ProcessDetail - Etapa Autorizar via sistema detectada - abrindo modal de confirmação",
+                                              );
+                                              
+                                              setAutorizarViaSistemaModalOpen(true);
+                                              // Se a etapa não existe, criar um objeto temporário com as informações necessárias
+                                              if (existingStep) {
+                                                setStepForAutorizarViaSistema(existingStep);
+                                              } else {
+                                                // Criar objeto temporário para o modal funcionar
+                                                setStepForAutorizarViaSistema({
+                                                  id: null,
+                                                  stepName: "Autorizar via sistema",
+                                                  departmentId: process?.currentDepartmentId || 5,
+                                                  processId: parsedId,
+                                                  isCompleted: false,
+                                                  isVisible: true,
+                                                } as any);
+                                              }
+                                              return; // NÃO CONTINUA - Etapa só será concluída após confirmação no modal
+                                            }
+
                                             // Verificar se é a etapa de Fluxo reavaliação do plano de trabalho - SUBCC (COM MODAL DE CONFIRMAÇÃO)
                                             if (
                                               sectorStep.name === "Fluxo reavaliação do plano de trabalho"
@@ -3627,6 +3745,61 @@ const ProcessDetail = ({ id }: ProcessDetailProps) => {
             >
               <Archive className="h-4 w-4 mr-2" />
               Sim
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Confirmação de Autorizar via sistema */}
+      <Dialog open={autorizarViaSistemaModalOpen} onOpenChange={setAutorizarViaSistemaModalOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <Archive className="h-5 w-5" />
+              Confirmar autorização e arquivamento do processo #{process?.pbdocNumber}?
+            </DialogTitle>
+            <DialogDescription>
+              Tem certeza de que deseja autorizar este processo via sistema?{" "}
+              <br />
+              O processo será movido para a aba "Arquivados" com o motivo: <strong className="text-blue-600">"Autorizado via sistema - Secretário de Estado da Administração Penitenciária - SEAP"</strong>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-start space-x-3">
+                <AlertCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                <div>
+                  <div className="text-sm font-medium text-green-800">
+                    Autorização via Sistema
+                  </div>
+                  <div className="text-sm text-green-700 mt-1">
+                    O processo será autorizado pelo sistema e arquivado automaticamente. O processo poderá ser restaurado posteriormente se necessário.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setAutorizarViaSistemaModalOpen(false);
+                setStepForAutorizarViaSistema(null);
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={() => {
+                console.log("🔥 BOTÃO AUTORIZAR VIA SISTEMA - Clicado!");
+                handleAutorizarViaSistema();
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Archive className="h-4 w-4 mr-2" />
+              Autorizar e Arquivar
             </Button>
           </div>
         </DialogContent>
