@@ -369,13 +369,60 @@ const StepChecklist = ({
       isLocked: step.isLocked
     });
     
-    // Log específico para "Autorizar via sistema"
-    if (step.stepName === "Autorizar via sistema") {
-      console.log("🎯 DETECTADO: Etapa 'Autorizar via sistema' - Verificando condições:", {
-        stepName: step.stepName,
-        isCompleted: step.isCompleted,
-        shouldExecuteLogic: !step.isCompleted
-      });
+    // ESPECIAL: "Autorizar via sistema" - arquivar automaticamente
+    if (step.stepName === "Autorizar via sistema" && !step.isCompleted) {
+      console.log("🔥 INTERCEPTANDO Autorizar via sistema - Iniciando arquivamento automático");
+      
+      try {
+        // Concluir etapa primeiro
+        const updateResponse = await apiRequest("PATCH", `/api/processes/${processId}/steps/${step.id}`, {
+          isCompleted: true,
+          observations: "Autorizado via sistema - Processo arquivado automaticamente"
+        });
+        
+        if (updateResponse.ok) {
+          console.log("✅ Etapa 'Autorizar via sistema' concluída, iniciando arquivamento...");
+          
+          // Arquivar processo automaticamente
+          const archiveResponse = await apiRequest("DELETE", `/api/processes/${processId}`, {
+            deletionReason: "Autorizado via sistema - Secretário de Estado da Administração Penitenciária - SEAP"
+          });
+          
+          if (archiveResponse.ok) {
+            console.log("✅ Processo arquivado com sucesso!");
+            queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
+            toast({
+              title: "Processo Autorizado e Arquivado",
+              description: "Autorização via sistema concluída. Processo arquivado automaticamente.",
+              variant: "default"
+            });
+            
+            // Redirecionar para lista de processos
+            setTimeout(() => {
+              window.location.href = "/processes";
+            }, 2000);
+            return; // Sair da função para não executar a lógica padrão
+          } else {
+            const errorText = await archiveResponse.text();
+            console.error("❌ Erro no arquivamento:", errorText);
+            toast({
+              title: "Erro no arquivamento",
+              description: "Etapa aprovada mas processo não foi arquivado. Erro: " + errorText,
+              variant: "destructive"
+            });
+          }
+        } else {
+          console.error("❌ Erro ao concluir etapa");
+        }
+      } catch (error) {
+        console.error("❌ Erro geral no arquivamento:", error);
+        toast({
+          title: "Erro",
+          description: "Erro ao processar autorização via sistema",
+          variant: "destructive"
+        });
+      }
+      return; // Não executar lógica padrão
     }
     
     // BLOQUEIO ABSOLUTO: Verificar se a etapa está bloqueada primeiro
