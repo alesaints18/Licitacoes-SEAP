@@ -369,6 +369,15 @@ const StepChecklist = ({
       isLocked: step.isLocked
     });
     
+    // Log específico para "Autorizar via sistema"
+    if (step.stepName === "Autorizar via sistema") {
+      console.log("🎯 DETECTADO: Etapa 'Autorizar via sistema' - Verificando condições:", {
+        stepName: step.stepName,
+        isCompleted: step.isCompleted,
+        shouldExecuteLogic: !step.isCompleted
+      });
+    }
+    
     // BLOQUEIO ABSOLUTO: Verificar se a etapa está bloqueada primeiro
     if (step.isLocked && !step.isCompleted) {
       console.log("🚫 ETAPA BLOQUEADA - Impedindo ação");
