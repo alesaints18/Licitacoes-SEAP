@@ -436,7 +436,16 @@ const StepChecklist = ({
       }
 
       // Se é etapa "Autorizar via sistema", verificar se está sendo aprovada ou reprovada
-      if (step.stepName === "Autorizar via sistema" && !step.isCompleted) {
+      if (step.stepName === "Autorizar via sistema") {
+        // Se já está completada, não fazer nada
+        if (step.isCompleted) {
+          toast({
+            title: "Etapa já processada",
+            description: "Esta etapa já foi concluída anteriormente",
+            variant: "default"
+          });
+          return;
+        }
         // Para esta etapa, vamos usar um modal de confirmação para aprovar/reprovar
         const userDecision = window.confirm(
           "Escolha a ação para 'Autorizar via sistema':\n\n" +
@@ -446,16 +455,22 @@ const StepChecklist = ({
 
         if (userDecision) {
           // APROVAR: Concluir etapa e arquivar processo
+          console.log("🔥 StepChecklist - APROVANDO Autorizar via sistema");
           const updateResponse = await apiRequest("PATCH", `/api/processes/${processId}/steps/${step.id}`, {
             isCompleted: true,
             observations: "Aprovado - Processo arquivado automaticamente"
           });
           
+          console.log("🔥 StepChecklist - Update response:", updateResponse.ok, updateResponse.status);
+          
           if (updateResponse.ok) {
             // Arquivar o processo automaticamente
+            console.log("🔥 StepChecklist - Tentando arquivar processo ID:", processId);
             const archiveResponse = await apiRequest("DELETE", `/api/processes/${processId}`, {
-              reason: "Autorizado via sistema - Secretário de Estado da Administração Penitenciária - SEAP"
+              deletionReason: "Autorizado via sistema - Secretário de Estado da Administração Penitenciária - SEAP"
             });
+            
+            console.log("🔥 StepChecklist - Archive response:", archiveResponse.ok, archiveResponse.status);
             
             if (archiveResponse.ok) {
               queryClient.invalidateQueries({ queryKey: ["/api/processes"] });
@@ -469,7 +484,25 @@ const StepChecklist = ({
               setTimeout(() => {
                 window.location.href = "/processes";
               }, 2000);
+            } else {
+              // Log do erro de arquivamento
+              const errorText = await archiveResponse.text();
+              console.error("🔥 StepChecklist - Erro no arquivamento:", errorText);
+              toast({
+                title: "Erro no arquivamento",
+                description: "Etapa aprovada mas processo não foi arquivado. Erro: " + errorText,
+                variant: "destructive"
+              });
             }
+          } else {
+            // Log do erro na atualização da etapa
+            const errorText = await updateResponse.text();
+            console.error("🔥 StepChecklist - Erro na atualização:", errorText);
+            toast({
+              title: "Erro na aprovação",
+              description: "Não foi possível aprovar a etapa. Erro: " + errorText,
+              variant: "destructive"
+            });
           }
         } else {
           // REPROVAR: Voltar para etapa anterior e tornar "Autorizar Emissão de R.O" visível novamente
@@ -516,7 +549,7 @@ const StepChecklist = ({
         if (updateResponse.ok) {
           // Arquivar o processo automaticamente
           const archiveResponse = await apiRequest("DELETE", `/api/processes/${processId}`, {
-            reason: "Processo arquivado automaticamente após conclusão do Fluxo Repror (Indisponibilidade Orçamentária)"
+            deletionReason: "Processo arquivado automaticamente após conclusão do Fluxo Repror (Indisponibilidade Orçamentária)"
           });
           
           if (archiveResponse.ok) {
