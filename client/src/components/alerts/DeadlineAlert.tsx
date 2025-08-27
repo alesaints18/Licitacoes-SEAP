@@ -23,11 +23,11 @@ export function DeadlineAlert() {
     refetchInterval: 5 * 60 * 1000, // Verifica a cada 5 minutos
   });
 
-  // Aguarda a conclusão da intro (6,5 segundos)
+  // Aguarda a conclusão da intro (4 segundos)
   useEffect(() => {
     const timer = setTimeout(() => {
       setIntroCompleted(true);
-    }, 6500); // Mesma duração da intro
+    }, 4000); // Mesma duração da intro
 
     return () => clearTimeout(timer);
   }, []);
