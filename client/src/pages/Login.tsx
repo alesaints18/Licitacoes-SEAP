@@ -79,7 +79,11 @@ const Login = () => {
   const { toast } = useToast();
   const [urgentProcesses, setUrgentProcesses] = useState<any[]>([]);
   const [showUrgentAlert, setShowUrgentAlert] = useState(false);
-  const [showIntro, setShowIntro] = useState(true);
+  // Verificar se intro já foi mostrada nesta sessão
+  const [showIntro, setShowIntro] = useState(() => {
+    // Se já foi mostrada, não mostrar
+    return sessionStorage.getItem('introShown') !== 'true';
+  });
 
   // Verificar se o usuário já está autenticado ao carregar a página
   useEffect(() => {
@@ -92,11 +96,12 @@ const Login = () => {
         if (res.ok) {
           // Se já está autenticado, não mostrar intro e redirecionar
           setShowIntro(false);
+          sessionStorage.setItem('introShown', 'true');
           setLocation('/');
         }
       } catch (error) {
-        // Se houver erro, manter a intro
-        console.log('Usuário não autenticado, mostrando intro');
+        // Se houver erro, manter a intro apenas se não foi mostrada ainda
+        console.log('Usuário não autenticado');
       }
     };
     
@@ -194,6 +199,9 @@ const Login = () => {
       });
 
       console.log("Login bem-sucedido, redirecionando para dashboard");
+      
+      // Marcar intro como mostrada para não aparecer mais
+      sessionStorage.setItem('introShown', 'true');
       
       // Importar e invalidar o cache do React Query para forçar atualização do estado de auth
       const { queryClient } = await import("../lib/queryClient");
@@ -602,7 +610,10 @@ const Login = () => {
       )}
       
       {/* Mostrar intro antes do formulário de login */}
-      {showIntro && <LoginIntro onComplete={() => setShowIntro(false)} />}
+      {showIntro && <LoginIntro onComplete={() => {
+        setShowIntro(false);
+        sessionStorage.setItem('introShown', 'true');
+      }} />}
     </div>
   );
 };
