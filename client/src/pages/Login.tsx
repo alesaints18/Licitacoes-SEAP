@@ -79,10 +79,7 @@ const Login = () => {
   const { toast } = useToast();
   const [urgentProcesses, setUrgentProcesses] = useState<any[]>([]);
   const [showUrgentAlert, setShowUrgentAlert] = useState(false);
-  const [showIntro, setShowIntro] = useState(() => {
-    // Verificar se a intro já foi vista nesta sessão
-    return !sessionStorage.getItem('introSeen');
-  });
+  const [showIntro, setShowIntro] = useState(true);
 
   // Create login form with default values
   const loginForm = useForm<LoginFormValues>({
@@ -583,10 +580,7 @@ const Login = () => {
       )}
       
       {/* Mostrar intro antes do formulário de login */}
-      {showIntro && <LoginIntro onComplete={() => {
-        setShowIntro(false);
-        sessionStorage.setItem('introSeen', 'true');
-      }} />}
+      {showIntro && <LoginIntro onComplete={() => setShowIntro(false)} />}
     </div>
   );
 };
