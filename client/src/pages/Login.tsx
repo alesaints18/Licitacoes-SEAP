@@ -195,9 +195,6 @@ const Login = () => {
 
       console.log("Login bem-sucedido, redirecionando para dashboard");
       
-      // Garantir que a intro não apareça após o login
-      setShowIntro(false);
-      
       // Importar e invalidar o cache do React Query para forçar atualização do estado de auth
       const { queryClient } = await import("../lib/queryClient");
       queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] }); // Remover await para ser mais rápido
