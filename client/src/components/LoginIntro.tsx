@@ -1,18 +1,19 @@
 import { useEffect } from "react";
-import { useLocation } from "wouter";
 import logoPb4k from "@assets/Logo PB 4k_1756265065361.png";
 
-export function LoginIntro() {
-  const [, setLocation] = useLocation();
+interface LoginIntroProps {
+  onComplete?: () => void;
+}
 
+export function LoginIntro({ onComplete }: LoginIntroProps) {
   useEffect(() => {
-    // Redireciona para o dashboard após 4 segundos
+    // Executa o callback após 4 segundos para esconder a intro
     const timer = setTimeout(() => {
-      setLocation("/");
+      onComplete?.();
     }, 4000);
 
     return () => clearTimeout(timer);
-  }, [setLocation]);
+  }, [onComplete]);
 
   return (
     <>

@@ -79,7 +79,10 @@ const Login = () => {
   const { toast } = useToast();
   const [urgentProcesses, setUrgentProcesses] = useState<any[]>([]);
   const [showUrgentAlert, setShowUrgentAlert] = useState(false);
-  const [showIntro, setShowIntro] = useState(false);
+  const [showIntro, setShowIntro] = useState(() => {
+    // Verificar se a intro já foi vista nesta sessão
+    return !sessionStorage.getItem('introSeen');
+  });
 
   // Create login form with default values
   const loginForm = useForm<LoginFormValues>({
@@ -171,14 +174,14 @@ const Login = () => {
         description: "Você será redirecionado para o dashboard",
       });
 
-      console.log("Login bem-sucedido, mostrando intro");
+      console.log("Login bem-sucedido, redirecionando para dashboard");
       
       // Importar e invalidar o cache do React Query para forçar atualização do estado de auth
       const { queryClient } = await import("../lib/queryClient");
       queryClient.invalidateQueries({ queryKey: ['/api/auth/status'] }); // Remover await para ser mais rápido
       
-      // Mostrar intro que redirecionará automaticamente para o dashboard
-      setShowIntro(true);
+      // Redirecionar diretamente para o dashboard após login
+      setLocation("/");
     } catch (error) {
       console.error("Erro no login:", error);
 
@@ -284,22 +287,23 @@ const Login = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      <div className="w-full max-w-md px-4">
-        <img
-          src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
-          alt="Logo"
-          className="mx-auto mb-4"
-          width={250}
-        />
+      {!showIntro && (
+        <div className="w-full max-w-md px-4">
+          <img
+            src="https://paraiba.pb.gov.br/marca-do-governo/GovPBT.png"
+            alt="Logo"
+            className="mx-auto mb-4"
+            width={250}
+          />
 
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-primary mb-2">SEAP-PB</h1>
-          <h2 className="text-xl text-foreground/80">
-            Sistema de Controle de Processos de Licitação
-          </h2>
-        </div>
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-primary mb-2">SEAP-PB</h1>
+            <h2 className="text-xl text-foreground/80">
+              Sistema de Controle de Processos de Licitação
+            </h2>
+          </div>
 
-        <Tabs defaultValue="login" className="w-full">
+          <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 mb-4">
             <TabsTrigger value="login" id="login-tab">
               Login
@@ -575,10 +579,14 @@ const Login = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </div>
+        </div>
+      )}
       
-      {/* Mostrar intro após login bem-sucedido */}
-      {showIntro && <LoginIntro />}
+      {/* Mostrar intro antes do formulário de login */}
+      {showIntro && <LoginIntro onComplete={() => {
+        setShowIntro(false);
+        sessionStorage.setItem('introSeen', 'true');
+      }} />}
     </div>
   );
 };
