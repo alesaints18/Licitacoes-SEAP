@@ -81,6 +81,28 @@ const Login = () => {
   const [showUrgentAlert, setShowUrgentAlert] = useState(false);
   const [showIntro, setShowIntro] = useState(true);
 
+  // Verificar se o usuário já está autenticado ao carregar a página
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/auth/status', {
+          credentials: 'include',
+          cache: 'no-store'
+        });
+        if (res.ok) {
+          // Se já está autenticado, não mostrar intro e redirecionar
+          setShowIntro(false);
+          setLocation('/');
+        }
+      } catch (error) {
+        // Se houver erro, manter a intro
+        console.log('Usuário não autenticado, mostrando intro');
+      }
+    };
+    
+    checkAuth();
+  }, [setLocation]);
+
   // Create login form with default values
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -172,6 +194,9 @@ const Login = () => {
       });
 
       console.log("Login bem-sucedido, redirecionando para dashboard");
+      
+      // Garantir que a intro não apareça após o login
+      setShowIntro(false);
       
       // Importar e invalidar o cache do React Query para forçar atualização do estado de auth
       const { queryClient } = await import("../lib/queryClient");
